@@ -34,7 +34,7 @@ const KEYS = {
 };
 
 // Initialize LocalStorage with seed data if empty
-function initLocalStore() {
+export function initLocalStore() {
   if (!localStorage.getItem(KEYS.ANNOUNCEMENTS)) {
     localStorage.setItem(KEYS.ANNOUNCEMENTS, JSON.stringify(INITIAL_ANNOUNCEMENTS));
   }
@@ -283,8 +283,8 @@ export const storageService = {
   async submitFeedback({ category, content, containsPII }) {
     const trackingId = "GMC-FB-" + Math.floor(1000 + Math.random() * 9000);
     
-    // Automatic PII Detection heuristics as additional privacy safety
-    const piiPattern = /\b([A-Z][a-z]+ [A-Z][a-z]+|[0-9]{10}|roll\s*(no|number|#)?\s*[0-9]+)\b/i;
+    // Automatic PII Detection heuristics as additional privacy safety (doctor/student titles, roll nos, rooms, phone, email)
+    const piiPattern = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|[0-9]{10}|(roll|reg|id)\s*(no|number|#)?\s*[:.-]?\s*[0-9]+|room\s*[0-9]+|my name is\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
     const autoDetectedPII = piiPattern.test(content);
     const finalContainsPII = Boolean(containsPII || autoDetectedPII);
 

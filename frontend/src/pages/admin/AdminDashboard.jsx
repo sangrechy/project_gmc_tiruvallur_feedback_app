@@ -11,7 +11,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   Eye,
-  ShieldAlert
+  ShieldAlert,
+  Megaphone
 } from 'lucide-react';
 
 export default function AdminDashboard({ 

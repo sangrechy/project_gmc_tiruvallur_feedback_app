@@ -42,7 +42,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
 
   // Auto-scroll on new message
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   }, [session?.messages]);
 
   const handleSendMessage = async (e) => {

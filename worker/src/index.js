@@ -64,8 +64,8 @@ export default {
 
         const trackingId = "GMC-FB-" + Math.floor(1000 + Math.random() * 9000);
 
-        // Server-side PII check
-        const piiRegex = /\b([A-Z][a-z]+ [A-Z][a-z]+|[0-9]{10}|roll\s*(no|number|#)?\s*[0-9]+)\b/i;
+        // Server-side PII check (doctor/student titles, roll nos, rooms, phone, email)
+        const piiRegex = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|[0-9]{10}|(roll|reg|id)\s*(no|number|#)?\s*[:.-]?\s*[0-9]+|room\s*[0-9]+|my name is\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
         const autoDetectedPII = piiRegex.test(content);
         const finalContainsPII = Boolean(containsPII || autoDetectedPII);
 
