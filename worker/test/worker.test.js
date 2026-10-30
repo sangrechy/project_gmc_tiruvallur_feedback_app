@@ -14,6 +14,15 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     waitUntil: (promise) => promise,
   };
 
+  // Mock outbound Telegram requests
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    if (typeof url === 'string' && url.includes('api.telegram.org')) {
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    return originalFetch(url, options);
+  };
+
   test('GET /health returns 200 with service health checklist', async () => {
     const req = new Request('https://worker.dev/health', { method: 'GET' });
     const res = await worker.fetch(req, mockEnv, mockCtx);

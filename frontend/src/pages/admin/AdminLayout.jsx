@@ -43,31 +43,39 @@ export default function AdminLayout({
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col font-sans transition-colors">
-      {/* Admin Top Header matching wireframe */}
-      <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 font-mono text-xs">
+    <div className="min-h-screen bg-[#e6edf8] dark:bg-[#0c1427] flex flex-col font-sans transition-colors duration-300">
+      {/* Admin Top Header with FBI security sticker */}
+      <header className="bg-[#e6edf8] dark:bg-[#0c1427] sticky top-0 z-40 border-b border-slate-200/50 dark:border-slate-800/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 font-mono text-xs">
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
-              className="lg:hidden p-1.5 rounded hover:bg-slate-800"
+              className="lg:hidden p-2 neu-circle text-slate-700 dark:text-slate-200"
             >
               {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <div className="font-extrabold tracking-wider text-sm flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span>GMC COUNCIL ADMIN</span>
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 neu-circle p-1 flex items-center justify-center">
+                <img 
+                  src="/stickers/fbi.webp" 
+                  alt="FBI Council Security" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="font-extrabold tracking-wider text-sm text-slate-800 dark:text-slate-100">
+                GMC COUNCIL ADMIN
+              </span>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            <span className="text-slate-400 hidden sm:inline">
+            <span className="text-slate-500 dark:text-slate-400 hidden sm:inline">
               {adminUser?.email || "ADMIN"}
             </span>
-            <span className="text-slate-700">|</span>
+            <span className="text-slate-400">|</span>
             <button
               onClick={onLogout}
-              className="font-bold text-red-400 hover:text-red-300 flex items-center space-x-1"
+              className="px-3 py-1.5 neu-button font-bold text-red-500 hover:text-red-600 flex items-center space-x-1.5 transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>LOGOUT</span>
@@ -78,9 +86,9 @@ export default function AdminLayout({
 
       {/* Main Admin Body */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col lg:flex-row gap-6">
-        {/* Left Sidebar Navigation matching wireframe */}
+        {/* Left Sidebar Navigation matching wireframe with Neumorphic buttons */}
         <aside
-          className={`lg:w-64 flex-shrink-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 h-fit shadow-sm ${
+          className={`lg:w-64 flex-shrink-0 portal-card p-4 h-fit ${
             mobileNavOpen ? 'block fixed inset-x-4 top-20 z-50 shadow-2xl' : 'hidden lg:block'
           }`}
         >
@@ -88,7 +96,7 @@ export default function AdminLayout({
             COUNCIL NAVIGATION
           </div>
 
-          <nav className="space-y-1">
+          <nav className="space-y-1.5">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentSection === item.id;
@@ -96,20 +104,18 @@ export default function AdminLayout({
                 <button
                   key={item.id}
                   onClick={() => handleSelectSection(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-mono font-bold transition-colors ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold transition-all ${
                     isActive
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'neu-pressed text-sky-600 dark:text-sky-400'
+                      : 'neu-button text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 text-sky-500" />
                     <span>{item.label}</span>
                   </div>
                   {item.badge > 0 && (
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${
-                      isActive ? 'bg-white text-emerald-800' : 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200'
-                    }`}>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono neu-pill bg-sky-500/10 text-sky-600 dark:text-sky-400">
                       {item.badge}
                     </span>
                   )}
@@ -118,10 +124,10 @@ export default function AdminLayout({
             })}
           </nav>
 
-          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/80">
             <button
               onClick={() => setCurrentRoute('home')}
-              className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-mono text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+              className="w-full flex items-center space-x-2 px-3 py-2 neu-button rounded-xl text-xs font-mono text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Student Portal View</span>

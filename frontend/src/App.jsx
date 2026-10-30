@@ -28,10 +28,11 @@ import { isFirebaseConfigured } from './services/firebase';
 import { ShieldCheck, Sparkles, Database } from 'lucide-react';
 
 export default function App() {
-  // Theme state
+  // Theme state: defaults to dark theme with blue shade
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('gmc_theme') === 'dark' ||
-      (!('gmc_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const saved = localStorage.getItem('gmc_theme');
+    if (saved) return saved === 'dark';
+    return true; // Default to dark theme with blue shade as requested!
   });
 
   // Routing state
@@ -175,10 +176,10 @@ export default function App() {
   const activeChatsCount = chats.filter(c => c.status === 'active').length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen flex flex-col bg-[#e6edf8] dark:bg-[#0c1427] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       {/* Decoupled environment banner - informative & elegant */}
       {!isFirebaseConfigured && (
-        <div className="bg-emerald-900 text-emerald-100 text-[11px] font-mono py-1 px-4 text-center border-b border-emerald-800 flex items-center justify-center space-x-2">
+        <div className="bg-sky-950/80 text-sky-200 text-[11px] font-mono py-1.5 px-4 text-center border-b border-sky-800/50 flex items-center justify-center space-x-2">
           <Database className="w-3.5 h-3.5 text-emerald-400" />
           <span>
             <strong>Storage Mode:</strong> Interactive Local Mode (Full functionality active. To connect cloud Firestore, populate .env variables)

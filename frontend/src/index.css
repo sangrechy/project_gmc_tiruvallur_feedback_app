@@ -2,39 +2,179 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Neumorphic Soft UI - Light Theme (Soft Ice Blue) */
+  --neu-bg: #e6edf8;
+  --neu-surface: #e6edf8;
+  --neu-shadow-dark: #c0cadb;
+  --neu-shadow-light: #ffffff;
+  --neu-text: #1e293b;
+  --neu-text-muted: #64748b;
+  --neu-accent: #0284c7;
+  --neu-accent-glow: rgba(2, 132, 199, 0.25);
+}
+
+.dark {
+  /* Neumorphic Soft UI - Dark Theme (Deep Blue Shade) */
+  --neu-bg: #0c1427;
+  --neu-surface: #0c1427;
+  --neu-shadow-dark: #050811;
+  --neu-shadow-light: #15223e;
+  --neu-text: #e2e8f0;
+  --neu-text-muted: #8da0bc;
+  --neu-accent: #38bdf8;
+  --neu-accent-glow: rgba(56, 189, 248, 0.28);
+}
+
 @layer base {
-  body {
-    @apply antialiased font-sans;
+  html, body {
+    background-color: var(--neu-bg);
+    color: var(--neu-text);
+    cursor: url('/stickers/pointer_cursor.png') 2 2, auto;
+    font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  }
+
+  button, a, input, select, textarea, [role="button"], label {
+    cursor: url('/stickers/pointer_cursor.png') 2 2, pointer !important;
   }
 }
 
-/* Custom scrollbars */
+/* Custom scrollbars matching neumorphic blue theme */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--neu-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+  background: var(--neu-shadow-dark);
+  border-radius: 9999px;
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-light);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400 dark:bg-slate-600;
+  background: var(--neu-accent);
 }
 
-/* Wireframe style border accents */
-.portal-card {
-  @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-200;
+/* ================= NEUMORPHIC SOFT UI SYSTEM ================= */
+
+/* Tactile Extruded Card */
+.portal-card, .neu-card {
+  background: var(--neu-bg);
+  box-shadow: 8px 8px 18px var(--neu-shadow-dark), -8px -8px 18px var(--neu-shadow-light);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.portal-button-primary {
-  @apply inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-colors duration-150 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950;
+.portal-card:hover, .neu-card:hover {
+  box-shadow: 10px 10px 22px var(--neu-shadow-dark), -10px -10px 22px var(--neu-shadow-light);
 }
 
-.portal-button-secondary {
-  @apply inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-medium text-sm transition-colors duration-150 border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400;
+/* Tactile Inset / Debossed Recessed Fields (Inputs, Textarea) */
+.neu-input, input.neu-input, textarea.neu-input, select.neu-input {
+  background: var(--neu-bg) !important;
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
+  border-radius: 16px;
+  color: var(--neu-text);
+  transition: all 0.2s ease;
+}
+
+.neu-input:focus, input.neu-input:focus, textarea.neu-input:focus {
+  outline: none;
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light), 0 0 10px var(--neu-accent-glow) !important;
+}
+
+/* Tactile Inset Box / Container */
+.neu-pressed {
+  background: var(--neu-bg);
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light) !important;
+  border-radius: 18px;
+}
+
+/* Tactile Primary Button */
+.portal-button-primary, .neu-btn-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  box-shadow: 5px 5px 14px var(--neu-shadow-dark), -5px -5px 14px var(--neu-shadow-light), 0 0 14px var(--neu-accent-glow);
+  border-radius: 16px;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.dark .portal-button-primary, .dark .neu-btn-primary {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: #ffffff;
+  box-shadow: 5px 5px 14px var(--neu-shadow-dark), -5px -5px 14px var(--neu-shadow-light), 0 0 16px var(--neu-accent-glow);
+}
+
+.portal-button-primary:hover, .neu-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 7px 7px 18px var(--neu-shadow-dark), -7px -7px 18px var(--neu-shadow-light), 0 0 20px var(--neu-accent-glow);
+}
+
+.portal-button-primary:active, .neu-btn-primary:active {
+  transform: translateY(1px);
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.4), inset -3px -3px 6px rgba(255, 255, 255, 0.2);
+}
+
+/* Tactile Secondary Button */
+.portal-button-secondary, .neu-btn-secondary {
+  background: var(--neu-bg);
+  color: var(--neu-text);
+  box-shadow: 5px 5px 12px var(--neu-shadow-dark), -5px -5px 12px var(--neu-shadow-light);
+  border-radius: 16px;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.portal-button-secondary:hover, .neu-btn-secondary:hover {
+  box-shadow: 7px 7px 16px var(--neu-shadow-dark), -7px -7px 16px var(--neu-shadow-light);
+}
+
+.portal-button-secondary:active, .neu-btn-secondary:active {
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark), inset -3px -3px 6px var(--neu-shadow-light);
+}
+
+/* Tactile Circle Icon Button */
+.neu-circle {
+  background: var(--neu-bg);
+  box-shadow: 5px 5px 12px var(--neu-shadow-dark), -5px -5px 12px var(--neu-shadow-light);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.neu-circle:hover {
+  box-shadow: 7px 7px 16px var(--neu-shadow-dark), -7px -7px 16px var(--neu-shadow-light);
+}
+
+.neu-circle:active, .neu-circle.active {
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark), inset -3px -3px 6px var(--neu-shadow-light);
+}
+
+/* Tactile Badge / Pill */
+.neu-pill {
+  background: var(--neu-bg);
+  box-shadow: 3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light);
+  border-radius: 9999px;
+}
+
+/* Floating animation for stickers */
+@keyframes softFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(1.5deg); }
+}
+
+.sticker-float {
+  animation: softFloat 4s ease-in-out infinite;
+}
+
+.sticker-float-delayed {
+  animation: softFloat 4.5s ease-in-out infinite 0.7s;
 }

@@ -8,27 +8,34 @@ export default {
   theme: {
     extend: {
       colors: {
-        gmc: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#16a34a',
-          600: '#15803d',
-          700: '#166534',
-          800: '#14532d',
-          900: '#052e16',
+        neu: {
+          light: '#e6edf8',
+          dark: '#0c1427',
+          surfaceDark: '#0c1427',
+          blue: {
+            DEFAULT: '#0284c7',
+            50: '#f0f9ff',
+            100: '#e0f2fe',
+            400: '#38bdf8',
+            500: '#0ea5e9',
+            600: '#0284c7',
+            700: '#0369a1',
+            glow: 'rgba(56, 189, 248, 0.25)'
+          }
         },
         navy: {
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#090d16',
+          800: '#111b33',
+          900: '#0c1427',
+          950: '#060a14',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+      },
+      borderRadius: {
+        '2xl': '20px',
+        '3xl': '28px',
       }
     },
   },

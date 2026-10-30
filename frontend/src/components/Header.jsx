@@ -4,14 +4,14 @@ import {
   Moon, 
   Menu, 
   X, 
-  ShieldAlert, 
   Home, 
   Megaphone, 
   MessageSquarePlus, 
   MessageCircle, 
   Vote, 
   Calendar,
-  Lock
+  Lock,
+  Shield
 } from 'lucide-react';
 
 export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setIsDarkMode, isAdminLoggedIn }) {
@@ -33,52 +33,69 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <header className="sticky top-0 z-50 bg-[#e6edf8]/90 dark:bg-[#0c1427]/90 backdrop-blur-md transition-colors duration-300">
       {/* Top Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
         <div className="flex items-center justify-between h-16">
-          {/* Logo / Branding */}
+          {/* Logo / Branding with Neumorphic Circle */}
           <div 
             onClick={() => handleNavClick('home')}
             className="flex items-center space-x-3 cursor-pointer group select-none"
           >
-            <div className="w-10 h-10 rounded-lg bg-emerald-600 dark:bg-emerald-700 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-              <span className="font-bold text-lg font-mono">GMC</span>
+            <div className="w-12 h-12 neu-circle flex items-center justify-center text-sky-600 dark:text-sky-400 font-mono font-bold text-lg group-hover:scale-105 transition-all">
+              <span className="tracking-tighter">GMC</span>
             </div>
             <div>
-              <div className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white leading-none">
+              <div className="font-extrabold text-base sm:text-lg tracking-tight text-slate-800 dark:text-slate-100 leading-none">
                 GMC THIRUVALLUR
               </div>
-              <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase mt-0.5">
+              <div className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 tracking-wider uppercase mt-1">
                 STUDENT COUNCIL PORTAL
               </div>
             </div>
           </div>
 
           {/* Right Header Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* Theme Toggle Button [THEME] */}
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            {/* Theme Toggle Button using theme.png */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
               aria-label="Toggle Theme"
-              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors flex items-center space-x-1 text-xs font-mono font-medium"
+              className="p-1.5 sm:px-3 sm:py-1.5 neu-button flex items-center space-x-2 text-xs font-mono font-bold text-slate-700 dark:text-slate-200 transition-all group"
             >
-              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
-              <span className="hidden sm:inline">[THEME]</span>
+              <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-slate-200 dark:bg-slate-800 shadow-inner">
+                <img 
+                  src="/stickers/theme.png" 
+                  alt="Theme Switcher" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                />
+              </div>
+              <div className="hidden sm:flex items-center space-x-1">
+                {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-sky-600" />}
+                <span className="text-[11px] tracking-wider">[THEME]</span>
+              </div>
             </button>
 
-            {/* Council Admin Access Button */}
+            {/* Council Admin Access with FBI Sticker */}
             <button
               onClick={() => handleNavClick(isAdminLoggedIn ? 'admin-dashboard' : 'admin-login')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center space-x-1.5 transition-colors ${
+              className={`px-3 py-1.5 neu-button flex items-center space-x-2 text-xs font-mono font-bold transition-all ${
                 currentRoute.startsWith('admin')
-                  ? 'bg-emerald-600 text-white border-emerald-600'
-                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100'
+                  ? 'neu-pressed text-sky-500'
+                  : 'text-slate-700 dark:text-slate-200 hover:text-sky-500'
               }`}
             >
-              <Lock className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">{isAdminLoggedIn ? "COUNCIL DASHBOARD" : "COUNCIL LOGIN"}</span>
+              <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center">
+                <img 
+                  src="/stickers/fbi.webp" 
+                  alt="FBI Council Security" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="hidden md:inline">
+                {isAdminLoggedIn ? "COUNCIL DASHBOARD" : "COUNCIL LOGIN"}
+              </span>
               <span className="md:hidden">COUNCIL</span>
             </button>
 
@@ -86,15 +103,15 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle Navigation Menu"
-              className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="md:hidden p-2.5 neu-circle text-slate-700 dark:text-slate-200"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-1 py-2 border-t border-slate-100 dark:border-slate-800/80">
+        {/* Desktop Neumorphic Navigation Bar */}
+        <nav className="hidden md:flex items-center justify-center space-x-3 py-2 mt-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentRoute === item.id;
@@ -102,13 +119,13 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider transition-all ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wider transition-all font-mono ${
                   isActive
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                    ? 'neu-pressed text-sky-600 dark:text-sky-400'
+                    : 'neu-button text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400'}`} />
                 <span>{item.label}</span>
               </button>
             );
@@ -118,7 +135,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-4 space-y-1 animate-fadeIn">
+        <div className="md:hidden px-4 pt-2 pb-6 space-y-2 animate-fadeIn bg-[#e6edf8] dark:bg-[#0c1427]">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentRoute === item.id;
@@ -126,13 +143,13 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-semibold tracking-wide transition-colors ${
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-mono font-bold tracking-wide transition-all ${
                   isActive
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'neu-pressed text-sky-600 dark:text-sky-400'
+                    : 'neu-button text-slate-700 dark:text-slate-200'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 text-sky-500" />
                 <span>{item.label}</span>
               </button>
             );

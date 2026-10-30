@@ -2,11 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Send, 
   Clock, 
-  ShieldAlert, 
-  RefreshCw, 
-  CheckCircle2, 
   AlertCircle,
-  MessageCircle,
   LogOut
 } from 'lucide-react';
 import { storageService } from '../services/storageService';
@@ -55,7 +51,6 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
 
     try {
       await storageService.sendChatMessage(session.sessionId, 'student', text);
-      // Reload session
       const updated = await storageService.getOrCreateChatSession(session.sessionId);
       setSession(updated);
     } catch (err) {
@@ -99,24 +94,40 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       {/* Header Bar matching wireframe */}
-      <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-200 dark:border-slate-800 text-xs font-mono">
+      <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-200/50 dark:border-slate-800/80 text-xs font-mono">
         <span className="font-bold text-slate-800 dark:text-slate-200">GMC STUDENT COUNCIL</span>
-        <span className="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">
+        <span className="text-sky-600 dark:text-sky-400 font-bold uppercase tracking-wider">
           TEMPORARY CHAT
         </span>
       </div>
 
       <div className="portal-card p-6 sm:p-8 space-y-6">
-        {/* Title & Connection Status */}
-        <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-mono uppercase tracking-tight">
-            CHAT WITH STUDENT COUNCIL
-          </h1>
+        {/* Title & Connection Status with Mascot */}
+        <div className="border-b border-slate-200/50 dark:border-slate-800/80 pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 neu-circle p-1.5 flex items-center justify-center flex-shrink-0 sticker-float">
+                <img 
+                  src="/stickers/myself.webp" 
+                  alt="Council Chat Representative" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 font-mono uppercase tracking-tight">
+                  CHAT WITH STUDENT COUNCIL
+                </h1>
+                <div className="text-[11px] font-mono text-slate-400">
+                  Direct encrypted ephemeral channel
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
             <div className="flex items-center space-x-2">
               <span className="text-slate-500">Your Session ID:</span>
-              <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+              <span className="font-bold text-sky-600 dark:text-sky-400 neu-pill px-3 py-0.5">
                 {session.sessionId}
               </span>
             </div>
@@ -124,12 +135,12 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
             <div className="flex items-center space-x-2">
               <span className="text-slate-500">Status:</span>
               {isConnected ? (
-                <span className="flex items-center space-x-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="flex items-center space-x-1.5 font-bold text-emerald-500 neu-pill px-3 py-0.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>CONNECTED</span>
                 </span>
               ) : (
-                <span className="flex items-center space-x-1 font-bold text-slate-400">
+                <span className="flex items-center space-x-1 font-bold text-slate-400 neu-pill px-3 py-0.5">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>{session.status.toUpperCase()}</span>
                 </span>
@@ -138,8 +149,8 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
           </div>
         </div>
 
-        {/* Message Container Area */}
-        <div className="h-96 overflow-y-auto p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-4">
+        {/* Message Container Area with Neumorphic Inset */}
+        <div className="h-96 overflow-y-auto p-4 rounded-2xl neu-pressed space-y-4">
           {session.messages.map((msg) => {
             const isCouncil = msg.sender === 'council';
             return (
@@ -147,14 +158,14 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                 key={msg.id}
                 className={`flex flex-col ${isCouncil ? 'items-start' : 'items-end'}`}
               >
-                <div className="text-[10px] font-mono font-bold mb-1 px-1 text-slate-500 dark:text-slate-400">
-                  {isCouncil ? "Council" : "You"} • {msg.timestamp}
+                <div className="text-[10px] font-mono font-bold mb-1 px-1 text-slate-400">
+                  {isCouncil ? "Council Representative" : "You"} • {msg.timestamp}
                 </div>
                 <div
                   className={`max-w-[85%] sm:max-w-[75%] p-3.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed ${
                     isCouncil
-                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700/80 rounded-tl-sm shadow-sm'
-                      : 'bg-emerald-600 text-white rounded-tr-sm shadow-sm'
+                      ? 'portal-card text-slate-800 dark:text-slate-100 rounded-tl-sm shadow-sm'
+                      : 'portal-button-primary text-white rounded-tr-sm shadow-sm'
                   }`}
                 >
                   {msg.text}
@@ -168,20 +179,20 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
         {/* Message Input Box matching wireframe */}
         {isConnected ? (
           <form onSubmit={handleSendMessage} className="space-y-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Type your message..."
                 disabled={isSending}
-                className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
+                className="flex-1 px-4 py-3.5 neu-input text-xs sm:text-sm placeholder-slate-400"
               />
               <button
                 type="submit"
                 disabled={!inputText.trim() || isSending}
                 title="Send Message"
-                className="portal-button-primary px-5 py-3 rounded-xl font-mono font-bold disabled:opacity-50"
+                className="portal-button-primary px-5 py-3.5 font-mono font-bold disabled:opacity-50"
               >
                 <span>[-&gt;]</span>
               </button>
@@ -190,7 +201,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
             {/* Inactivity Expiry Notice */}
             <div className="text-center">
               <div className="inline-flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 font-mono">
-                <Clock className="w-3.5 h-3.5" />
+                <Clock className="w-3.5 h-3.5 text-sky-500" />
                 <span>Session expires after 24 hours of inactivity.</span>
               </div>
             </div>
@@ -200,20 +211,20 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
               <button
                 type="button"
                 onClick={() => setShowEndModal(true)}
-                className="text-xs font-mono font-bold text-red-600 dark:text-red-400 hover:text-red-700 uppercase tracking-wider py-1 px-3 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                className="text-xs font-mono font-bold text-red-500 hover:text-red-600 uppercase tracking-wider py-1.5 px-4 neu-button transition-colors"
               >
                 [ END CHAT ]
               </button>
             </div>
           </form>
         ) : (
-          <div className="p-6 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-center space-y-4">
+          <div className="p-6 rounded-2xl neu-pressed text-center space-y-4">
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
               This conversation is marked as <strong>{session.status}</strong>. Messages can no longer be sent to this session.
             </p>
             <button
               onClick={handleStartNewChat}
-              className="portal-button-primary font-mono text-xs font-bold"
+              className="portal-button-primary font-mono text-xs font-bold px-6 py-3"
             >
               [ START NEW LIVE CHAT ]
             </button>
@@ -223,27 +234,27 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
 
       {/* Confirmation Modal to End Chat */}
       {showEndModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="portal-card max-w-sm w-full p-6 text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 mx-auto flex items-center justify-center">
-              <LogOut className="w-6 h-6" />
+            <div className="w-14 h-14 neu-circle mx-auto p-2 flex items-center justify-center text-red-500">
+              <LogOut className="w-7 h-7" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono">
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 font-mono">
               End Live Chat Session?
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Ending the session will close communication. In accordance with council data privacy rules, conversation logs will be safely purged.
             </p>
             <div className="flex items-center justify-center space-x-3 pt-2">
               <button
                 onClick={handleEndChat}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold font-mono transition-colors"
+                className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold font-mono transition-colors shadow-sm"
               >
                 YES, END CHAT
               </button>
               <button
                 onClick={() => setShowEndModal(false)}
-                className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold font-mono transition-colors"
+                className="portal-button-secondary px-4 py-2.5 text-xs font-bold font-mono"
               >
                 CANCEL
               </button>
