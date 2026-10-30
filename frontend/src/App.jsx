@@ -323,6 +323,7 @@ export default function App() {
             {currentRoute === 'events' && (
               <EventsPage
                 events={events}
+                setCurrentRoute={setCurrentRoute}
                 showToast={showToast}
               />
             )}

@@ -7,7 +7,10 @@ import {
   Clock, 
   MapPin, 
   Sparkles,
-  CheckCircle2
+  ChevronRight,
+  ShieldCheck,
+  CheckCircle2,
+  Bell
 } from 'lucide-react';
 
 export default function HomePage({ 
@@ -24,18 +27,18 @@ export default function HomePage({
   // Take primary active poll
   const featuredPoll = polls.find(p => p.status === 'active') || polls[0];
   const upcomingEvents = events.filter(e => e.isUpcoming).slice(0, 2);
-  const latestAnnouncements = announcements.slice(0, 2);
+  const latestAnnouncements = announcements.slice(0, 3);
 
   const handleFeaturedVote = async (e) => {
     e.preventDefault();
     if (selectedPollOption === null) {
-      showToast("Please select an option first", "error");
+      showToast("Please select an option before casting your vote", "error");
       return;
     }
     setIsSubmittingVote(true);
     try {
       await onVotePoll(featuredPoll.id, selectedPollOption);
-      showToast("Vote recorded successfully!", "success");
+      showToast("Your vote has been officially tallied!", "success");
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -44,387 +47,430 @@ export default function HomePage({
   };
 
   return (
-    <div className="space-y-12 pb-16">
+    <div className="space-y-16 pb-20 bg-grid-pattern">
       {/* ================= HERO SECTION ================= */}
-      <section className="relative overflow-hidden py-14 sm:py-20 px-4">
+      <section className="relative pt-12 sm:pt-16 pb-8 px-4 overflow-visible">
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          {/* Subtle Raiden hero mascot pointing */}
-          <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 neu-circle p-2 flex items-center justify-center sticker-float">
-              <img 
-                src="/stickers/look_there.webp" 
-                alt="Welcome Guide" 
-                className="w-full h-full object-contain"
-              />
+          
+          {/* Hero Welcome Mascot with Vinyl Sticker Contour */}
+          <div className="flex justify-center mb-6">
+            <div className="relative group cursor-pointer" onClick={() => setCurrentRoute('feedback')}>
+              <div className="w-28 h-28 sm:w-36 sm:h-36 relative">
+                <img 
+                  src="/stickers/look_there.webp" 
+                  alt="Student Council Welcome Mascot" 
+                  className="w-full h-full object-contain filter drop-shadow(0 0 1.5px rgba(255,255,255,0.95)) drop-shadow(0 0 5px rgba(56,189,248,0.5)) drop-shadow(0 12px 24px rgba(0,0,0,0.4)) hover:scale-110 transition-transform duration-300 sticker-float-r"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full neu-pill text-sky-700 dark:text-sky-300 text-xs font-semibold mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-            <span>Official Student Representation • GMC Thiruvallur</span>
+          {/* Institutional Trust Badge */}
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full neu-pill text-sky-700 dark:text-sky-300 text-xs font-semibold mb-5 border border-sky-500/20">
+            <ShieldCheck className="w-4 h-4 text-sky-500" />
+            <span>Autonomous Student Governance • GMC Thiruvallur</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
-            WELCOME TO GMC<br />
-            <span className="text-sky-600 dark:text-sky-400 font-mono">STUDENT COUNCIL PORTAL</span>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-[1.15]">
+            Direct, Democratic &amp; Confidential<br className="hidden sm:inline" />
+            <span className="text-sky-600 dark:text-sky-400 font-sans">Campus Voice.</span>
           </h1>
 
-          <p className="mt-4 text-base sm:text-xl font-medium text-slate-600 dark:text-slate-300">
-            Your Voice. Your Campus. Your Council.
+          <p className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+            Empowering medical students with 100% anonymous grievance redressal, real-time ephemeral council chat, and open collegiate voting.
           </p>
 
-          <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-            100% confidential anonymous grievances, live ephemeral student council chat, democratic polling, and timely campus updates.
-          </p>
-
-          {/* Wireframe Hero CTAs with Neumorphic buttons */}
+          {/* Clean Primary Action Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => setCurrentRoute('feedback')}
-              className="portal-button-primary w-full sm:w-auto px-8 py-3.5 flex items-center justify-center space-x-2 font-mono text-xs sm:text-sm tracking-wider"
+              className="portal-button-primary w-full sm:w-auto px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide shadow-lg group"
             >
-              <MessageSquarePlus className="w-4 h-4" />
-              <span>SUBMIT FEEDBACK</span>
+              <MessageSquarePlus className="w-4 h-4 transition-transform group-hover:scale-110" />
+              <span>Submit Anonymous Feedback</span>
+              <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
             </button>
 
             <button
               onClick={() => setCurrentRoute('chat')}
-              className="portal-button-secondary w-full sm:w-auto px-8 py-3.5 flex items-center justify-center space-x-2 font-mono text-xs sm:text-sm tracking-wider text-sky-600 dark:text-sky-400"
+              className="portal-button-secondary w-full sm:w-auto px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide"
             >
-              <MessageCircle className="w-4 h-4" />
-              <span>TALK TO COUNCIL</span>
+              <MessageCircle className="w-4 h-4 text-sky-500" />
+              <span>Talk to Student Council</span>
             </button>
           </div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        {/* ================= LATEST ANNOUNCEMENTS WITH GAURD & SYRINGE ================= */}
-        <section className="portal-card p-6 sm:p-8 relative overflow-hidden">
-          {/* Header with Guard on Left and Syringe on Right */}
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200/50 dark:border-slate-800/80">
-            <div className="flex items-center space-x-3">
-              {/* Guard Sticker on Left of Announcements */}
-              <div className="w-11 h-11 neu-circle p-1.5 flex items-center justify-center flex-shrink-0 sticker-float">
-                <img 
-                  src="/stickers/gaurd.webp" 
-                  alt="Campus Security Guard" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider font-mono">
-                  LATEST ANNOUNCEMENTS
-                </h2>
-                <div className="text-[11px] font-mono text-slate-400">Verified official council updates</div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setCurrentRoute('announcements')}
-                className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 font-mono tracking-wider"
-              >
-                [VIEW ALL -&gt;]
-              </button>
-
-              {/* Syringe Sticker on Right of Announcements */}
-              <div className="w-11 h-11 neu-circle p-1.5 flex items-center justify-center flex-shrink-0 sticker-float-delayed">
-                <img 
-                  src="/stickers/syringe.png" 
-                  alt="Clinical Syringe" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        
+        {/* ================= LATEST ANNOUNCEMENTS WITH PROTRUDING GAURD & SYRINGE ================= */}
+        <section className="relative mt-8">
+          
+          {/* GUARD STICKER: Bleeding out of the top-left edge */}
+          <div 
+            className="sticker-bleed sticker-float-l -top-12 sm:-top-16 -left-3 sm:-left-6 md:-left-8 w-24 sm:w-32 md:w-36 pointer-events-auto"
+            title="Council Campus Security Guard"
+          >
+            <img 
+              src="/stickers/gaurd.webp" 
+              alt="Guard Mascot Bleeding Out" 
+              className="w-full h-full object-contain"
+            />
           </div>
 
-          <div className="space-y-4">
-            {latestAnnouncements.map((ann) => (
-              <div
-                key={ann.id}
-                className="p-5 rounded-2xl neu-pressed transition-all"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 neu-pill">
-                      [{ann.category}]
-                    </span>
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm sm:text-base">
-                      {ann.title}
-                    </h3>
-                  </div>
-                  <div className="text-xs font-mono text-slate-500 dark:text-slate-400 flex items-center space-x-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Posted: {ann.date}</span>
-                  </div>
+          {/* SYRINGE STICKER: Bleeding out of the top-right edge */}
+          <div 
+            className="sticker-bleed sticker-float-r -top-12 sm:-top-16 -right-3 sm:-right-6 md:-right-8 w-24 sm:w-32 md:w-36 pointer-events-auto"
+            title="GMC Clinical Syringe Mascot"
+          >
+            <img 
+              src="/stickers/syringe.png" 
+              alt="Syringe Mascot Bleeding Out" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          {/* Announcements Card Container (overflow-visible to allow bleeding) */}
+          <div className="portal-card p-6 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-slate-200/60 dark:border-slate-800 gap-3">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500 status-pulse-dot" />
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+                    Latest Council Announcements
+                  </h2>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                  {ann.description}
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Verified clinical postings, hostel notices, and emergency campus updates
                 </p>
               </div>
-            ))}
+
+              <button
+                onClick={() => setCurrentRoute('announcements')}
+                className="inline-flex items-center space-x-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 transition-colors"
+              >
+                <span>View All Updates</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {latestAnnouncements.map((ann) => (
+                <div
+                  key={ann.id}
+                  onClick={() => setCurrentRoute('announcements')}
+                  className="p-5 rounded-2xl neu-pressed hover:border-sky-500/40 transition-all cursor-pointer flex flex-col justify-between group"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                        {ann.category}
+                      </span>
+                      <div className="text-[11px] font-mono text-slate-400 flex items-center space-x-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{ann.date}</span>
+                      </div>
+                    </div>
+                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm sm:text-base group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
+                      {ann.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                      {ann.description}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-4 pt-3 border-t border-slate-200/40 dark:border-slate-800/80 flex items-center text-xs font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
+                    <span>Read Notice</span>
+                    <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* ================= QUICK ACCESS 4-CARD GRID ================= */}
         <section>
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider font-mono">
-              QUICK ACCESS
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+              Campus Portals &amp; Quick Access
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Immediate portals for campus concerns, dialogue, and participation
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Instant channels for student welfare, dialogue, and community decisions
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
             {/* Card 1: Anonymous Feedback */}
-            <div className="portal-card p-6 flex flex-col justify-between">
+            <div 
+              onClick={() => setCurrentRoute('feedback')}
+              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+            >
               <div>
-                <div className="w-12 h-12 neu-circle flex items-center justify-center mb-4 text-sky-500">
+                <div className="w-12 h-12 neu-card flex items-center justify-center mb-5 text-sky-500 group-hover:text-sky-400 transition-colors">
                   <MessageSquarePlus className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base tracking-tight font-mono">
-                  ANONYMOUS FEEDBACK
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">
+                  Anonymous Feedback
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Share your concerns, academic feedback, hostel issues, or suggestions safely with zero login required.
+                  Submit grievances regarding clinical rotas, hostel amenities, or faculty concerns with zero credential logging.
                 </p>
               </div>
-              <button
-                onClick={() => setCurrentRoute('feedback')}
-                className="mt-6 w-full py-2.5 px-3 portal-button-secondary font-mono text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center justify-center space-x-1"
-              >
-                <span>[SUBMIT -&gt;]</span>
-              </button>
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
+                <span>Submit Grievance</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
             </div>
 
             {/* Card 2: Temporary Live Chat */}
-            <div className="portal-card p-6 flex flex-col justify-between">
+            <div 
+              onClick={() => setCurrentRoute('chat')}
+              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+            >
               <div>
-                <div className="w-12 h-12 neu-circle flex items-center justify-center mb-4 text-blue-500">
+                <div className="w-12 h-12 neu-card flex items-center justify-center mb-5 text-blue-500 group-hover:text-blue-400 transition-colors">
                   <MessageCircle className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base tracking-tight font-mono">
-                  TEMPORARY LIVE CHAT
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">
+                  Temporary Live Chat
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Talk directly with active student council members. Ephemeral sessions automatically self-purge after 24h.
+                  Encrypted one-on-one session with on-duty council reps. Backed by 24h browser cookies with instant self-purge.
                 </p>
               </div>
-              <button
-                onClick={() => setCurrentRoute('chat')}
-                className="mt-6 w-full py-2.5 px-3 portal-button-secondary font-mono text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center justify-center space-x-1"
-              >
-                <span>[START CHAT -&gt;]</span>
-              </button>
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
+                <span>Connect Live</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
             </div>
 
             {/* Card 3: Student Polls */}
-            <div className="portal-card p-6 flex flex-col justify-between">
+            <div 
+              onClick={() => setCurrentRoute('polls')}
+              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+            >
               <div>
-                <div className="w-12 h-12 neu-circle flex items-center justify-center mb-4 text-amber-500">
+                <div className="w-12 h-12 neu-card flex items-center justify-center mb-5 text-amber-500 group-hover:text-amber-400 transition-colors">
                   <Vote className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base tracking-tight font-mono">
-                  STUDENT POLLS
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">
+                  Collegiate Polls
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Participate in student voting and help shape decisions regarding college events, library timings, and menus.
+                  Vote on academic schedules, canteen menu adjustments, cultural night dates, and student council resolutions.
                 </p>
               </div>
-              <button
-                onClick={() => setCurrentRoute('polls')}
-                className="mt-6 w-full py-2.5 px-3 portal-button-secondary font-mono text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center justify-center space-x-1"
-              >
-                <span>[VOTE -&gt;]</span>
-              </button>
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
+                <span>Cast Your Vote</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
             </div>
 
             {/* Card 4: Events & Activities */}
-            <div className="portal-card p-6 flex flex-col justify-between">
+            <div 
+              onClick={() => setCurrentRoute('events')}
+              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+            >
               <div>
-                <div className="w-12 h-12 neu-circle flex items-center justify-center mb-4 text-purple-500">
+                <div className="w-12 h-12 neu-card flex items-center justify-center mb-5 text-purple-500 group-hover:text-purple-400 transition-colors">
                   <Calendar className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base tracking-tight font-mono">
-                  EVENTS & ACTIVITIES
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">
+                  Events &amp; Symposia
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Explore upcoming medical conferences, symposiums, sports meets, cultural nights, and register online.
+                  Browse verified inter-college medical quizzes, sports meets, clinical workshops, and register instantly.
                 </p>
               </div>
-              <button
-                onClick={() => setCurrentRoute('events')}
-                className="mt-6 w-full py-2.5 px-3 portal-button-secondary font-mono text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center justify-center space-x-1"
-              >
-                <span>[EXPLORE -&gt;]</span>
-              </button>
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform">
+                <span>Explore Calendar</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
             </div>
+
           </div>
         </section>
 
-        {/* ================= UPCOMING EVENTS ================= */}
+        {/* ================= ACTIVE POLLS WIDGET WITH PROTRUDING REFERING STICKER ================= */}
+        {featuredPoll && (
+          <section className="relative mt-12">
+            
+            {/* REFERRING STICKER: Bleeding out of the top-right corner */}
+            <div 
+              className="sticker-bleed sticker-float-r -top-12 sm:-top-16 -right-3 sm:-right-6 md:-right-8 w-28 sm:w-36 pointer-events-auto"
+              title="Student Thinking & Voting Mascot"
+            >
+              <img 
+                src="/stickers/refering.webp" 
+                alt="Thinking Polling Mascot Bleeding Out" 
+                className="w-full h-full object-contain"
+              />
+            </div>
+
+            {/* Active Poll Card */}
+            <div className="portal-card p-6 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
+              <div className="mb-6 pb-4 border-b border-slate-200/60 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <Vote className="w-4 h-4 text-sky-500" />
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+                      Active Student Council Poll
+                    </h2>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Your collective decisions directly influence college administration policies
+                  </p>
+                </div>
+                
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-semibold neu-pill text-sky-600 dark:text-sky-400">
+                  {featuredPoll.totalVotes} Total Votes Tallied
+                </span>
+              </div>
+
+              <div className="max-w-3xl">
+                <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200 mb-4">
+                  {featuredPoll.question}
+                </h3>
+
+                <form onSubmit={handleFeaturedVote} className="space-y-3">
+                  {featuredPoll.options.map((opt, idx) => {
+                    const isSelected = selectedPollOption === idx;
+                    const percentage = featuredPoll.totalVotes > 0 
+                      ? Math.round((opt.votes / featuredPoll.totalVotes) * 100) 
+                      : 0;
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedPollOption(idx)}
+                        className={`relative p-4 rounded-xl cursor-pointer transition-all overflow-hidden ${
+                          isSelected
+                            ? 'neu-pressed border-sky-500 ring-1 ring-sky-500/50'
+                            : 'neu-pressed hover:border-slate-400/40'
+                        }`}
+                      >
+                        {/* Progress Fill Bar in background */}
+                        <div 
+                          className="absolute inset-y-0 left-0 bg-sky-500/10 dark:bg-sky-500/15 transition-all duration-500 rounded-l-xl"
+                          style={{ width: `${percentage}%` }}
+                        />
+
+                        <div className="relative z-10 flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                              isSelected ? 'border-sky-500 bg-sky-500' : 'border-slate-400 dark:border-slate-600'
+                            }`}>
+                              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </div>
+                            <span className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200">
+                              {opt.text}
+                            </span>
+                          </div>
+
+                          <div className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
+                            <span>{percentage}%</span>
+                            <span className="text-[10px] text-slate-400 font-normal ml-1.5">({opt.votes} votes)</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingVote || selectedPollOption === null}
+                      className="portal-button-primary w-full sm:w-auto px-6 py-2.5 text-xs font-semibold disabled:opacity-50 flex items-center justify-center space-x-2"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{isSubmittingVote ? "Tallying Vote..." : "Submit Official Ballot"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setCurrentRoute('polls')}
+                      className="text-xs font-semibold text-slate-500 hover:text-sky-500 transition-colors flex items-center space-x-1"
+                    >
+                      <span>Explore all college polls</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ================= UPCOMING EVENTS SECTION ================= */}
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider font-mono">
-              UPCOMING EVENTS
-            </h2>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+                Upcoming Academic &amp; Cultural Events
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Join conferences, sports meets, and college functions
+              </p>
+            </div>
+            
             <button
               onClick={() => setCurrentRoute('events')}
-              className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 font-mono"
+              className="inline-flex items-center space-x-1 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 transition-colors"
             >
-              [VIEW ALL EVENTS -&gt;]
+              <span>View All Events</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {upcomingEvents.map((evt, idx) => (
-              <div key={evt.id} className="portal-card p-6 flex flex-col justify-between">
+              <div 
+                key={evt.id} 
+                onClick={() => setCurrentRoute('events')}
+                className="portal-card p-6 flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
+              >
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-bold text-sky-600 dark:text-sky-400">
-                      EVENT 0{idx + 1}
-                    </span>
-                    <span className="text-xs font-medium px-3 py-1 rounded-full neu-pill text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                       {evt.category}
                     </span>
+                    <span className="text-xs font-mono font-semibold text-slate-400">
+                      Event #{idx + 1}
+                    </span>
                   </div>
-                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2">
+
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-500 transition-colors">
                     {evt.title}
                   </h3>
-                  <div className="space-y-1 text-xs text-slate-500 dark:text-slate-400 mb-3">
-                    <div className="flex items-center space-x-1.5">
+
+                  <div className="mt-3 space-y-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    <div className="flex items-center space-x-2">
                       <Clock className="w-3.5 h-3.5 text-sky-500" />
                       <span>{evt.date} • {evt.time}</span>
                     </div>
-                    <div className="flex items-center space-x-1.5">
+                    <div className="flex items-center space-x-2">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
                       <span>{evt.venue}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+
+                  <p className="mt-3 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
                     {evt.description}
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80">
-                  <button
-                    onClick={() => setCurrentRoute('events')}
-                    className="text-xs font-mono font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center space-x-1"
-                  >
-                    <span>[DETAILS -&gt;]</span>
-                  </button>
+
+                <div className="mt-5 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-sky-600 dark:text-sky-400">
+                  <span>Register &amp; Details</span>
+                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ================= ACTIVE POLLS WIDGET WITH REFERING STICKER ================= */}
-        {featuredPoll && (
-          <section className="portal-card p-6 sm:p-8 relative">
-            <div className="mb-6 pb-4 border-b border-slate-200/50 dark:border-slate-800/80 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {/* Referring / Thinking sticker in Polling */}
-                <div className="w-12 h-12 neu-circle p-1.5 flex items-center justify-center flex-shrink-0 sticker-float">
-                  <img 
-                    src="/stickers/refering.webp" 
-                    alt="Thinking / Polling Mascot" 
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider font-mono">
-                    ACTIVE POLLS
-                  </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Your opinion matters in council decisions
-                  </p>
-                </div>
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium neu-pill text-sky-600 dark:text-sky-400 font-mono">
-                {featuredPoll.totalVotes} Total Votes
-              </span>
-            </div>
-
-            <div className="max-w-2xl">
-              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-base mb-4">
-                {featuredPoll.question}
-              </h3>
-
-              {featuredPoll.userVoted !== null ? (
-                /* Poll Results already voted */
-                <div className="space-y-3.5">
-                  <div className="p-3.5 neu-pressed rounded-xl text-sky-700 dark:text-sky-300 text-xs flex items-center space-x-2 mb-4">
-                    <CheckCircle2 className="w-4 h-4 text-sky-500 flex-shrink-0" />
-                    <span>You voted in this poll. Here are the live results:</span>
-                  </div>
-                  {featuredPoll.options.map((opt, i) => {
-                    const percentage = featuredPoll.totalVotes > 0 
-                      ? Math.round((opt.votes / featuredPoll.totalVotes) * 100) 
-                      : 0;
-                    const isUserChoice = featuredPoll.userVoted === i;
-                    return (
-                      <div key={i} className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-medium text-slate-700 dark:text-slate-300 font-mono">
-                          <span className={isUserChoice ? "font-bold text-sky-600 dark:text-sky-400 flex items-center space-x-1" : ""}>
-                            <span>{opt.text}</span>
-                            {isUserChoice && <span className="text-[10px] neu-pill px-2 py-0.5 ml-2 font-mono">(Your Vote)</span>}
-                          </span>
-                          <span>{percentage}% ({opt.votes})</span>
-                        </div>
-                        <div className="w-full neu-pressed h-3 rounded-full overflow-hidden p-0.5">
-                          <div
-                            className={`h-full rounded-full transition-all duration-700 ${isUserChoice ? 'bg-sky-500 shadow-sm' : 'bg-slate-400 dark:bg-slate-600'}`}
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                /* Interactive voting form */
-                <form onSubmit={handleFeaturedVote} className="space-y-4">
-                  <div className="space-y-3">
-                    {featuredPoll.options.map((opt, idx) => (
-                      <label
-                        key={idx}
-                        className={`flex items-center space-x-3 p-3.5 rounded-2xl cursor-pointer transition-all ${
-                          selectedPollOption === idx
-                            ? 'neu-pressed text-sky-600 dark:text-sky-400'
-                            : 'neu-button text-slate-800 dark:text-slate-200'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="featured_poll_option"
-                          checked={selectedPollOption === idx}
-                          onChange={() => setSelectedPollOption(idx)}
-                          className="w-4 h-4 text-sky-600 focus:ring-sky-500 border-none"
-                        />
-                        <span className="text-xs sm:text-sm font-medium">
-                          {opt.text}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      type="submit"
-                      disabled={isSubmittingVote || selectedPollOption === null}
-                      className="portal-button-primary disabled:opacity-50 font-mono tracking-wider font-bold text-xs"
-                    >
-                      {isSubmittingVote ? "SUBMITTING..." : "[SUBMIT VOTE]"}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );

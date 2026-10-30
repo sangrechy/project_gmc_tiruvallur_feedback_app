@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import Header from '../components/Header';
@@ -27,7 +27,8 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
   beforeEach(() => {
     initLocalStore();
   });
-  it('renders Header with official branding, theme switch, and navigation items', () => {
+
+  it('renders Header with official branding, 2-part theme switch, and navigation items', () => {
     const setCurrentRoute = vi.fn();
     const setIsDarkMode = vi.fn();
 
@@ -42,26 +43,26 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
 
     expect(screen.getByText('GMC THIRUVALLUR')).toBeInTheDocument();
-    expect(screen.getByText('STUDENT COUNCIL PORTAL')).toBeInTheDocument();
-    expect(screen.getByText('HOME')).toBeInTheDocument();
-    expect(screen.getByText('ANNOUNCEMENTS')).toBeInTheDocument();
-    expect(screen.getByText('FEEDBACK')).toBeInTheDocument();
-    expect(screen.getByText('CHAT')).toBeInTheDocument();
-    expect(screen.getByText('POLLS')).toBeInTheDocument();
-    expect(screen.getByText('EVENTS')).toBeInTheDocument();
-    expect(screen.getByText('COUNCIL LOGIN')).toBeInTheDocument();
+    expect(screen.getByText('Student Council Portal')).toBeInTheDocument();
+    expect(screen.getAllByText('Home')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Announcements')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Feedback')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Live Chat')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Polls')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Events')[0]).toBeInTheDocument();
+    expect(screen.getByText('Council Auth')).toBeInTheDocument();
 
-    // Theme toggle click
-    const themeBtn = screen.getByLabelText('Toggle Theme');
-    fireEvent.click(themeBtn);
+    // 2-Part Theme toggle click (Dark half)
+    const darkBtn = screen.getByTitle('Switch to Dark Theme');
+    fireEvent.click(darkBtn);
     expect(setIsDarkMode).toHaveBeenCalledWith(true);
 
     // Nav click
-    fireEvent.click(screen.getByText('FEEDBACK'));
+    fireEvent.click(screen.getAllByText('Feedback')[0]);
     expect(setCurrentRoute).toHaveBeenCalledWith('feedback');
   });
 
-  it('renders HomePage hero with wireframe CTAs, quick access cards, and latest announcements', () => {
+  it('renders HomePage hero with modern CTAs, quick access cards, and latest announcements with stickers', () => {
     const setCurrentRoute = vi.fn();
     const onVotePoll = vi.fn();
     const showToast = vi.fn();
@@ -77,27 +78,34 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText(/WELCOME TO GMC/)).toBeInTheDocument();
-    expect(screen.getByText('SUBMIT FEEDBACK')).toBeInTheDocument();
-    expect(screen.getByText('TALK TO COUNCIL')).toBeInTheDocument();
-    expect(screen.getByText('ANONYMOUS FEEDBACK')).toBeInTheDocument();
-    expect(screen.getByText('TEMPORARY LIVE CHAT')).toBeInTheDocument();
-    expect(screen.getByText('STUDENT POLLS')).toBeInTheDocument();
-    expect(screen.getByText('EVENTS & ACTIVITIES')).toBeInTheDocument();
+    expect(screen.getByText(/Direct, Democratic/)).toBeInTheDocument();
+    expect(screen.getByText('Submit Anonymous Feedback')).toBeInTheDocument();
+    expect(screen.getByText('Talk to Student Council')).toBeInTheDocument();
+    expect(screen.getByText('Anonymous Feedback')).toBeInTheDocument();
+    expect(screen.getByText('Temporary Live Chat')).toBeInTheDocument();
+    expect(screen.getByText('Collegiate Polls')).toBeInTheDocument();
+    expect(screen.getByText('Events & Symposia')).toBeInTheDocument();
+
+    // Verify presence of stickers
+    expect(screen.getByAltText('Student Council Welcome Mascot')).toBeInTheDocument();
+    expect(screen.getByAltText('Guard Mascot Bleeding Out')).toBeInTheDocument();
+    expect(screen.getByAltText('Syringe Mascot Bleeding Out')).toBeInTheDocument();
+    expect(screen.getByAltText('Thinking Polling Mascot Bleeding Out')).toBeInTheDocument();
 
     // CTA routing
-    fireEvent.click(screen.getByText('SUBMIT FEEDBACK'));
+    fireEvent.click(screen.getByText('Submit Anonymous Feedback'));
     expect(setCurrentRoute).toHaveBeenCalledWith('feedback');
 
-    fireEvent.click(screen.getByText('TALK TO COUNCIL'));
+    fireEvent.click(screen.getByText('Talk to Student Council'));
     expect(setCurrentRoute).toHaveBeenCalledWith('chat');
   });
 
-  it('allows student to submit anonymous feedback and view confirmation token', async () => {
+  it('allows student to submit anonymous feedback and view confirmation token with Doctor and Thumbs stickers', async () => {
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
     const onSubmitFeedback = vi.fn().mockResolvedValue({
       success: true,
+      id: 'GMC-FB-7711',
       trackingId: 'GMC-FB-7711',
       containsPII: false
     });
@@ -110,25 +118,26 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText('ANONYMOUS FEEDBACK')).toBeInTheDocument();
-    expect(screen.getByText('SELECT CATEGORY')).toBeInTheDocument();
-    expect(screen.getByText('YOUR FEEDBACK')).toBeInTheDocument();
-    expect(screen.getByText('PRIVACY CHECK')).toBeInTheDocument();
+    expect(screen.getByText('Anonymous Feedback Portal')).toBeInTheDocument();
+    expect(screen.getByText('Grievance Category')).toBeInTheDocument();
+    expect(screen.getByText('Detailed Message')).toBeInTheDocument();
+    expect(screen.getByAltText('GMC Doctor Mascot Bleeding Out')).toBeInTheDocument();
 
-    const textarea = screen.getByPlaceholderText(/Write your feedback here/);
+    const textarea = screen.getByPlaceholderText(/Describe your concern with specific context/);
     fireEvent.change(textarea, { target: { value: 'Requesting extra study table lamps in the central reading hall.' } });
 
-    const submitBtn = screen.getByText(/SUBMIT FEEDBACK/);
+    const submitBtn = screen.getByText('Submit Anonymous Grievance');
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
       expect(onSubmitFeedback).toHaveBeenCalled();
-      expect(screen.getByText('FEEDBACK RECEIVED')).toBeInTheDocument();
+      expect(screen.getByText('Feedback Received Anonymously')).toBeInTheDocument();
       expect(screen.getByText('GMC-FB-7711')).toBeInTheDocument();
+      expect(screen.getByAltText('Thumbs Up Success Mascot')).toBeInTheDocument();
     });
   });
 
-  it('renders Temporary Live Chat with active session ID and message flow', async () => {
+  it('renders Temporary Live Chat with cookie session, active relay, and Myself sticker', async () => {
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
 
@@ -140,14 +149,16 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Your Session ID:/)).toBeInTheDocument();
+      expect(screen.getByText('Student Council Live Chat')).toBeInTheDocument();
+      expect(screen.getByText('Cookie Session (24h)')).toBeInTheDocument();
       expect(screen.getByText('CONNECTED')).toBeInTheDocument();
-      expect(screen.getByText(/Session expires after 24 hours/)).toBeInTheDocument();
-      expect(screen.getByText(/\[ END CHAT \]/)).toBeInTheDocument();
+      expect(screen.getByText(/Session auto-expires after 24 hours/)).toBeInTheDocument();
+      expect(screen.getByText('End Live Session')).toBeInTheDocument();
+      expect(screen.getByAltText('Council Chat Representative Mascot Bleeding Out')).toBeInTheDocument();
     });
   });
 
-  it('renders PollsPage with options and voting buttons', () => {
+  it('renders PollsPage with options, voting buttons, and Referring sticker', () => {
     const onVotePoll = vi.fn();
     const showToast = vi.fn();
 
@@ -159,11 +170,12 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText('STUDENT POLLS & VOTING')).toBeInTheDocument();
+    expect(screen.getByText('Student Council Polls & Ballots')).toBeInTheDocument();
     expect(screen.getByText(INITIAL_POLLS[0].question)).toBeInTheDocument();
+    expect(screen.getByAltText('Thinking Mascot Bleeding Out')).toBeInTheDocument();
   });
 
-  it('renders AnnouncementsPage and filters by category', () => {
+  it('renders AnnouncementsPage and filters by category with Guard and Syringe stickers', () => {
     const setCurrentRoute = vi.fn();
 
     render(
@@ -173,17 +185,19 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText('CAMPUS ANNOUNCEMENTS')).toBeInTheDocument();
-    expect(screen.getByText('ALL')).toBeInTheDocument();
-    expect(screen.getByText('IMPORTANT')).toBeInTheDocument();
-    expect(screen.getByText('ACADEMIC')).toBeInTheDocument();
+    expect(screen.getByText('Official Campus Announcements')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ALL' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'IMPORTANT' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ACADEMIC' })).toBeInTheDocument();
+    expect(screen.getByAltText('Guard Mascot Bleeding Out')).toBeInTheDocument();
+    expect(screen.getByAltText('Syringe Mascot Bleeding Out')).toBeInTheDocument();
 
-    // Click IMPORTANT filter
-    fireEvent.click(screen.getByText('IMPORTANT'));
+    // Click IMPORTANT filter button
+    fireEvent.click(screen.getByRole('button', { name: 'IMPORTANT' }));
     expect(screen.getByText(INITIAL_ANNOUNCEMENTS[0].title)).toBeInTheDocument();
   });
 
-  it('allows 1-click Demo Council Admin login', () => {
+  it('allows 1-click Demo Council Admin login with FBI sticker', () => {
     const onLoginSuccess = vi.fn();
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
@@ -196,7 +210,9 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    const demoLoginBtn = screen.getByText(/ONE-CLICK DEMO ADMIN LOGIN/);
+    expect(screen.getByAltText('FBI Council Security Mascot Bleeding Out')).toBeInTheDocument();
+
+    const demoLoginBtn = screen.getByText('Instant Council Demo Access');
     fireEvent.click(demoLoginBtn);
 
     expect(onLoginSuccess).toHaveBeenCalledWith(
@@ -207,7 +223,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
   });
 
-  it('renders AdminDashboard overview matching wireframe 4-boxes and quick actions', () => {
+  it('renders AdminDashboard overview matching metrics, triage table, and actions', () => {
     const setCurrentSection = vi.fn();
     const onUpdateFeedbackStatus = vi.fn();
     const showToast = vi.fn();
@@ -225,17 +241,17 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText('OVERVIEW')).toBeInTheDocument();
-    expect(screen.getByText('Feedback')).toBeInTheDocument();
-    expect(screen.getByText('Unread')).toBeInTheDocument();
-    expect(screen.getByText('Chats')).toBeInTheDocument();
-    expect(screen.getByText('Polls')).toBeInTheDocument();
-    expect(screen.getByText('RECENT FEEDBACK')).toBeInTheDocument();
-    expect(screen.getByText('QUICK ACTIONS')).toBeInTheDocument();
-    expect(screen.getByText(/\[ANNOUNCEMENT\]/)).toBeInTheDocument();
-    expect(screen.getByText(/\[CREATE POLL\]/)).toBeInTheDocument();
-    expect(screen.getByText(/\[CREATE EVENT\]/)).toBeInTheDocument();
-    expect(screen.getByText(/\[GENERATE REPORT\]/)).toBeInTheDocument();
+    expect(screen.getByText('Council Executive Overview')).toBeInTheDocument();
+    expect(screen.getByText('Total Feedback')).toBeInTheDocument();
+    expect(screen.getByText('Pending Review')).toBeInTheDocument();
+    expect(screen.getByText('Active Relays')).toBeInTheDocument();
+    expect(screen.getByText('Active Polls')).toBeInTheDocument();
+    expect(screen.getByText('Recent Anonymous Grievances')).toBeInTheDocument();
+    expect(screen.getByText('Quick Management Actions')).toBeInTheDocument();
+    expect(screen.getByText('Post Circular')).toBeInTheDocument();
+    expect(screen.getByText('Launch Poll')).toBeInTheDocument();
+    expect(screen.getByText('Create Event')).toBeInTheDocument();
+    expect(screen.getByText('Export Report')).toBeInTheDocument();
   });
 
   it('renders AdminReports with AI distribution metrics and export triggers', async () => {
@@ -256,5 +272,17 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       expect(screen.getByText('Recurring Campus Concerns')).toBeInTheDocument();
       expect(screen.getByText('Council Recommendations')).toBeInTheDocument();
     });
+  });
+
+  it('renders Footer with official GMC accreditation and developer credit to sangrechy', () => {
+    const setCurrentRoute = vi.fn();
+
+    render(<Footer setCurrentRoute={setCurrentRoute} />);
+
+    expect(screen.getByText('GMC THIRUVALLUR STUDENT COUNCIL')).toBeInTheDocument();
+    expect(screen.getByText('Developed by')).toBeInTheDocument();
+    expect(screen.getByText('sangrechy')).toBeInTheDocument();
+    const githubLink = screen.getByRole('link', { name: /sangrechy/i });
+    expect(githubLink).toHaveAttribute('href', 'https://github.com/sangrechy');
   });
 });

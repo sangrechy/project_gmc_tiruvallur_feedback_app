@@ -1,73 +1,94 @@
 import React from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Heart, Github, ExternalLink } from 'lucide-react';
 
 export default function Footer({ setCurrentRoute }) {
   return (
-    <footer className="mt-16 py-10 transition-colors bg-[#e6edf8] dark:bg-[#0c1427]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="portal-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Council Info */}
-          <div className="text-center md:text-left flex items-center space-x-3">
-            <div className="w-10 h-10 neu-circle flex items-center justify-center font-mono font-bold text-sky-600 dark:text-sky-400">
+    <footer className="mt-20 border-t border-slate-300/40 dark:border-slate-800/80 bg-[#edf2f9]/80 dark:bg-[#070b14]/80 backdrop-blur-md transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        {/* Main Footer Row */}
+        <div className="portal-card p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          
+          {/* Council Info & Brand */}
+          <div className="text-center md:text-left flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <div className="w-12 h-12 neu-card flex items-center justify-center font-bold text-sky-600 dark:text-sky-400 font-mono text-base flex-shrink-0">
               GMC
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-800 dark:text-slate-100 text-sm sm:text-base tracking-tight font-mono">
-                GMC STUDENT COUNCIL
+              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-base tracking-tight font-sans">
+                GMC THIRUVALLUR STUDENT COUNCIL
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Your Voice. Your Campus. Your Council.
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Official Voice • Autonomous Campus Representation • Student Welfare
               </p>
             </div>
           </div>
 
-          {/* Links */}
-          <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-mono font-medium">
+          {/* Quick Navigation Links */}
+          <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs font-semibold">
             <button 
               onClick={() => setCurrentRoute('home')}
-              className="px-3 py-1.5 neu-button text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
+              className="px-3.5 py-2 neu-button text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
             >
-              About
+              Home
             </button>
             <button 
-              onClick={() => setCurrentRoute('chat')}
-              className="px-3 py-1.5 neu-button text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
+              onClick={() => setCurrentRoute('announcements')}
+              className="px-3.5 py-2 neu-button text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
             >
-              Contact Council
+              Announcements
             </button>
             <button 
               onClick={() => setCurrentRoute('feedback')}
-              className="px-3 py-1.5 neu-button text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
+              className="px-3.5 py-2 neu-button text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
             >
-              Privacy Policy
+              Feedback
+            </button>
+            <button 
+              onClick={() => setCurrentRoute('chat')}
+              className="px-3.5 py-2 neu-button text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
+            >
+              Live Chat
             </button>
             <button 
               onClick={() => setCurrentRoute('admin-login')}
-              className="px-3 py-1.5 neu-button text-sky-600 dark:text-sky-400 font-bold transition-colors"
+              className="px-3.5 py-2 neu-button text-sky-600 dark:text-sky-400 font-bold transition-colors"
             >
-              Admin Portal
+              Council Login
             </button>
           </div>
 
-          {/* Copyright */}
-          <div className="text-center md:text-right text-xs text-slate-500 dark:text-slate-400 font-mono">
-            <div>© {new Date().getFullYear()} GMC Thiruvallur</div>
-            <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
-              Government Medical College & Hospital, Thiruvallur
+          {/* Developer Credit & Copyright */}
+          <div className="text-center md:text-right text-xs font-sans space-y-2">
+            <div className="font-mono text-slate-500 dark:text-slate-400">
+              © {new Date().getFullYear()} GMC Thiruvallur
+            </div>
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl neu-pressed bg-slate-200/50 dark:bg-slate-900/60 border border-slate-300/40 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400 text-[11px]">Developed by</span>
+              <a 
+                href="https://github.com/sangrechy" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center space-x-1 text-[11px]"
+              >
+                <span>sangrechy</span>
+                <Github className="w-3 h-3 ml-0.5 inline" />
+              </a>
             </div>
           </div>
         </div>
 
-        {/* Confidentiality Guarantee Bar */}
-        <div className="mt-6 pt-4 flex flex-wrap items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+        {/* Confidentiality & Institutional Guarantee Strip */}
+        <div className="mt-8 pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 gap-3 border-t border-slate-300/30 dark:border-slate-800/50">
           <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-3.5 h-3.5 text-sky-500" />
-            <span>Strict Zero-Trace Anonymous Submissions • 24h Ephemeral Live Chat Relayed</span>
+            <ShieldCheck className="w-4 h-4 text-sky-500 flex-shrink-0" />
+            <span>Zero-Trace Anonymous Grievance Engine • 24-Hour Ephemeral Live Chat Relayed to Council</span>
           </div>
-          <div>
-            Built with care for 500+ GMC Medical Students
+          <div className="font-mono text-slate-400">
+            Government Medical College &amp; Hospital, Thiruvallur, Tamil Nadu
           </div>
         </div>
+
       </div>
     </footer>
   );

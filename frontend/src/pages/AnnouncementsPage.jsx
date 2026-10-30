@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Megaphone, Search, Pin, Clock, Calendar, AlertCircle } from 'lucide-react';
+import { Megaphone, Search, Pin, Clock, Calendar, AlertCircle, ArrowLeft, ChevronRight } from 'lucide-react';
 
 export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
   const [activeCategory, setActiveCategory] = useState('ALL');
@@ -15,52 +15,77 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Header with Guard on Left and Syringe on Right */}
-      <div className="portal-card p-6 sm:p-8 flex items-center justify-between gap-4">
-        {/* Guard Sticker on Left */}
-        <div className="w-14 h-14 sm:w-16 sm:h-16 neu-circle p-2 flex items-center justify-center flex-shrink-0 sticker-float">
-          <img 
-            src="/stickers/gaurd.webp" 
-            alt="Security Guard" 
-            className="w-full h-full object-contain"
-          />
-        </div>
-
-        <div className="text-center flex-1">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2">
-            OFFICIAL COUNCIL NOTICES
-          </div>
-          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100 font-mono">
-            CAMPUS ANNOUNCEMENTS
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-            Stay informed with verified clinical schedules, hostel notices, and emergency alerts
-          </p>
-        </div>
-
-        {/* Syringe Sticker on Right */}
-        <div className="w-14 h-14 sm:w-16 sm:h-16 neu-circle p-2 flex items-center justify-center flex-shrink-0 sticker-float-delayed">
-          <img 
-            src="/stickers/syringe.png" 
-            alt="Clinical Syringe" 
-            className="w-full h-full object-contain"
-          />
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10 bg-grid-pattern">
+      {/* Navigation Breadcrumb */}
+      <div className="flex items-center justify-between pb-4 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
+        <button 
+          onClick={() => setCurrentRoute('home')}
+          className="flex items-center space-x-1 text-slate-500 hover:text-sky-500 transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Home</span>
+        </button>
+        <div className="flex items-center space-x-1 text-slate-400">
+          <span>PORTAL</span>
+          <span>/</span>
+          <span className="text-sky-600 dark:text-sky-400 font-bold">OFFICIAL DISPATCHES</span>
         </div>
       </div>
 
-      {/* Filter and Search Bar with Neumorphic styling */}
+      {/* Announcements Header Card with Bleeding Guard & Syringe */}
+      <div className="relative mt-12">
+        
+        {/* GUARD STICKER: Bleeding out of top-left edge */}
+        <div 
+          className="sticker-bleed sticker-float-l -top-12 sm:-top-16 -left-3 sm:-left-6 md:-left-8 w-24 sm:w-32 md:w-36 pointer-events-auto"
+          title="Council Campus Security Guard"
+        >
+          <img 
+            src="/stickers/gaurd.webp" 
+            alt="Guard Mascot Bleeding Out" 
+            className="w-full h-full object-contain"
+          />
+        </div>
+
+        {/* SYRINGE STICKER: Bleeding out of top-right edge */}
+        <div 
+          className="sticker-bleed sticker-float-r -top-12 sm:-top-16 -right-3 sm:-right-6 md:-right-8 w-24 sm:w-32 md:w-36 pointer-events-auto"
+          title="Clinical Syringe Mascot"
+        >
+          <img 
+            src="/stickers/syringe.png" 
+            alt="Syringe Mascot Bleeding Out" 
+            className="w-full h-full object-contain"
+          />
+        </div>
+
+        {/* Header Card (overflow-visible) */}
+        <div className="portal-card p-6 sm:p-10 text-center relative overflow-visible pt-10 sm:pt-10">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-3 border border-sky-500/20">
+            <Megaphone className="w-3.5 h-3.5" />
+            <span>Verified Administrative Board</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
+            Official Campus Announcements
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-lg mx-auto leading-relaxed">
+            Direct clinical rotations, university examination circulars, hostel administrative notices, and emergency advisories.
+          </p>
+        </div>
+      </div>
+
+      {/* Filter Tabs & Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* Category Tabs */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/* Category Pills */}
+        <div className="flex flex-wrap items-center gap-2">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all ${
                 activeCategory === cat
-                  ? 'neu-pressed text-sky-600 dark:text-sky-400'
-                  : 'neu-button text-slate-700 dark:text-slate-300'
+                  ? 'portal-button-primary shadow-sm'
+                  : 'neu-button text-slate-600 dark:text-slate-300'
               }`}
             >
               {cat}
@@ -68,15 +93,15 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
           ))}
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-xs w-full">
+        {/* Search Input */}
+        <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search announcements..."
-            className="w-full pl-10 pr-4 py-2.5 neu-input text-xs sm:text-sm font-mono placeholder-slate-400"
+            placeholder="Search circulars..."
+            className="w-full pl-10 pr-4 py-2.5 neu-input text-xs sm:text-sm placeholder-slate-400"
           />
         </div>
       </div>
@@ -87,50 +112,41 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
           filtered.map((ann) => (
             <div
               key={ann.id}
-              className={`portal-card p-6 sm:p-7 transition-all ${
-                ann.pinned ? 'ring-2 ring-sky-500/30' : ''
+              className={`portal-card p-6 sm:p-7 transition-all hover:scale-[1.01] ${
+                ann.pinned ? 'ring-1 ring-sky-500/40' : ''
               }`}
             >
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <div className="flex items-center space-x-2">
                   {ann.pinned && (
-                    <span className="flex items-center space-x-1 px-3 py-1 rounded-full text-[10px] font-mono font-bold neu-pill bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                       <Pin className="w-3 h-3 text-amber-500 rotate-45" />
                       <span>PINNED</span>
                     </span>
                   )}
-                  <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider neu-pill text-sky-600 dark:text-sky-400">
-                    [{ann.category}]
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                    {ann.category}
                   </span>
                 </div>
 
-                <div className="flex items-center space-x-4 text-xs font-mono text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center space-x-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Posted: {ann.date}</span>
-                  </span>
-                  {ann.expiryDate && (
-                    <span className="flex items-center space-x-1 text-slate-400">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Valid until: {ann.expiryDate}</span>
-                    </span>
-                  )}
+                <div className="text-xs font-mono text-slate-400 flex items-center space-x-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{ann.date}</span>
                 </div>
               </div>
 
-              <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                 {ann.title}
               </h2>
 
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+              <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 {ann.description}
               </p>
             </div>
           ))
         ) : (
-          <div className="portal-card p-12 text-center text-slate-500">
-            <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-            <p className="text-sm font-medium">No announcements found matching the criteria.</p>
+          <div className="portal-card p-12 text-center text-slate-500 dark:text-slate-400 text-xs font-mono">
+            No circulars found matching your selected criteria.
           </div>
         )}
       </div>

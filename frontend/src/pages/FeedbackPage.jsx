@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { 
   ShieldCheck, 
-  Info, 
   Send, 
   CheckCircle, 
   AlertTriangle, 
   Lock, 
-  ArrowLeft
+  ArrowLeft,
+  Info,
+  Sparkles,
+  ChevronRight
 } from 'lucide-react';
 
 export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showToast }) {
@@ -18,24 +20,24 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
 
   const categories = [
     'Academics',
-    'Infrastructure',
-    'Hostel & Mess',
-    'Transport',
-    'Sports & Cultural',
-    'Library',
     'Hospital & Clinical Postings',
-    'Others'
+    'Hostel & Mess Facilities',
+    'Campus Infrastructure',
+    'Library & E-Resources',
+    'Sports & Cultural Welfare',
+    'Transportation',
+    'General Council Inquiry'
   ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!content.trim()) {
-      showToast("Please enter your feedback message", "error");
+      showToast("Please enter your feedback description", "error");
       return;
     }
 
     if (content.trim().length < 10) {
-      showToast("Feedback must be at least 10 characters long", "error");
+      showToast("Feedback must contain at least 10 characters", "error");
       return;
     }
 
@@ -47,9 +49,9 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
         containsPII
       });
       setSubmissionResult(result);
-      showToast("Feedback submitted successfully!", "success");
+      showToast("Grievance lodged anonymously with Student Council", "success");
     } catch (err) {
-      showToast("Failed to submit feedback: " + err.message, "error");
+      showToast("Failed to lodge feedback: " + err.message, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -62,208 +64,213 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header & Breadcrumb */}
-      <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-200/50 dark:border-slate-800/80 text-xs font-mono">
-        <div className="flex items-center space-x-2 text-slate-500 dark:text-slate-400">
-          <span className="font-bold text-slate-800 dark:text-slate-200">GMC STUDENT COUNCIL</span>
-        </div>
-        <div className="text-slate-500 dark:text-slate-400">
-          <button 
-            onClick={() => setCurrentRoute('home')}
-            className="hover:text-sky-500 underline font-semibold"
-          >
-            HOME
-          </button>
-          {' > '}
-          <span className="text-sky-600 dark:text-sky-400 font-bold">FEEDBACK</span>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-8 bg-grid-pattern">
+      {/* Navigation Breadcrumb */}
+      <div className="flex items-center justify-between pb-4 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
+        <button 
+          onClick={() => setCurrentRoute('home')}
+          className="flex items-center space-x-1 text-slate-500 hover:text-sky-500 transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Home</span>
+        </button>
+        <div className="flex items-center space-x-1 text-slate-400">
+          <span>PORTAL</span>
+          <span>/</span>
+          <span className="text-sky-600 dark:text-sky-400 font-bold">GRIEVANCE REDRESSAL</span>
         </div>
       </div>
 
       {submissionResult ? (
-        /* Submission Confirmation with Thumbs sticker */
-        <div className="portal-card p-8 sm:p-10 text-center animate-fadeIn space-y-6">
-          <div className="w-24 h-24 neu-circle mx-auto p-2 flex items-center justify-center sticker-float">
+        /* Confirmation Screen with Bleeding Thumbs Sticker */
+        <div className="relative mt-12">
+          
+          {/* THUMBS STICKER: Bleeding out of the top edge */}
+          <div 
+            className="sticker-bleed sticker-float-r -top-16 sm:-top-20 left-1/2 -translate-x-1/2 w-32 sm:w-40 pointer-events-auto"
+            title="Feedback Submission Success"
+          >
             <img 
               src="/stickers/thumbs.png" 
-              alt="Submission Success" 
+              alt="Thumbs Up Success Mascot" 
               className="w-full h-full object-contain"
             />
           </div>
 
-          <div>
-            <h2 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 font-mono">
-              FEEDBACK RECEIVED
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 max-w-md mx-auto">
-              Your anonymous submission has been securely delivered to the Student Council review queue.
-            </p>
-          </div>
-
-          {/* Reference tracking box */}
-          <div className="p-4 rounded-2xl neu-pressed max-w-sm mx-auto font-mono text-center">
-            <div className="text-xs text-slate-400">YOUR ANONYMOUS TRACKING ID</div>
-            <div className="text-lg font-bold text-sky-600 dark:text-sky-400 mt-1">
-              {submissionResult.trackingId}
-            </div>
-            <div className="text-[11px] text-slate-500 mt-1">
-              Keep this ID if you need to reference your submission in live chat.
-            </div>
-          </div>
-
-          {submissionResult.containsPII ? (
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left text-xs text-amber-700 dark:text-amber-300 flex items-start space-x-3 max-w-md mx-auto">
-              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <strong>Privacy Protocol Active:</strong> This feedback was flagged as containing identifying information and will NOT be processed by external AI models. Only elected council representatives will review it directly.
+          <div className="portal-card p-8 sm:p-12 text-center pt-16 sm:pt-20 space-y-6 overflow-visible">
+            <div>
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold mb-3">
+                <CheckCircle className="w-4 h-4" />
+                <span>Grievance Logged Securely</span>
               </div>
-            </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/20 text-left text-xs text-sky-700 dark:text-sky-300 flex items-start space-x-3 max-w-md mx-auto">
-              <ShieldCheck className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <strong>Anonymity Guaranteed:</strong> Zero identifying data or IP credentials were retained with this submission.
-              </div>
-            </div>
-          )}
-
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={handleReset}
-              className="portal-button-primary w-full sm:w-auto font-mono text-xs px-6 py-3"
-            >
-              [SUBMIT ANOTHER FEEDBACK]
-            </button>
-            <button
-              onClick={() => setCurrentRoute('home')}
-              className="portal-button-secondary w-full sm:w-auto font-mono text-xs px-6 py-3"
-            >
-              RETURN TO HOME
-            </button>
-          </div>
-        </div>
-      ) : (
-        /* Feedback Submission Form with Doctor (doc.png) Sticker matching prompt */
-        <div className="portal-card p-6 sm:p-10 relative">
-          {/* Header Banner with Doctor Sticker */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200/50 dark:border-slate-800/80">
-            <div className="text-center sm:text-left">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-bold text-sky-600 dark:text-sky-400 mb-2">
-                <span>GMC MEDICAL GRIEVANCE CELL</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100 font-mono tracking-tight">
-                ANONYMOUS FEEDBACK
-              </h1>
-              <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md">
-                Your voice matters. Share your clinical, academic, hostel, or campus concerns with total anonymity.
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
+                Feedback Received Anonymously
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
+                Your message has been assigned a cryptographic hash and forwarded to the Student Council for review.
               </p>
             </div>
 
-            {/* Doctor (doc.png) Mascot Sticker in Form */}
-            <div className="w-20 h-20 sm:w-24 sm:h-24 neu-circle p-2 flex items-center justify-center flex-shrink-0 sticker-float">
-              <img 
-                src="/stickers/doc.png" 
-                alt="GMC Doctor Council Mascot" 
-                className="w-full h-full object-contain"
-              />
+            {/* Tracking ID Badge */}
+            <div className="p-4 rounded-2xl neu-pressed max-w-md mx-auto text-left font-mono text-xs space-y-2">
+              <div className="flex items-center justify-between text-slate-400">
+                <span>Reference Tracking Token:</span>
+                <span className="text-[10px] uppercase font-bold text-sky-500">Zero-Trace Validated</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-900/40 text-sky-400 font-mono text-center tracking-widest break-all select-all font-bold">
+                {submissionResult.id}
+              </div>
             </div>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Category selection */}
-            <div>
-              <label 
-                htmlFor="feedback_category"
-                className="block text-xs font-bold font-mono text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2"
-              >
-                SELECT CATEGORY
-              </label>
-              <div className="relative">
-                <select
-                  id="feedback_category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-3.5 neu-input text-sm appearance-none font-medium focus:ring-2 focus:ring-sky-500"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat} className="bg-[#e6edf8] dark:bg-[#0c1427]">
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 dark:text-slate-400 font-mono text-xs">
-                  [v]
+            {/* Redaction Notice if PII was detected */}
+            {submissionResult.piiDetected ? (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left text-xs text-amber-700 dark:text-amber-300 flex items-start space-x-3 max-w-md mx-auto">
+                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong>Privacy Filter Applied:</strong> Identifying elements (phone numbers, emails, or personal names) were sanitized to protect your anonymity.
                 </div>
               </div>
-            </div>
-
-            {/* Textarea */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label 
-                  htmlFor="feedback_content"
-                  className="block text-xs font-bold font-mono text-slate-700 dark:text-slate-300 uppercase tracking-wider"
-                >
-                  YOUR FEEDBACK
-                </label>
-                <span className="text-[11px] font-mono text-slate-400">
-                  {content.length} characters
-                </span>
+            ) : (
+              <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/20 text-left text-xs text-sky-700 dark:text-sky-300 flex items-start space-x-3 max-w-md mx-auto">
+                <ShieldCheck className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong>Anonymity Guarantee:</strong> Zero IP addresses, cookies, or user identifiers were recorded.
+                </div>
               </div>
-              <textarea
-                id="feedback_content"
-                rows={6}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your feedback here... Be as specific as possible regarding the issue or constructive suggestion."
-                className="w-full p-4 neu-input text-sm placeholder-slate-400 transition-all resize-y"
-                required
-              />
-            </div>
+            )}
 
-            {/* Privacy Check Block */}
-            <div className="p-5 neu-pressed space-y-3">
-              <div className="text-xs font-bold font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                PRIVACY CHECK
-              </div>
-
-              <label className="flex items-start space-x-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={containsPII}
-                  onChange={(e) => setContainsPII(e.target.checked)}
-                  className="mt-1 w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-none"
-                />
-                <span className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
-                  My feedback contains names, room numbers, or identifying personal information.
-                </span>
-              </label>
-
-              <div className="flex items-start space-x-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/80 text-xs text-slate-600 dark:text-slate-400">
-                <Info className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong>[i]</strong> Feedback containing identifying information will <strong>not</strong> be sent for external AI processing and will be kept strictly restricted to council triage.
-                </span>
-              </div>
-            </div>
-
-            {/* Submit Action */}
-            <div className="pt-2 text-center space-y-3">
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
-                type="submit"
-                disabled={isSubmitting || !content.trim()}
-                className="portal-button-primary w-full sm:w-auto min-w-[240px] px-8 py-3.5 font-mono font-bold text-xs tracking-wider disabled:opacity-50 flex items-center justify-center space-x-2 mx-auto"
+                onClick={handleReset}
+                className="portal-button-primary w-full sm:w-auto px-6 py-3 text-xs font-semibold tracking-wide"
               >
-                <Send className="w-4 h-4" />
-                <span>{isSubmitting ? "TRANSMITTING..." : "[ SUBMIT FEEDBACK ]"}</span>
+                Submit Another Feedback
               </button>
-
-              <div className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center justify-center space-x-1.5 font-mono">
-                <Lock className="w-3.5 h-3.5 text-sky-500" />
-                <span>No student login required. 100% Anonymous.</span>
-              </div>
+              <button
+                onClick={() => setCurrentRoute('home')}
+                className="portal-button-secondary w-full sm:w-auto px-6 py-3 text-xs font-semibold"
+              >
+                Return to Campus Home
+              </button>
             </div>
-          </form>
+          </div>
+        </div>
+      ) : (
+        /* Feedback Submission Form with Bleeding Doctor (doc.png) Sticker */
+        <div className="relative mt-12">
+          
+          {/* DOCTOR STICKER: Bleeding prominently out of top-right corner */}
+          <div 
+            className="sticker-bleed sticker-float-r -top-16 sm:-top-20 -right-3 sm:-right-8 w-28 sm:w-36 md:w-44 pointer-events-auto"
+            title="GMC Clinical Council Doctor Mascot"
+          >
+            <img 
+              src="/stickers/doc.png" 
+              alt="GMC Doctor Mascot Bleeding Out" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          {/* Form Card (overflow-visible to let Doctor bleed out) */}
+          <div className="portal-card p-6 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
+            
+            {/* Header info */}
+            <div className="mb-8 pb-6 border-b border-slate-200/60 dark:border-slate-800">
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-2 border border-sky-500/20">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Zero-Trace Student Grievance Channel</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
+                Anonymous Feedback Portal
+              </h1>
+              <p className="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md leading-relaxed">
+                Communicate directly with the GMC Student Council. Your submission is cryptographically untraceable.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              {/* Category Selection */}
+              <div>
+                <label 
+                  htmlFor="feedback_category"
+                  className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2 font-mono"
+                >
+                  Grievance Category
+                </label>
+                <div className="relative">
+                  <select
+                    id="feedback_category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-4 py-3.5 neu-input text-xs sm:text-sm font-medium appearance-none"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat} className="bg-[#edf2f9] dark:bg-[#090e1a] text-slate-900 dark:text-slate-100">
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 font-mono text-xs">
+                    ▼
+                  </div>
+                </div>
+              </div>
+
+              {/* Message Content */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label 
+                    htmlFor="feedback_content"
+                    className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-mono"
+                  >
+                    Detailed Message
+                  </label>
+                  <span className="text-[11px] font-mono text-slate-400">
+                    {content.length} characters (min 10)
+                  </span>
+                </div>
+                <textarea
+                  id="feedback_content"
+                  rows={6}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Describe your concern with specific context (e.g. Ward 4 duty roster irregularities, Hostel Block C water pressure, or central library night hours)..."
+                  className="w-full p-4 neu-input text-xs sm:text-sm placeholder-slate-400 transition-all resize-y leading-relaxed"
+                  required
+                />
+              </div>
+
+              {/* Privacy Disclaimer Callout */}
+              <div className="p-4 rounded-2xl neu-pressed flex items-start space-x-3 text-xs text-slate-600 dark:text-slate-400">
+                <Lock className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <strong className="text-slate-800 dark:text-slate-200">Zero-Logging Policy:</strong> We do not log IP addresses, session cookies, or device telemetry. Automatic filters sanitize personal identifiers before routing to the council review desk.
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !content.trim()}
+                  className="portal-button-primary w-full sm:w-auto px-8 py-3.5 text-xs font-semibold flex items-center justify-center space-x-2 disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{isSubmitting ? "Encrypting & Lodging..." : "Submit Anonymous Grievance"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentRoute('home')}
+                  className="text-xs font-semibold text-slate-500 hover:text-sky-500 transition-colors"
+                >
+                  Cancel and Return
+                </button>
+              </div>
+
+            </form>
+          </div>
         </div>
       )}
     </div>
