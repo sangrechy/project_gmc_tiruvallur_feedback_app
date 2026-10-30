@@ -1,0 +1,29 @@
+# Cloudflare Worker Environment Secrets (.dev.vars)
+# Copy this file to .dev.vars for local wrangler dev testing,
+# or add these secrets in Cloudflare Dashboard / via `wrangler secret put <KEY>`
+
+# 1. Firebase Service Account (For server-side Firestore operations)
+FIREBASE_PROJECT_ID=""
+FIREBASE_CLIENT_EMAIL=""
+FIREBASE_PRIVATE_KEY=""
+
+# 2. Telegram Bot Integration (For council notifications and Live Chat relay)
+# Created via @BotFather
+TELEGRAM_BOT_TOKEN=""
+# The Council Group Chat ID or Admin Telegram user ID
+TELEGRAM_ADMIN_CHAT_ID=""
+# Optional secret token to verify Telegram webhook authenticity
+TELEGRAM_WEBHOOK_SECRET=""
+
+# 3. AI Providers (For feedback classification, sentiment, and reports)
+# Groq API Key (Fast free tier: https://console.groq.com)
+GROQ_API_KEY=""
+# Google Gemini API Key (Generous free tier: https://aistudio.google.com)
+GEMINI_API_KEY=""
+
+# 4. Gmail API Integration (For generic council email alerts)
+GMAIL_CLIENT_ID=""
+GMAIL_CLIENT_SECRET=""
+GMAIL_REFRESH_TOKEN=""
+GMAIL_SENDER_EMAIL=""
+COUNCIL_RECIPIENT_EMAIL=""

@@ -1,0 +1,79 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+      );
+    }
+
+    // Feedback Collection
+    // Students can submit anonymously; only authorized Council Admins can read or update
+    match /feedback/{feedbackId} {
+      allow create: if request.resource.data.content is string
+                    && request.resource.data.content.size() > 0
+                    && request.resource.data.content.size() <= 10000
+                    && request.resource.data.category is string;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Temporary Live Chat Collection
+    // Sessions expire after 24 hours of inactivity
+    match /chats/{chatId} {
+      allow create: if request.resource.data.sessionId is string;
+      allow read: if true; // Accessed via random UUID or by admin
+      allow update: if isAdmin() || (
+        request.resource.data.status == 'ended' ||
+        request.time < resource.data.lastActivity + duration.value(24, 'h')
+      );
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if true;
+        allow create: if request.resource.data.content is string
+                      && request.resource.data.content.size() <= 2000
+                      && (isAdmin() || request.resource.data.sender == 'student');
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // Announcements Collection (Public read, Admin manage)
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Polls Collection (Public read & vote, Admin manage)
+    match /polls/{pollId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /votes/{voteId} {
+        allow read: if true;
+        allow create: if request.resource.data.selectedOption is int
+                      || request.resource.data.selectedOption is string;
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // Events Collection (Public read, Admin manage)
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Authorized Admins Collection
+    match /admins/{adminId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

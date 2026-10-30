@@ -1,0 +1,16 @@
+name = "gmc-thiruvallur-backend"
+main = "src/index.js"
+compatibility_date = "2024-04-03"
+
+# Environment Variables & Configuration
+# Sensitive tokens should be saved via `wrangler secret put <KEY>`
+# For local development, copy .dev.vars.example to .dev.vars
+
+[vars]
+ENVIRONMENT = "production"
+COLLEGE_NAME = "GMC Thiruvallur"
+PORTAL_URL = "https://gmc-thiruvallur-portal.pages.dev"
+
+# Cloudflare Workers Free Tier optimization
+[observability]
+enabled = true

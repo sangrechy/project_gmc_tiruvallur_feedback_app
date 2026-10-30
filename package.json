@@ -1,0 +1,25 @@
+{
+  "name": "project-gmc-tiruvallur-feedback-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GMC Thiruvallur Student Council Portal - Anonymous Feedback, Ephemeral Live Chat, Polls, Announcements, Events & AI Triage",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "worker:dev": "npm --prefix worker run dev",
+    "worker:deploy": "npm --prefix worker run deploy"
+  },
+  "keywords": [
+    "gmc-thiruvallur",
+    "student-council",
+    "anonymous-feedback",
+    "cloudflare-workers",
+    "firebase",
+    "react",
+    "vite",
+    "tailwind"
+  ],
+  "author": "GMC Thiruvallur Student Council",
+  "license": "MIT"
+}
