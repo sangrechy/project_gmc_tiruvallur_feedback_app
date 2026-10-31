@@ -10,7 +10,6 @@ import FeedbackPage from '../pages/FeedbackPage';
 import ChatPage from '../pages/ChatPage';
 import PollsPage from '../pages/PollsPage';
 import AnnouncementsPage from '../pages/AnnouncementsPage';
-import EventsPage from '../pages/EventsPage';
 import AdminLoginPage from '../pages/AdminLoginPage';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminReports from '../pages/admin/AdminReports';
@@ -52,7 +51,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getAllByText('Feedback')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Live Chat')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Polls')[0]).toBeInTheDocument();
-    expect(screen.getAllByText('Events')[0]).toBeInTheDocument();
     expect(screen.getByText('Council Auth')).toBeInTheDocument();
 
     // Theme toggle button click
@@ -74,7 +72,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       <HomePage
         setCurrentRoute={setCurrentRoute}
         announcements={INITIAL_ANNOUNCEMENTS}
-        events={INITIAL_EVENTS}
         polls={INITIAL_POLLS}
         onVotePoll={onVotePoll}
         showToast={showToast}
@@ -87,7 +84,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('Anonymous Feedback')).toBeInTheDocument();
     expect(screen.getByText('Temporary Live Chat')).toBeInTheDocument();
     expect(screen.getByText('Collegiate Polls')).toBeInTheDocument();
-    expect(screen.getByText('Events & Symposia')).toBeInTheDocument();
 
     // Verify presence of stickers
     expect(screen.getByAltText('Student Council Welcome Mascot')).toBeInTheDocument();
@@ -266,7 +262,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
         chats={INITIAL_CHATS}
         polls={INITIAL_POLLS}
         announcements={INITIAL_ANNOUNCEMENTS}
-        events={INITIAL_EVENTS}
         setCurrentSection={setCurrentSection}
         onUpdateFeedbackStatus={onUpdateFeedbackStatus}
         showToast={showToast}
@@ -283,7 +278,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
 
     expect(screen.getByText('Post Circular')).toBeInTheDocument();
     expect(screen.getByText('Launch Poll')).toBeInTheDocument();
-    expect(screen.getByText('Create Event')).toBeInTheDocument();
     expect(screen.getByText('Export Report')).toBeInTheDocument();
   });
 

@@ -4,7 +4,6 @@ import {
   Clock, 
   MessageCircle, 
   Vote, 
-  Calendar, 
   Sparkles, 
   FileText, 
   PlusCircle, 
@@ -22,7 +21,6 @@ export default function AdminDashboard({
   chats, 
   polls, 
   announcements, 
-  events, 
   setCurrentSection,
   onUpdateFeedbackStatus,
   showToast 
@@ -217,7 +215,7 @@ export default function AdminDashboard({
           Quick Management Actions
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button
             onClick={() => setCurrentSection('announcements')}
             className="p-4 rounded-2xl neu-button text-sky-600 dark:text-sky-400 text-xs font-semibold transition-all text-center flex flex-col items-center justify-center space-y-2 hover:scale-[1.02]"
@@ -232,14 +230,6 @@ export default function AdminDashboard({
           >
             <Vote className="w-5 h-5" />
             <span>Launch Poll</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentSection('events')}
-            className="p-4 rounded-2xl neu-button text-blue-600 dark:text-blue-400 text-xs font-semibold transition-all text-center flex flex-col items-center justify-center space-y-2 hover:scale-[1.02]"
-          >
-            <Calendar className="w-5 h-5" />
-            <span>Create Event</span>
           </button>
 
           <button

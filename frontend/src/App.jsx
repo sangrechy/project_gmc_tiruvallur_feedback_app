@@ -10,7 +10,6 @@ import FeedbackPage from './pages/FeedbackPage';
 import ChatPage from './pages/ChatPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import PollsPage from './pages/PollsPage';
-import EventsPage from './pages/EventsPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 
 // Admin Subpages
@@ -20,7 +19,6 @@ import AdminFeedback from './pages/admin/AdminFeedback';
 import AdminChat from './pages/admin/AdminChat';
 import AdminAnnouncements from './pages/admin/AdminAnnouncements';
 import AdminPolls from './pages/admin/AdminPolls';
-import AdminEvents from './pages/admin/AdminEvents';
 import AdminReports from './pages/admin/AdminReports';
 import AdminManagement from './pages/admin/AdminManagement';
 import AdminStatus from './pages/admin/AdminStatus';
@@ -47,7 +45,6 @@ export default function App() {
 
   // Core Data State
   const [announcements, setAnnouncements] = useState([]);
-  const [events, setEvents] = useState([]);
   const [polls, setPolls] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
   const [chats, setChats] = useState([]);
@@ -67,15 +64,13 @@ export default function App() {
   // Load initial data
   const loadData = async () => {
     try {
-      const [annList, evtList, pollList, fbList, chatList] = await Promise.all([
+      const [annList, pollList, fbList, chatList] = await Promise.all([
         storageService.getAnnouncements(),
-        storageService.getEvents(),
         storageService.getPolls(),
         storageService.getFeedbacks(),
         storageService.getAllChats()
       ]);
       setAnnouncements(annList);
-      setEvents(evtList);
       setPolls(pollList);
       setFeedbacks(fbList);
       setChats(chatList);
@@ -138,18 +133,6 @@ export default function App() {
     setAnnouncements(updated);
   };
 
-  const handleAddEvent = async (eventData) => {
-    await storageService.addEvent(eventData);
-    const updated = await storageService.getEvents();
-    setEvents(updated);
-  };
-
-  const handleDeleteEvent = async (id) => {
-    await storageService.deleteEvent(id);
-    const updated = await storageService.getEvents();
-    setEvents(updated);
-  };
-
   const handleAddPoll = async (pollData) => {
     await storageService.addPoll(pollData);
     const updated = await storageService.getPolls();
@@ -196,7 +179,6 @@ export default function App() {
               chats={chats}
               polls={polls}
               announcements={announcements}
-              events={events}
               setCurrentSection={setAdminSection}
               onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
               showToast={showToast}
@@ -242,15 +224,6 @@ export default function App() {
             />
           )}
 
-          {adminSection === 'events' && (
-            <AdminEvents
-              events={events}
-              onAddEvent={handleAddEvent}
-              onDeleteEvent={handleDeleteEvent}
-              showToast={showToast}
-            />
-          )}
-
           {adminSection === 'reports' && (
             <AdminReports
               feedbacks={feedbacks}
@@ -279,7 +252,6 @@ export default function App() {
               <HomePage
                 setCurrentRoute={setCurrentRoute}
                 announcements={announcements}
-                events={events}
                 polls={polls}
                 onVotePoll={handleVotePoll}
                 showToast={showToast}
@@ -312,14 +284,6 @@ export default function App() {
               <PollsPage
                 polls={polls}
                 onVotePoll={handleVotePoll}
-                showToast={showToast}
-              />
-            )}
-
-            {currentRoute === 'events' && (
-              <EventsPage
-                events={events}
-                setCurrentRoute={setCurrentRoute}
                 showToast={showToast}
               />
             )}

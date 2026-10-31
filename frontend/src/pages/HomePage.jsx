@@ -3,9 +3,7 @@ import {
   MessageSquarePlus, 
   MessageCircle, 
   Vote, 
-  Calendar, 
   Clock, 
-  MapPin, 
   ChevronRight,
   ShieldCheck,
   CheckCircle2,
@@ -15,7 +13,6 @@ import {
 export default function HomePage({ 
   setCurrentRoute, 
   announcements, 
-  events, 
   polls, 
   onVotePoll, 
   showToast 
@@ -25,7 +22,6 @@ export default function HomePage({
 
   // Take primary active poll
   const featuredPoll = polls.find(p => p.status === 'active') || polls[0];
-  const upcomingEvents = events.filter(e => e.isUpcoming).slice(0, 2);
   const latestAnnouncements = announcements.slice(0, 3);
 
   const handleFeaturedVote = async (e) => {
@@ -175,7 +171,7 @@ export default function HomePage({
           </div>
         </section>
 
-        {/* ================= QUICK ACCESS 4-CARD GRID ================= */}
+        {/* ================= QUICK ACCESS 3-CARD GRID ================= */}
         <section>
           <div className="mb-6">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
@@ -183,7 +179,7 @@ export default function HomePage({
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Card 1: Anonymous Feedback */}
             <div 
@@ -247,28 +243,6 @@ export default function HomePage({
               </div>
               <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
                 <span>Cast Your Vote</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* Card 4: Events & Activities */}
-            <div 
-              onClick={() => setCurrentRoute('events')}
-              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-5 text-purple-500 group-hover:text-purple-400 transition-colors">
-                  <Calendar className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
-                  Events &amp; Symposia
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Browse upcoming inter-college medical quizzes, sports meets, clinical workshops, and register online.
-                </p>
-              </div>
-              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform">
-                <span>Explore Calendar</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -380,70 +354,6 @@ export default function HomePage({
             </div>
           </section>
         )}
-
-        {/* ================= UPCOMING EVENTS SECTION ================= */}
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
-                Upcoming Academic &amp; Cultural Events
-              </h2>
-            </div>
-            
-            <button
-              onClick={() => setCurrentRoute('events')}
-              className="inline-flex items-center space-x-1 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 transition-colors"
-            >
-              <span>View All Events</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {upcomingEvents.map((evt, idx) => (
-              <div 
-                key={evt.id} 
-                onClick={() => setCurrentRoute('events')}
-                className="portal-card p-6 flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full neu-pill">
-                      {evt.category}
-                    </span>
-                    <span className="text-xs font-mono font-semibold text-slate-400">
-                      Event #{idx + 1}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-sky-500 transition-colors">
-                    {evt.title}
-                  </h3>
-
-                  <div className="mt-3 space-y-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-3.5 h-3.5 text-sky-500" />
-                      <span>{evt.date} • {evt.time}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{evt.venue}</span>
-                    </div>
-                  </div>
-
-                  <p className="mt-3 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                    {evt.description}
-                  </p>
-                </div>
-
-                <div className="mt-5 pt-3 border-t border-slate-200/50 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-sky-600 dark:text-sky-400">
-                  <span>Register &amp; Details</span>
-                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
       </div>
     </div>

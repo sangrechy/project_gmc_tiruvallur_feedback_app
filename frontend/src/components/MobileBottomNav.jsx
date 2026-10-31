@@ -4,8 +4,7 @@ import {
   Megaphone, 
   MessageSquarePlus, 
   MessageCircle, 
-  Vote, 
-  Calendar 
+  Vote 
 } from 'lucide-react';
 
 export default function MobileBottomNav({ currentRoute, setCurrentRoute }) {

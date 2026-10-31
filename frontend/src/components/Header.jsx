@@ -7,7 +7,6 @@ import {
   MessageSquarePlus, 
   MessageCircle, 
   Vote, 
-  Calendar,
   ChevronRight,
   ShieldAlert
 } from 'lucide-react';
@@ -21,7 +20,6 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
     { id: 'feedback', label: 'Feedback', icon: MessageSquarePlus },
     { id: 'chat', label: 'Live Chat', icon: MessageCircle },
     { id: 'polls', label: 'Polls', icon: Vote },
-    { id: 'events', label: 'Events', icon: Calendar },
   ];
 
   const handleNavClick = (id) => {
