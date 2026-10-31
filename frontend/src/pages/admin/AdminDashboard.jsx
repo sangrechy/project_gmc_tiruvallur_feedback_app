@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, 
   Clock, 
@@ -13,8 +13,11 @@ import {
   Eye,
   ShieldAlert,
   Megaphone,
-  ChevronRight
+  ChevronRight,
+  Camera,
+  Activity
 } from 'lucide-react';
+import { apiService } from '../../services/apiService';
 
 export default function AdminDashboard({ 
   feedbacks, 
@@ -27,6 +30,15 @@ export default function AdminDashboard({
   showToast 
 }) {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [appStatus, setAppStatus] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    apiService.getAppStatus().then(status => {
+      if (mounted) setAppStatus(status);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   const totalFeedbackCount = feedbacks.length;
   const unreadFeedbackCount = feedbacks.filter(f => f.status === 'Received').length;
@@ -78,6 +90,90 @@ export default function AdminDashboard({
             alt="Council Officer Mascot" 
             className="w-full h-full object-contain filter drop-shadow(0 2px 6px rgba(0,0,0,0.3))"
           />
+        </div>
+      </div>
+
+      {/* 📷 Screenshot Diagnostics & Live App Status Banner */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 dark:bg-[#0e131f] border border-sky-500/30 text-white shadow-lg space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+          <div className="flex items-center space-x-2">
+            <Camera className="w-4 h-4 text-sky-400" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-sky-400">
+              Live App Status & Diagnostics
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-mono">
+              {appStatus?.snapshotId || 'GMC-DIAG'}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-3 text-[11px] font-mono text-slate-400">
+            <span>{appStatus?.checkedAt ? new Date(appStatus.checkedAt).toLocaleTimeString() : 'Checking...'}</span>
+            <button
+              onClick={() => setCurrentSection('status')}
+              className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center space-x-1 cursor-pointer transition-colors"
+            >
+              <span>Full Diagnostics</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* 5 Quick Subsystem Health Badges for Debug Screenshots */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 text-xs font-mono">
+          {/* AI API */}
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white/5 border border-white/5 flex flex-col justify-between">
+            <div className="text-[10px] text-slate-400 flex items-center justify-between">
+              <span>AI API</span>
+              <span className={`w-2 h-2 rounded-full ${appStatus?.aiApi?.status === 'connected' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+            </div>
+            <div className="mt-1 font-bold text-[11px] text-slate-200 truncate">
+              {appStatus?.aiApi?.status === 'connected' ? 'CONNECTED' : 'FALLBACK'}
+            </div>
+          </div>
+
+          {/* Backend */}
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white/5 border border-white/5 flex flex-col justify-between">
+            <div className="text-[10px] text-slate-400 flex items-center justify-between">
+              <span>BACKEND</span>
+              <span className={`w-2 h-2 rounded-full ${appStatus?.backend?.status === 'connected' ? 'bg-emerald-400' : 'bg-sky-400'}`} />
+            </div>
+            <div className="mt-1 font-bold text-[11px] text-slate-200 truncate">
+              {appStatus?.backend?.status === 'connected' ? `${appStatus.backend.latencyMs}ms` : 'EMULATED'}
+            </div>
+          </div>
+
+          {/* Telegram */}
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white/5 border border-white/5 flex flex-col justify-between">
+            <div className="text-[10px] text-slate-400 flex items-center justify-between">
+              <span>TELEGRAM</span>
+              <span className={`w-2 h-2 rounded-full ${appStatus?.telegram?.status === 'connected' ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+            </div>
+            <div className="mt-1 font-bold text-[11px] text-slate-200 truncate">
+              {appStatus?.telegram?.status === 'connected' ? 'ACTIVE' : 'STANDBY'}
+            </div>
+          </div>
+
+          {/* Gmail */}
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white/5 border border-white/5 flex flex-col justify-between">
+            <div className="text-[10px] text-slate-400 flex items-center justify-between">
+              <span>GMAIL</span>
+              <span className={`w-2 h-2 rounded-full ${appStatus?.gmail?.status === 'connected' ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+            </div>
+            <div className="mt-1 font-bold text-[11px] text-slate-200 truncate">
+              {appStatus?.gmail?.status === 'connected' ? 'READY' : 'STANDBY'}
+            </div>
+          </div>
+
+          {/* Database */}
+          <div className="col-span-2 sm:col-span-1 p-2 sm:p-2.5 rounded-xl bg-white/5 border border-white/5 flex flex-col justify-between">
+            <div className="text-[10px] text-slate-400 flex items-center justify-between">
+              <span>DATABASE</span>
+              <span className={`w-2 h-2 rounded-full ${appStatus?.database?.status === 'connected' ? 'bg-emerald-400' : 'bg-sky-400'}`} />
+            </div>
+            <div className="mt-1 font-bold text-[11px] text-slate-200 truncate">
+              {appStatus?.database?.status === 'connected' ? 'FIRESTORE' : 'DEMO STORE'}
+            </div>
+          </div>
         </div>
       </div>
 

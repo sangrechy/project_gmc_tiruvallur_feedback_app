@@ -14,6 +14,7 @@ import EventsPage from '../pages/EventsPage';
 import AdminLoginPage from '../pages/AdminLoginPage';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminReports from '../pages/admin/AdminReports';
+import AdminStatus from '../pages/admin/AdminStatus';
 
 import {
   INITIAL_ANNOUNCEMENTS,
@@ -222,7 +223,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
   });
 
-  it('renders AdminDashboard overview matching metrics, triage table, and actions', () => {
+  it('renders AdminDashboard overview matching metrics, triage table, live app status diagnostics, and actions', async () => {
     const setCurrentSection = vi.fn();
     const onUpdateFeedbackStatus = vi.fn();
     const showToast = vi.fn();
@@ -247,10 +248,40 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('Active Polls')).toBeInTheDocument();
     expect(screen.getByText('Recent Anonymous Grievances')).toBeInTheDocument();
     expect(screen.getByText('Quick Management Actions')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('Live App Status & Diagnostics')).toBeInTheDocument();
+      expect(screen.getByText('AI API')).toBeInTheDocument();
+      expect(screen.getByText('BACKEND')).toBeInTheDocument();
+      expect(screen.getByText('TELEGRAM')).toBeInTheDocument();
+      expect(screen.getByText('GMAIL')).toBeInTheDocument();
+    });
+
     expect(screen.getByText('Post Circular')).toBeInTheDocument();
     expect(screen.getByText('Launch Poll')).toBeInTheDocument();
     expect(screen.getByText('Create Event')).toBeInTheDocument();
     expect(screen.getByText('Export Report')).toBeInTheDocument();
+  });
+
+  it('renders AdminStatus with AI API, Backend, Telegram, Gmail screenshot debug telemetry', async () => {
+    const showToast = vi.fn();
+
+    render(<AdminStatus showToast={showToast} />);
+
+    expect(screen.getByText('App Status & Subsystem Health')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('Screenshot Debug Diagnostics')).toBeInTheDocument();
+      expect(screen.getByText('AI Intelligence Engine')).toBeInTheDocument();
+      expect(screen.getByText('Cloudflare Worker Backend')).toBeInTheDocument();
+      expect(screen.getByText('Telegram Council Relay')).toBeInTheDocument();
+      expect(screen.getByText('Gmail Alert Dispatcher')).toBeInTheDocument();
+      expect(screen.getByText('Database & Storage Tier')).toBeInTheDocument();
+      expect(screen.getByText('Council Security Shield')).toBeInTheDocument();
+    });
+
+    const copyBtn = screen.getByRole('button', { name: /Copy Telemetry/i });
+    expect(copyBtn).toBeInTheDocument();
   });
 
   it('renders AdminReports with AI distribution metrics and export triggers', async () => {

@@ -23,6 +23,7 @@ import AdminPolls from './pages/admin/AdminPolls';
 import AdminEvents from './pages/admin/AdminEvents';
 import AdminReports from './pages/admin/AdminReports';
 import AdminManagement from './pages/admin/AdminManagement';
+import AdminStatus from './pages/admin/AdminStatus';
 
 import { storageService } from './services/storageService';
 import { isFirebaseConfigured } from './services/firebase';
@@ -210,6 +211,10 @@ export default function App() {
               onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
               showToast={showToast}
             />
+          )}
+
+          {adminSection === 'status' && (
+            <AdminStatus showToast={showToast} />
           )}
 
           {adminSection === 'feedback' && (

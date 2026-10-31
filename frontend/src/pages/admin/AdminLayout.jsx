@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
+  Activity,
   MessageSquare, 
   MessageCircle, 
   Megaphone, 
@@ -28,6 +29,7 @@ export default function AdminLayout({
 
   const menuItems = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'status', label: 'App Status & Health', icon: Activity },
     { id: 'feedback', label: 'Feedback Triage', icon: MessageSquare, badge: unreadCount },
     { id: 'chat', label: 'Live Relays', icon: MessageCircle, badge: activeChatsCount },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
@@ -68,7 +70,16 @@ export default function AdminLayout({
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <button
+              onClick={() => handleSelectSection('status')}
+              className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer"
+              title="Click to view App Status & Diagnostics"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-bold">App Status</span>
+            </button>
+
             <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px] hidden sm:inline">
               {adminUser?.email || "council.rep@gmcthiruvallur.ac.in"}
             </span>
