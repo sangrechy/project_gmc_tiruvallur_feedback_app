@@ -3,7 +3,7 @@ import { Github, Mail } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-slate-200/60 dark:border-white/10 bg-[#f8fafc]/80 dark:bg-[#07090e]/80 backdrop-blur-md py-6 sm:py-8 transition-colors">
+    <footer className="mt-12 sm:mt-16 border-t border-slate-200/60 dark:border-white/10 bg-[#f8fafc]/80 dark:bg-[#07090e]/80 backdrop-blur-md pt-6 sm:pt-8 pb-28 md:pb-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans">
         <div className="font-mono text-slate-500 dark:text-slate-400 text-center sm:text-left">
           © {new Date().getFullYear()} GMC Thiruvallur

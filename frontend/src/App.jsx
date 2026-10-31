@@ -247,7 +247,7 @@ export default function App() {
             isAdminLoggedIn={Boolean(adminUser)}
           />
 
-          <main className="flex-1 pb-28 sm:pb-24 md:pb-0">
+          <main className="flex-1">
             {currentRoute === 'home' && (
               <HomePage
                 setCurrentRoute={setCurrentRoute}
