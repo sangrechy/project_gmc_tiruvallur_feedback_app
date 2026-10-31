@@ -169,9 +169,6 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                 <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
                   Student Council Live Chat
                 </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Direct two-way confidential communication with elected representatives
-                </p>
               </div>
 
               {/* Status Badges */}

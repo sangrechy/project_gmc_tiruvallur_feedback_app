@@ -114,9 +114,6 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, showT
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Feedback Review
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Read student grievances directly and update progress in 1 click
-          </p>
         </div>
 
         {/* Search */}

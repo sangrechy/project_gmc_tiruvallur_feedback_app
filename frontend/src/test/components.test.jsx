@@ -178,7 +178,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText('Student Council Polls & Ballots')).toBeInTheDocument();
+    expect(screen.getByText('Council Polls')).toBeInTheDocument();
     expect(screen.getByText(INITIAL_POLLS[0].question)).toBeInTheDocument();
     expect(screen.getByAltText('Thinking Mascot Bleeding Out')).toBeInTheDocument();
   });
@@ -193,7 +193,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText('Campus Announcements')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Announcements' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ALL' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'IMPORTANT' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ACADEMIC' })).toBeInTheDocument();
@@ -300,7 +300,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
 
     expect(screen.getByText('Feedback Review')).toBeInTheDocument();
-    expect(screen.getByText(/Read student grievances directly/i)).toBeInTheDocument();
     expect(screen.getByText(INITIAL_FEEDBACK[0].content)).toBeInTheDocument();
 
     // Verify 1-click Mark Resolved or Under Review button exists

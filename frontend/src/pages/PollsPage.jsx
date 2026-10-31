@@ -75,11 +75,8 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
             <span>Collegiate Student Democracy</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
-            Student Council Polls &amp; Ballots
+            Council Polls
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-lg leading-relaxed">
-            Vote on key campus matters including clinical rotas, hostel food committees, academic schedules, and annual fest artists.
-          </p>
         </div>
       </div>
 

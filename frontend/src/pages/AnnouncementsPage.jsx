@@ -54,11 +54,8 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
             <span>Council Notice Board</span>
           </div>
           <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
-            Campus Announcements
+            Announcements
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-lg mx-auto leading-relaxed">
-            Direct clinical rotations, university examination circulars, hostel administrative notices, and emergency advisories.
-          </p>
         </div>
       </div>
 

@@ -184,9 +184,6 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
                 Anonymous Feedback Portal
               </h1>
-              <p className="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md leading-relaxed">
-                Communicate directly with the GMC Student Council. Your submission is cryptographically untraceable.
-              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
