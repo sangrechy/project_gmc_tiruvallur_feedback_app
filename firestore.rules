@@ -1,9 +1,85 @@
 rules_version = '2';
 
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: feedback
+// Document ID: auto-generated or custom string ID
+// Fields:
+//   - trackingId: string (optional, 1-50 chars, immutable) - e.g. "GMC-FB-9402"
+//   - category: string (required, 1-100 chars, immutable) - Department or category
+//   - content: string (required, 1-5000 chars, immutable) - Student grievance description
+//   - containsPII: bool (optional) - True if identifying info declared or auto-detected
+//   - status: string (optional, 1-50 chars) - "Received" | "Reviewing" | "Resolved"
+//   - createdAt: string (optional, 1-50 chars, immutable) - ISO 8601 date string
+//   - serverTimestamp: timestamp (optional) - Server-side write timestamp
+//   - aiAnalysis: map or null (optional) - AI classification metadata
+//   - councilNotes: string (optional, <= 2000 chars) - Council internal notes (admin only)
+//
+// Collection: chats
+// Document ID: auto-generated or custom string ID
+// Fields:
+//   - sessionId: string (required, 1-50 chars, immutable) - Ephemeral session identifier
+//   - status: string (required, 'active' | 'ended' | 'expired') - Session lifecycle status
+//   - createdAt: timestamp or string (optional, immutable) - Session initiation timestamp
+//   - lastActivity: timestamp or string (optional) - Last ping/message timestamp
+//
+// Subcollection: chats/{chatId}/messages
+// Document ID: auto-generated or custom message ID
+// Fields:
+//   - content: string (optional, 1-2000 chars) - Message body text
+//   - text: string (optional, 1-2000 chars) - Alternative body text field
+//   - sender: string (required, 'student' | 'admin') - Sender identity
+//   - timestamp: string (optional, 1-50 chars) - Display timestamp string
+//   - createdAt: timestamp or string (optional) - Server timestamp
+//
+// Collection: polls
+// Document ID: auto-generated or custom string ID
+// Fields:
+//   - question: string (required, 1-500 chars) - Poll question prompt
+//   - options: list (required, 2-20 items) - Choice options array
+//   - totalVotes: int (optional, >= 0) - Aggregate vote counter
+//   - status: string (required, 'active' | 'closed' | 'ended' | 'archived') - Voting status
+//   - closingDate: string (optional, 1-50 chars) - Poll deadline
+//   - createdAt: string or timestamp (optional) - Creation timestamp
+//
+// Subcollection: polls/{pollId}/votes
+// Document ID: auto-generated or student vote ID
+// Fields:
+//   - selectedOption: int or string (required) - Selected option index or key
+//   - timestamp: timestamp (optional) - Vote timestamp
+//   - createdAt: string (optional, 1-50 chars) - ISO date string
+//
+// Collection: announcements
+// Document ID: auto-generated or custom string ID
+// Fields:
+//   - title: string (required, 1-300 chars) - Circular headline
+//   - description: string (required, 1-5000 chars) - Detailed circular announcement
+//   - category: string (optional, 1-100 chars) - "IMPORTANT" | "ACADEMIC" | "HOSTEL" etc.
+//   - categoryType: string (optional, 1-50 chars) - Styling category
+//   - date: string (optional, 1-50 chars) - Circular date string
+//   - expiryDate: string (optional, 1-50 chars) - Circular validity date
+//   - pinned: bool (optional) - Sticky circular flag
+//   - createdAt: string or timestamp (optional) - Record timestamp
+//
+// Collection: admins
+// Document ID: Firebase Auth UID or Admin Email
+// Fields:
+//   - name: string (optional) - Executive name
+//   - email: string (optional) - Institutional email
+//   - role: string (optional) - Council role
+//   - status: string (optional) - "Active"
+//
+// ===============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ===============================================================
+    // Common Helper Functions
+    // ===============================================================
+
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -11,66 +87,194 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+        ('email' in request.auth.token &&
+         request.auth.token.email != null &&
+         exists(/databases/$(database)/documents/admins/$(request.auth.token.email)))
       );
     }
 
-    // Feedback Collection
-    // Students can submit anonymously; only authorized Council Admins can read or update
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    // Validates feedback schema on create and update
+    function isValidFeedbackData(data) {
+      return data.keys().hasOnly([
+               'trackingId', 'category', 'content', 'containsPII',
+               'status', 'createdAt', 'serverTimestamp', 'aiAnalysis', 'councilNotes'
+             ]) &&
+             data.content is string &&
+             data.content.size() > 0 &&
+             data.content.size() <= 5000 &&
+             data.category is string &&
+             data.category.size() > 0 &&
+             data.category.size() <= 100 &&
+             (!('trackingId' in data) || (data.trackingId is string && data.trackingId.size() <= 50)) &&
+             (!('containsPII' in data) || data.containsPII is bool) &&
+             (!('status' in data) || (data.status is string && data.status.size() <= 50)) &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+             (!('serverTimestamp' in data) || data.serverTimestamp is timestamp) &&
+             (!('aiAnalysis' in data) || data.aiAnalysis == null || data.aiAnalysis is map) &&
+             (!('councilNotes' in data) || (data.councilNotes is string && data.councilNotes.size() <= 2000));
+    }
+
+    // Validates live chat session documents
+    function isValidChat(data) {
+      return data.keys().hasOnly(['sessionId', 'status', 'createdAt', 'lastActivity']) &&
+             data.keys().hasAll(['sessionId', 'status']) &&
+             data.sessionId is string &&
+             data.sessionId.size() > 0 &&
+             data.sessionId.size() <= 50 &&
+             data.status in ['active', 'ended', 'expired'] &&
+             (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+             (!('lastActivity' in data) || data.lastActivity is timestamp || (data.lastActivity is string && data.lastActivity.size() <= 50));
+    }
+
+    // Validates live chat message documents
+    function isValidMessage(data) {
+      return data.keys().hasOnly(['content', 'text', 'sender', 'timestamp', 'createdAt']) &&
+             data.keys().hasAll(['sender']) &&
+             (
+               ('content' in data && data.content is string && data.content.size() > 0 && data.content.size() <= 2000) ||
+               ('text' in data && data.text is string && data.text.size() > 0 && data.text.size() <= 2000)
+             ) &&
+             data.sender in ['student', 'admin'] &&
+             (!('timestamp' in data) || (data.timestamp is string && data.timestamp.size() <= 50)) &&
+             (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    // Validates poll documents
+    function isValidPoll(data) {
+      return data.keys().hasOnly(['question', 'options', 'totalVotes', 'status', 'closingDate', 'createdAt', 'userVoted']) &&
+             data.keys().hasAll(['question', 'options', 'status']) &&
+             data.question is string &&
+             data.question.size() > 0 &&
+             data.question.size() <= 500 &&
+             data.options is list &&
+             data.options.size() >= 2 &&
+             data.options.size() <= 20 &&
+             data.status in ['active', 'closed', 'ended', 'archived'] &&
+             (!('totalVotes' in data) || (data.totalVotes is int && data.totalVotes >= 0)) &&
+             (!('closingDate' in data) || (data.closingDate is string && data.closingDate.size() <= 50)) &&
+             (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    // Checks if the parent poll is currently active for voting
+    function isPollActive(pollId) {
+      return exists(/databases/$(database)/documents/polls/$(pollId)) &&
+             get(/databases/$(database)/documents/polls/$(pollId)).data.status == 'active';
+    }
+
+    // Validates individual vote documents
+    function isValidVote(data) {
+      return data.keys().hasOnly(['selectedOption', 'timestamp', 'createdAt']) &&
+             data.keys().hasAll(['selectedOption']) &&
+             (
+               (data.selectedOption is int && data.selectedOption >= 0 && data.selectedOption < 100) ||
+               (data.selectedOption is string && data.selectedOption.size() > 0 && data.selectedOption.size() <= 100)
+             ) &&
+             (!('timestamp' in data) || data.timestamp is timestamp) &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    // Validates announcement documents
+    function isValidAnnouncement(data) {
+      return data.keys().hasOnly(['title', 'category', 'categoryType', 'date', 'expiryDate', 'pinned', 'description', 'createdAt']) &&
+             data.keys().hasAll(['title', 'description']) &&
+             data.title is string &&
+             data.title.size() > 0 &&
+             data.title.size() <= 300 &&
+             data.description is string &&
+             data.description.size() <= 5000 &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
+             (!('categoryType' in data) || (data.categoryType is string && data.categoryType.size() <= 50)) &&
+             (!('date' in data) || (data.date is string && data.date.size() <= 50)) &&
+             (!('expiryDate' in data) || (data.expiryDate is string && data.expiryDate.size() <= 50)) &&
+             (!('pinned' in data) || data.pinned is bool) &&
+             (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    // ===============================================================
+    // 1. Feedback Collection
+    // Students can submit anonymously; only authorized Council Admins can read, update, or delete
+    // ===============================================================
     match /feedback/{feedbackId} {
-      allow create: if request.resource.data.content is string
-                    && request.resource.data.content.size() > 0
-                    && request.resource.data.content.size() <= 10000
-                    && request.resource.data.category is string;
-      allow read, update, delete: if isAdmin();
+      allow create: if isValidFeedbackData(request.resource.data) &&
+                    (!('councilNotes' in request.resource.data) || isAdmin());
+      allow read, delete: if isAdmin();
+      allow update: if isAdmin() &&
+                    isValidFeedbackData(request.resource.data) &&
+                    areImmutableFieldsUnchanged(['trackingId', 'createdAt']);
     }
 
-    // Temporary Live Chat Collection
-    // Sessions expire after 24 hours of inactivity
+    // ===============================================================
+    // 2. Ephemeral Live Chat Collection
+    // Students and admins interact via temporary 24-hr session IDs
+    // ===============================================================
     match /chats/{chatId} {
-      allow create: if request.resource.data.sessionId is string;
-      allow read: if true; // Accessed via random UUID or by admin
-      allow update: if isAdmin() || (
-        request.resource.data.status == 'ended' ||
-        request.time < resource.data.lastActivity + duration.value(24, 'h')
-      );
+      allow read: if true;
+      allow create: if isValidChat(request.resource.data);
+      allow update: if (isAdmin() ||
+                        request.resource.data.status == 'ended' ||
+                        (resource.data.lastActivity is timestamp && request.time < resource.data.lastActivity + duration.value(24, 'h')) ||
+                        (resource.data.lastActivity is string)) &&
+                    isValidChat(request.resource.data) &&
+                    areImmutableFieldsUnchanged(['sessionId', 'createdAt']);
       allow delete: if isAdmin();
 
+      // Message Subcollection: read and append-only (immutable audit log)
       match /messages/{messageId} {
         allow read: if true;
-        allow create: if request.resource.data.content is string
-                      && request.resource.data.content.size() <= 2000
-                      && (isAdmin() || request.resource.data.sender == 'student');
-        allow update, delete: if isAdmin();
+        allow create: if isValidMessage(request.resource.data) &&
+                      (request.resource.data.sender == 'student' || isAdmin());
+        // Updates and deletes are disallowed to preserve chat integrity
       }
     }
 
-    // Announcements Collection (Public read, Admin manage)
+    // ===============================================================
+    // 3. Announcements Collection
+    // Public read for campus circulars; Admin restricted write
+    // ===============================================================
     match /announcements/{announcementId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update: if isAdmin() && isValidAnnouncement(request.resource.data);
+      allow delete: if isAdmin();
     }
 
-    // Polls Collection (Public read & vote, Admin manage)
+    // ===============================================================
+    // 4. Polls Collection & Subcollection Votes
+    // Only Council Admins manage polls; Students vote on active polls
+    // ===============================================================
     match /polls/{pollId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update: if isAdmin() && isValidPoll(request.resource.data);
+      allow delete: if isAdmin();
 
+      // Votes Subcollection: restricted to active polls
       match /votes/{voteId} {
         allow read: if true;
-        allow create: if request.resource.data.selectedOption is int
-                      || request.resource.data.selectedOption is string;
-        allow update, delete: if isAdmin();
+        allow create: if isPollActive(pollId) && isValidVote(request.resource.data);
+        allow update: if false; // Votes are final once cast
+        allow delete: if isAdmin();
       }
     }
 
-    // Events Collection (Public read, Admin manage)
-    match /events/{eventId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    // Authorized Admins Collection
+    // ===============================================================
+    // 5. Authorized Council Admins Collection
+    // RBAC bootstrap and identity verification
+    // ===============================================================
     match /admins/{adminId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();

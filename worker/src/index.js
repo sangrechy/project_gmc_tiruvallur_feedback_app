@@ -1,67 +1,223 @@
 /**
  * GMC Thiruvallur Student Council Portal - Cloudflare Worker Backend
- * Serverless API Handling:
+ * Serverless API Handling with Enterprise Security Hardening & Performance Optimizations:
+ * - Constant-Time Timing-Safe Token Verification
+ * - In-Memory Sliding-Window IP Rate Limiting & Anti-Abuse
+ * - Request Payload Size Validation & DoS Protection
+ * - Input Sanitization & Anti-XSS Neutralization
+ * - Security Response Headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options)
  * - Anonymous Feedback & PII Privacy Filtering
- * - Temporary Live Chat & Telegram Bot 2-Way Relay
- * - Telegram Admin Bot Webhook (/announce, /poll, /event, /chat, /reply, /report, etc.)
+ * - Ephemeral Live Chat & Telegram Bot 2-Way Relay
  * - AI Intelligence Analysis (Groq & Gemini APIs)
- * - Email Notification Alerts (Gmail)
  */
 
-// Standard CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, X-Council-Token",
+// Standard Security Response Headers
+const securityHeaders = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "geolocation=(), camera=(), microphone=(), payment=()",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload"
 };
 
-function jsonResponse(data, status = 200) {
+// Rate Limiting In-Memory Store
+const rateLimitMap = new Map();
+
+/**
+ * Sliding window rate limiter per IP & endpoint
+ */
+function checkRateLimit(ip, endpoint, maxRequests, windowMs) {
+  const now = Date.now();
+  const key = `${ip}:${endpoint}`;
+  let bucket = rateLimitMap.get(key);
+
+  if (!bucket || now - bucket.startTime > windowMs) {
+    bucket = { startTime: now, count: 1 };
+    rateLimitMap.set(key, bucket);
+    // Auto-prune stale entries if map grows large
+    if (rateLimitMap.size > 2000) {
+      for (const [k, v] of rateLimitMap.entries()) {
+        if (now - v.startTime > windowMs) rateLimitMap.delete(k);
+      }
+    }
+    return { allowed: true, remaining: maxRequests - 1 };
+  }
+
+  bucket.count++;
+  if (bucket.count > maxRequests) {
+    const retryAfter = Math.ceil((bucket.startTime + windowMs - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+
+  return { allowed: true, remaining: maxRequests - bucket.count };
+}
+
+/**
+ * Extract caller IP from standard Cloudflare headers
+ */
+function getClientIp(request) {
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-real-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "127.0.0.1"
+  );
+}
+
+/**
+ * Verify payload length to protect against buffer exhaustion DoS
+ */
+function checkPayloadSize(request, maxBytes) {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && parseInt(contentLength, 10) > maxBytes) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Sanitize text input: strip null bytes, script tags, javascript: URIs, escape HTML brackets
+ */
+function sanitizeInput(str, maxLength = 5000) {
+  if (typeof str !== "string") return "";
+  return str
+    .slice(0, maxLength)
+    .replace(/\0/g, "")
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/javascript:/gi, "")
+    .replace(/[<>]/g, (c) => (c === "<" ? "&lt;" : "&gt;"))
+    .trim();
+}
+
+/**
+ * Constant-time string equality using SHA-256 digest comparison
+ * Completely eliminates timing side-channel attacks on authorization tokens
+ */
+async function timingSafeEqualStrings(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const enc = new TextEncoder();
+  const [hashA, hashB] = await Promise.all([
+    crypto.subtle.digest("SHA-256", enc.encode(a)),
+    crypto.subtle.digest("SHA-256", enc.encode(b)),
+  ]);
+  const u8A = new Uint8Array(hashA);
+  const u8B = new Uint8Array(hashB);
+  let diff = 0;
+  for (let i = 0; i < u8A.length; i++) {
+    diff |= u8A[i] ^ u8B[i];
+  }
+  return diff === 0;
+}
+
+/**
+ * Compute CORS headers dynamically based on ALLOWED_ORIGINS
+ */
+function getCorsHeaders(env = {}, request = null) {
+  const origin = request?.headers?.get("Origin") || "";
+  const allowed = env?.ALLOWED_ORIGINS
+    ? env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+    : ["*"];
+  const isAllowed = allowed.includes("*") || allowed.includes(origin);
+
+  return {
+    "Access-Control-Allow-Origin": isAllowed ? (allowed.includes("*") ? "*" : origin) : "null",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, X-Council-Token",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
+/**
+ * Create JSON response with comprehensive security & CORS headers
+ */
+function jsonResponse(data, status = 200, env = {}, request = null, extraHeaders = {}) {
+  const cors = getCorsHeaders(env, request);
   return new Response(JSON.stringify(data), {
     status,
     headers: {
-      ...corsHeaders,
+      ...cors,
+      ...securityHeaders,
       "Content-Type": "application/json",
+      ...extraHeaders,
     },
   });
 }
 
 export default {
   async fetch(request, env, ctx) {
-    // Handle CORS preflight
+    const isTestEnv = env.ENVIRONMENT === "test";
+    const clientIp = getClientIp(request);
+
+    // 1. Handle CORS preflight
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
+      return new Response(null, { headers: getCorsHeaders(env, request) });
     }
 
     const url = new URL(request.url);
     const path = url.pathname;
 
     try {
-      // 1. Health check & configuration status
+      // 2. Health check & configuration status (with cache-control)
       if (path === "/" || path === "/health" || path === "/api/health") {
-        return jsonResponse({
-          status: "healthy",
-          college: env.COLLEGE_NAME || "GMC Thiruvallur",
-          environment: env.ENVIRONMENT || "production",
-          services: {
-            councilAuth: Boolean(env.COUNCIL_AUTH_TOKEN),
-            telegramBot: Boolean(env.TELEGRAM_BOT_TOKEN),
-            groqAI: Boolean(env.GROQ_API_KEY),
-            geminiAI: Boolean(env.GEMINI_API_KEY),
-            gmail: Boolean(env.GMAIL_CLIENT_ID && env.GMAIL_REFRESH_TOKEN),
-            firebase: Boolean(env.FIREBASE_PROJECT_ID),
+        return jsonResponse(
+          {
+            status: "healthy",
+            college: env.COLLEGE_NAME || "GMC Thiruvallur",
+            environment: env.ENVIRONMENT || "production",
+            security: {
+              rateLimiter: true,
+              timingSafeAuth: true,
+              inputSanitization: true,
+              piiProtection: true,
+            },
+            services: {
+              councilAuth: Boolean(env.COUNCIL_AUTH_TOKEN),
+              telegramBot: Boolean(env.TELEGRAM_BOT_TOKEN),
+              groqAI: Boolean(env.GROQ_API_KEY),
+              geminiAI: Boolean(env.GEMINI_API_KEY),
+              gmail: Boolean(env.GMAIL_CLIENT_ID && env.GMAIL_REFRESH_TOKEN),
+              firebase: Boolean(env.FIREBASE_PROJECT_ID),
+            },
+            timestamp: new Date().toISOString(),
           },
-          timestamp: new Date().toISOString(),
-        });
+          200,
+          env,
+          request,
+          { "Cache-Control": "no-cache" }
+        );
       }
 
-      // 2. Council Token Authentication & Verification Endpoint
+      // 3. Council Token Authentication & Verification Endpoint
       if (path === "/api/auth/verify" && request.method === "POST") {
+        // Enforce rate limiting against brute force attempts (15 attempts / 5 mins)
+        if (!isTestEnv) {
+          const limit = checkRateLimit(clientIp, "auth_verify", 15, 5 * 60 * 1000);
+          if (!limit.allowed) {
+            return jsonResponse(
+              {
+                valid: false,
+                authenticated: false,
+                error: `Too many authorization attempts. Please retry in ${limit.retryAfter}s.`,
+              },
+              429,
+              env,
+              request,
+              { "Retry-After": String(limit.retryAfter) }
+            );
+          }
+        }
+
+        // Enforce max payload size (16KB)
+        if (!checkPayloadSize(request, 16384)) {
+          return jsonResponse({ error: "Payload too large" }, 413, env, request);
+        }
+
         let providedToken = "";
         try {
           const body = await request.json();
           providedToken = body?.token || "";
         } catch {
-          // If body is empty, check headers
+          // If body is empty, fallback to header inspection
         }
 
         if (!providedToken) {
@@ -76,52 +232,99 @@ export default {
         const configuredToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
 
         if (configuredToken) {
-          if (providedToken && providedToken.trim() === configuredToken) {
-            return jsonResponse({
-              valid: true,
-              authenticated: true,
-              role: "Council Executive",
-              college: env.COLLEGE_NAME || "GMC Thiruvallur",
-              message: "Council authentication successful"
-            });
+          // Constant-time comparison eliminates timing side-channel attacks
+          const isMatch = providedToken ? await timingSafeEqualStrings(providedToken.trim(), configuredToken) : false;
+
+          if (isMatch) {
+            return jsonResponse(
+              {
+                valid: true,
+                authenticated: true,
+                role: "Council Executive",
+                college: env.COLLEGE_NAME || "GMC Thiruvallur",
+                message: "Council authentication successful",
+              },
+              200,
+              env,
+              request,
+              { "Cache-Control": "no-store, max-age=0" }
+            );
           } else {
-            return jsonResponse({
-              valid: false,
-              authenticated: false,
-              error: "Invalid Council Master Token / Passcode"
-            }, 401);
+            return jsonResponse(
+              {
+                valid: false,
+                authenticated: false,
+                error: "Invalid Council Master Token / Passcode",
+              },
+              401,
+              env,
+              request,
+              { "Cache-Control": "no-store, max-age=0" }
+            );
           }
         } else {
-          // No token set in environment - interactive demo mode
-          return jsonResponse({
-            valid: true,
-            authenticated: true,
-            role: "Council Executive (Demo Mode)",
-            college: env.COLLEGE_NAME || "GMC Thiruvallur",
-            notice: "Running in open demo mode. Set COUNCIL_AUTH_TOKEN secret in Cloudflare to enforce lockdown."
-          });
+          // No token set in environment - interactive demo clearance
+          return jsonResponse(
+            {
+              valid: true,
+              authenticated: true,
+              role: "Council Executive (Demo Mode)",
+              college: env.COLLEGE_NAME || "GMC Thiruvallur",
+              notice: "Running in open demo mode. Set COUNCIL_AUTH_TOKEN secret in Cloudflare to enforce lockdown.",
+            },
+            200,
+            env,
+            request,
+            { "Cache-Control": "no-store, max-age=0" }
+          );
         }
       }
 
-      // 3. Feedback Submission Endpoint
+      // 4. Feedback Submission Endpoint
       if (path === "/api/feedback" && request.method === "POST") {
-        const body = await request.json();
-        const { category, content, containsPII } = body;
+        // Enforce rate limiting against spam (20 submissions / 10 mins)
+        if (!isTestEnv) {
+          const limit = checkRateLimit(clientIp, "feedback_submit", 20, 10 * 60 * 1000);
+          if (!limit.allowed) {
+            return jsonResponse(
+              { error: `Rate limit reached. Please wait ${limit.retryAfter}s before submitting again.` },
+              429,
+              env,
+              request,
+              { "Retry-After": String(limit.retryAfter) }
+            );
+          }
+        }
 
-        if (!content || content.trim().length < 5) {
-          return jsonResponse({ error: "Content is too short or empty" }, 400);
+        // Enforce max payload size (64KB)
+        if (!checkPayloadSize(request, 65536)) {
+          return jsonResponse({ error: "Payload exceeds 64KB maximum size" }, 413, env, request);
+        }
+
+        const body = await request.json();
+        const rawCategory = body?.category || "General Council Inquiry";
+        const rawContent = body?.content || "";
+        const declaredPII = Boolean(body?.containsPII);
+
+        // Sanitize input text and enforce bounds
+        const category = sanitizeInput(rawCategory, 100);
+        const content = sanitizeInput(rawContent, 4000);
+
+        if (!content || content.length < 5) {
+          return jsonResponse({ error: "Content is too short or empty" }, 400, env, request);
         }
 
         const trackingId = "GMC-FB-" + Math.floor(1000 + Math.random() * 9000);
 
-        // Server-side PII check (doctor/student titles, roll nos, rooms, phone, email)
+        // Server-side PII check (doctor/student titles, phone numbers, roll nos, rooms, emails)
         const piiRegex = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|[0-9]{10}|(roll|reg|id)\s*(no|number|#)?\s*[:.-]?\s*[0-9]+|room\s*[0-9]+|my name is\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
         const autoDetectedPII = piiRegex.test(content);
-        const finalContainsPII = Boolean(containsPII || autoDetectedPII);
+        const finalContainsPII = Boolean(declaredPII || autoDetectedPII);
 
         // Telegram Council Alert (Generic alert without PII contents)
         if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_ADMIN_CHAT_ID) {
-          const alertMsg = `📢 *New Anonymous Feedback Submitted*\n\n` +
+          const alertMsg =
+            `📢 *New Anonymous Feedback Submitted*\n\n` +
             `📂 *Category:* ${category}\n` +
             `🏷 *Tracking ID:* \`${trackingId}\`\n` +
             `🔒 *Contains PII Flag:* ${finalContainsPII ? "⚠️ YES (AI Excluded)" : "NO"}\n` +
@@ -131,26 +334,53 @@ export default {
           ctx.waitUntil(sendTelegramMessage(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_ADMIN_CHAT_ID, alertMsg));
         }
 
-        return jsonResponse({
-          success: true,
-          trackingId,
-          containsPII: finalContainsPII,
-          message: "Feedback safely recorded",
-        });
+        return jsonResponse(
+          {
+            success: true,
+            trackingId,
+            containsPII: finalContainsPII,
+            message: "Feedback safely recorded",
+          },
+          200,
+          env,
+          request
+        );
       }
 
-      // 3. Live Chat Relay Endpoint
+      // 5. Live Chat Relay Endpoint
       if (path === "/api/chat/message" && request.method === "POST") {
+        // Enforce rate limiting against message spam (60 messages / minute)
+        if (!isTestEnv) {
+          const limit = checkRateLimit(clientIp, "chat_message", 60, 60 * 1000);
+          if (!limit.allowed) {
+            return jsonResponse(
+              { error: `Chat rate limit reached. Please wait ${limit.retryAfter}s.` },
+              429,
+              env,
+              request,
+              { "Retry-After": String(limit.retryAfter) }
+            );
+          }
+        }
+
+        // Max payload size (32KB)
+        if (!checkPayloadSize(request, 32768)) {
+          return jsonResponse({ error: "Payload exceeds 32KB limit" }, 413, env, request);
+        }
+
         const body = await request.json();
-        const { sessionId, sender, text } = body;
+        const sessionId = sanitizeInput(body?.sessionId || "", 50);
+        const sender = body?.sender === "admin" ? "admin" : "student";
+        const text = sanitizeInput(body?.text || "", 2000);
 
         if (!sessionId || !text) {
-          return jsonResponse({ error: "Invalid chat payload" }, 400);
+          return jsonResponse({ error: "Invalid chat payload" }, 400, env, request);
         }
 
         // If student sent message, notify Telegram Council Bot
         if (sender === "student" && env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_ADMIN_CHAT_ID) {
-          const chatMsg = `💬 *Student Live Chat Message*\n` +
+          const chatMsg =
+            `💬 *Student Live Chat Message*\n` +
             `🆔 *Session:* \`${sessionId}\`\n\n` +
             `"${text}"\n\n` +
             `👉 *To reply from Telegram, send:*\n` +
@@ -159,15 +389,29 @@ export default {
           ctx.waitUntil(sendTelegramMessage(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_ADMIN_CHAT_ID, chatMsg));
         }
 
-        return jsonResponse({
-          success: true,
-          sessionId,
-          delivered: true,
-        });
+        return jsonResponse(
+          {
+            success: true,
+            sessionId,
+            delivered: true,
+          },
+          200,
+          env,
+          request
+        );
       }
 
-      // 4. Telegram Webhook Handler
+      // 6. Telegram Webhook Handler (with secret token verification)
       if (path === "/api/telegram/webhook" && request.method === "POST") {
+        // If TELEGRAM_WEBHOOK_SECRET is configured, verify X-Telegram-Bot-Api-Secret-Token
+        if (env.TELEGRAM_WEBHOOK_SECRET) {
+          const secretToken = request.headers.get("X-Telegram-Bot-Api-Secret-Token") || "";
+          const isSecretValid = await timingSafeEqualStrings(secretToken, env.TELEGRAM_WEBHOOK_SECRET);
+          if (!isSecretValid) {
+            return jsonResponse({ error: "Unauthorized webhook request" }, 401, env, request);
+          }
+        }
+
         const update = await request.json();
         if (update.message && update.message.text) {
           const chatId = update.message.chat.id;
@@ -178,16 +422,35 @@ export default {
             await sendTelegramMessage(env.TELEGRAM_BOT_TOKEN, chatId, reply);
           }
         }
-        return jsonResponse({ ok: true });
+        return jsonResponse({ ok: true }, 200, env, request);
       }
 
-      // 5. AI Intelligence Triage Endpoint (Groq / Gemini)
+      // 7. AI Intelligence Triage Endpoint (Groq / Gemini)
       if (path === "/api/ai/analyze" && request.method === "POST") {
+        // Enforce rate limiting on expensive AI endpoints (15 calls / 5 mins)
+        if (!isTestEnv) {
+          const limit = checkRateLimit(clientIp, "ai_analyze", 15, 5 * 60 * 1000);
+          if (!limit.allowed) {
+            return jsonResponse(
+              { error: `AI analysis rate limit reached. Please retry in ${limit.retryAfter}s.` },
+              429,
+              env,
+              request,
+              { "Retry-After": String(limit.retryAfter) }
+            );
+          }
+        }
+
+        // Max payload size (256KB)
+        if (!checkPayloadSize(request, 262144)) {
+          return jsonResponse({ error: "Payload exceeds 256KB limit" }, 413, env, request);
+        }
+
         const body = await request.json();
-        const rawFeedbacks = body.feedbacks || [];
+        const rawFeedbacks = Array.isArray(body?.feedbacks) ? body.feedbacks : [];
 
         // STRICT PRIVACY: Filter out any feedback declaring or detecting PII
-        const eligibleFeedbacks = rawFeedbacks.filter(f => !f.containsPII);
+        const eligibleFeedbacks = rawFeedbacks.filter((f) => !f.containsPII);
 
         let aiReport = null;
 
@@ -209,18 +472,18 @@ export default {
           }
         }
 
-        // Fallback heuristic report if no AI key configured
+        // Fallback heuristic report if no AI key configured or online calls failed
         if (!aiReport) {
           aiReport = generateLocalHeuristicReport(rawFeedbacks, eligibleFeedbacks);
         }
 
-        return jsonResponse(aiReport);
+        return jsonResponse(aiReport, 200, env, request);
       }
 
-      return jsonResponse({ error: "Endpoint not found" }, 404);
+      return jsonResponse({ error: "Endpoint not found" }, 404, env, request);
     } catch (err) {
       console.error("Worker Execution Error:", err);
-      return jsonResponse({ error: err.message }, 500);
+      return jsonResponse({ error: "Internal server processing error" }, 500, env, request);
     }
   },
 };
@@ -236,23 +499,26 @@ async function handleTelegramCommand(text, chatId, env) {
   switch (command) {
     case "/start":
     case "/help":
-      return `🏛 *GMC Thiruvallur Student Council Bot*\n\n` +
+      return (
+        `🏛 *GMC Thiruvallur Student Council Bot*\n\n` +
         `Welcome, Council Member!\n\n` +
         `*ADMIN CONTROLS:*\n` +
-        `/announce <title> - <desc> : Publish announcement\n` +
+        `/announce <title> - <desc> : Publish circular to portal\n` +
         `/poll <question> | <opt1> | <opt2> : Launch student poll\n` +
-        `/event <name> | <date> | <venue> : Create college event\n` +
         `/chat : View active student live chats\n` +
         `/reply <sessionId> <msg> : Reply directly to student\n` +
         `/feedback : View feedback metrics\n` +
         `/issues : View open unresolved student grievances\n` +
-        `/report : Generate on-demand AI executive summary`;
+        `/report : Generate on-demand AI executive summary`
+      );
 
     case "/chat":
-      return `💬 *Active Live Chat Sessions:*\n\n` +
+      return (
+        `💬 *Active Live Chat Sessions:*\n\n` +
         `• Session \`GMC-X7K92\` (Connected 10:00 AM)\n` +
         `• Session \`GMC-B4T81\` (Connected 04:20 PM)\n\n` +
-        `_Reply to any student using:_ \`/reply <sessionId> <message>\``;
+        `_Reply to any student using:_ \`/reply <sessionId> <message>\``
+      );
 
     case "/reply":
       const replyArgs = args.split(" ");
@@ -265,17 +531,21 @@ async function handleTelegramCommand(text, chatId, env) {
       return `✅ *Reply Delivered to ${sessionId}!*\n"${replyContent}"`;
 
     case "/feedback":
-      return `📊 *Student Feedback Metrics:*\n\n` +
+      return (
+        `📊 *Student Feedback Metrics:*\n\n` +
         `• *Total Received:* 120 submissions\n` +
         `• *Unreviewed/Pending:* 08\n` +
         `• *Top Category:* Academics (42%), Transport (28%)\n` +
-        `• *Student Sentiment:* 68% Positive/Constructive, 32% Concerns`;
+        `• *Student Sentiment:* 68% Positive/Constructive, 32% Concerns`
+      );
 
     case "/issues":
-      return `⚠️ *Unresolved High-Priority Issues:*\n\n` +
+      return (
+        `⚠️ *Unresolved High-Priority Issues:*\n\n` +
         `1. [Academics] Lecture Hall 3 microphone distortion during Pharmacology.\n` +
         `2. [Transport] Evening 6:30 PM bus request for late clinical posting students.\n` +
-        `3. [Hostel] Block B water purifier maintenance request.`;
+        `3. [Hostel] Block B water purifier maintenance request.`
+      );
 
     case "/announce":
       if (!args) {
@@ -289,15 +559,11 @@ async function handleTelegramCommand(text, chatId, env) {
       }
       return `🗳 *Student Poll Created & Broadcasted!*\n"${args}"`;
 
-    case "/event":
-      if (!args) {
-        return `⚠️ *Usage:* \`/event Title | Date | Venue\``;
-      }
-      return `📅 *College Event Created & Listed!*\n"${args}"`;
-
     case "/report":
-      return `🤖 *AI Executive Grievance Summary:*\n\n` +
-        `"Recent submissions indicate strong student engagement with high satisfaction regarding canteen water repairs. Priority attention is required for Lecture Hall 3 acoustics and evening clinical transport."`;
+      return (
+        `🤖 *AI Executive Grievance Summary:*\n\n` +
+        `"Recent submissions indicate strong student engagement with high satisfaction regarding canteen water repairs. Priority attention is required for Lecture Hall 3 acoustics and evening clinical transport."`
+      );
 
     default:
       return null;
@@ -305,10 +571,13 @@ async function handleTelegramCommand(text, chatId, env) {
 }
 
 /**
- * Send a message via Telegram Bot API
+ * Send a message via Telegram Bot API with timeout protection
  */
 async function sendTelegramMessage(botToken, chatId, text) {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
     const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -317,7 +586,9 @@ async function sendTelegramMessage(botToken, chatId, text) {
         text,
         parse_mode: "Markdown",
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     return res.ok;
   } catch (err) {
     console.error("Failed to send Telegram message:", err);
@@ -326,12 +597,12 @@ async function sendTelegramMessage(botToken, chatId, text) {
 }
 
 /**
- * Groq AI Inference
+ * Groq AI Inference with timeout & safety guards
  */
 async function generateGroqAnalysis(apiKey, feedbacks) {
   const prompt = `You are the AI assistant for GMC Thiruvallur Student Council. Analyze the following student feedback submissions and respond with strict JSON only.
 Submissions:
-${JSON.stringify(feedbacks.map(f => ({ category: f.category, content: f.content })))}
+${JSON.stringify(feedbacks.map((f) => ({ category: f.category, content: f.content })))}
 
 Return format:
 {
@@ -340,19 +611,24 @@ Return format:
   "recommendations": ["string", "string"]
 }`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
-      response_format: { type: "json_object" }
-    })
+      response_format: { type: "json_object" },
+    }),
+    signal: controller.signal,
   });
+  clearTimeout(timeoutId);
 
   if (!res.ok) throw new Error("Groq API returned " + res.status);
   const data = await res.json();
@@ -362,12 +638,12 @@ Return format:
 }
 
 /**
- * Google Gemini AI Inference
+ * Google Gemini AI Inference with timeout & safety guards
  */
 async function generateGeminiAnalysis(apiKey, feedbacks) {
   const prompt = `You are the AI assistant for GMC Thiruvallur Student Council. Analyze the following student feedback submissions and respond with valid JSON only:
 Submissions:
-${JSON.stringify(feedbacks.map(f => ({ category: f.category, content: f.content })))}
+${JSON.stringify(feedbacks.map((f) => ({ category: f.category, content: f.content })))}
 
 JSON schema:
 {
@@ -376,14 +652,22 @@ JSON schema:
   "recommendations": ["string", "string"]
 }`;
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json" }
-    })
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" },
+      }),
+      signal: controller.signal,
+    }
+  );
+  clearTimeout(timeoutId);
 
   if (!res.ok) throw new Error("Gemini API returned " + res.status);
   const data = await res.json();
@@ -398,7 +682,7 @@ function compileReportData(feedbacks, aiParsed) {
   const sentimentCount = { Positive: 0, Neutral: 0, Negative: 0 };
   const urgencyCount = { High: 0, Medium: 0, Low: 0 };
 
-  feedbacks.forEach(f => {
+  feedbacks.forEach((f) => {
     categoryCount[f.category] = (categoryCount[f.category] || 0) + 1;
     const sent = f.aiAnalysis?.sentiment || "Neutral";
     const urg = f.aiAnalysis?.urgency || "Medium";
@@ -415,7 +699,7 @@ function compileReportData(feedbacks, aiParsed) {
     urgencyDistribution: urgencyCount,
     executiveSummary: aiParsed.executiveSummary || "Analysis complete.",
     recurringThemes: aiParsed.recurringThemes || [],
-    recommendations: aiParsed.recommendations || []
+    recommendations: aiParsed.recommendations || [],
   };
 }
 
@@ -424,7 +708,7 @@ function generateLocalHeuristicReport(allFeedbacks, cleanFeedbacks) {
   const sentimentCount = { Positive: 0, Neutral: 0, Negative: 0 };
   const urgencyCount = { High: 0, Medium: 0, Low: 0 };
 
-  cleanFeedbacks.forEach(f => {
+  cleanFeedbacks.forEach((f) => {
     categoryCount[f.category] = (categoryCount[f.category] || 0) + 1;
     const sent = f.aiAnalysis?.sentiment || "Neutral";
     const urg = f.aiAnalysis?.urgency || "Medium";
@@ -439,16 +723,17 @@ function generateLocalHeuristicReport(allFeedbacks, cleanFeedbacks) {
     categoryDistribution: categoryCount,
     sentimentDistribution: sentimentCount,
     urgencyDistribution: urgencyCount,
-    executiveSummary: "GMC student grievance feedback demonstrates primary clusters in Academics (Lecture hall acoustics) and Student Transit (post-duty evening transport). Student acknowledgment of canteen repairs indicates positive responsiveness.",
+    executiveSummary:
+      "GMC student grievance feedback demonstrates primary clusters in Academics (Lecture hall acoustics) and Student Transit (post-duty evening transport). Student acknowledgment of canteen repairs indicates positive responsiveness.",
     recurringThemes: [
       "Audio-visual equipment maintenance in Lecture Hall 3",
       "Late clinical duty evening bus transportation at 6:30 PM",
-      "Central Library extended night timings during exam preparation"
+      "Central Library extended night timings during exam preparation",
     ],
     recommendations: [
       "Submit requisition to biomedical engineering for Lecture Hall 3 microphone overhaul",
       "Liaise with College Transport Committee for clinical batch bus scheduling",
-      "Maintain active communication via Council Announcements on resolved matters"
-    ]
+      "Maintain active communication via Council Announcements on resolved matters",
+    ],
   };
 }

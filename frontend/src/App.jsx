@@ -1,31 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import MobileBottomNav from './components/MobileBottomNav';
 import Toast from './components/Toast';
 
-// Student Pages
+// Student Pages (Eagerly loaded for instant mobile TTI)
 import HomePage from './pages/HomePage';
 import FeedbackPage from './pages/FeedbackPage';
 import ChatPage from './pages/ChatPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import PollsPage from './pages/PollsPage';
-import AdminLoginPage from './pages/AdminLoginPage';
 
-// Admin Subpages
-import AdminLayout from './pages/admin/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminFeedback from './pages/admin/AdminFeedback';
-import AdminChat from './pages/admin/AdminChat';
-import AdminAnnouncements from './pages/admin/AdminAnnouncements';
-import AdminPolls from './pages/admin/AdminPolls';
-import AdminReports from './pages/admin/AdminReports';
-import AdminManagement from './pages/admin/AdminManagement';
-import AdminStatus from './pages/admin/AdminStatus';
+// Admin Subpages (Code-split with React.lazy to minimize initial student bundle)
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminFeedback = lazy(() => import('./pages/admin/AdminFeedback'));
+const AdminChat = lazy(() => import('./pages/admin/AdminChat'));
+const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'));
+const AdminPolls = lazy(() => import('./pages/admin/AdminPolls'));
+const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
+const AdminManagement = lazy(() => import('./pages/admin/AdminManagement'));
+const AdminStatus = lazy(() => import('./pages/admin/AdminStatus'));
 
 import { storageService } from './services/storageService';
 import { isFirebaseConfigured } from './services/firebase';
-import { ShieldCheck, Sparkles, Database } from 'lucide-react';
+
+const AdminLoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center p-6 bg-[#f8fafc] dark:bg-[#07090e]">
+    <div className="portal-card p-6 flex items-center space-x-3 text-sky-600 dark:text-sky-400 font-mono text-sm shadow-lg">
+      <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-ping" />
+      <span>Loading Secure Council Console...</span>
+    </div>
+  </div>
+);
 
 export default function App() {
   // Theme state: defaults to light theme
@@ -164,79 +172,81 @@ export default function App() {
     <div className="min-h-screen flex flex-col bg-[#e6edf8] dark:bg-[#0c1427] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       {/* Render Main App or Admin Console */}
       {currentRoute === 'admin-dashboard' && adminUser ? (
-        <AdminLayout
-          currentSection={adminSection}
-          setCurrentSection={setAdminSection}
-          onLogout={handleLogout}
-          setCurrentRoute={setCurrentRoute}
-          adminUser={adminUser}
-          unreadCount={unreadFeedbackCount}
-          activeChatsCount={activeChatsCount}
-        >
-          {adminSection === 'dashboard' && (
-            <AdminDashboard
-              feedbacks={feedbacks}
-              chats={chats}
-              polls={polls}
-              announcements={announcements}
-              setCurrentSection={setAdminSection}
-              onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
-              showToast={showToast}
-            />
-          )}
+        <Suspense fallback={<AdminLoadingFallback />}>
+          <AdminLayout
+            currentSection={adminSection}
+            setCurrentSection={setAdminSection}
+            onLogout={handleLogout}
+            setCurrentRoute={setCurrentRoute}
+            adminUser={adminUser}
+            unreadCount={unreadFeedbackCount}
+            activeChatsCount={activeChatsCount}
+          >
+            {adminSection === 'dashboard' && (
+              <AdminDashboard
+                feedbacks={feedbacks}
+                chats={chats}
+                polls={polls}
+                announcements={announcements}
+                setCurrentSection={setAdminSection}
+                onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
+                showToast={showToast}
+              />
+            )}
 
-          {adminSection === 'status' && (
-            <AdminStatus showToast={showToast} />
-          )}
+            {adminSection === 'status' && (
+              <AdminStatus showToast={showToast} />
+            )}
 
-          {adminSection === 'feedback' && (
-            <AdminFeedback
-              feedbacks={feedbacks}
-              onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
-              showToast={showToast}
-            />
-          )}
+            {adminSection === 'feedback' && (
+              <AdminFeedback
+                feedbacks={feedbacks}
+                onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
+                showToast={showToast}
+              />
+            )}
 
-          {adminSection === 'chat' && (
-            <AdminChat
-              chats={chats}
-              onRefreshChats={handleRefreshChats}
-              showToast={showToast}
-            />
-          )}
+            {adminSection === 'chat' && (
+              <AdminChat
+                chats={chats}
+                onRefreshChats={handleRefreshChats}
+                showToast={showToast}
+              />
+            )}
 
-          {adminSection === 'announcements' && (
-            <AdminAnnouncements
-              announcements={announcements}
-              onAddAnnouncement={handleAddAnnouncement}
-              onDeleteAnnouncement={handleDeleteAnnouncement}
-              onUpdateAnnouncement={handleUpdateAnnouncement}
-              showToast={showToast}
-            />
-          )}
+            {adminSection === 'announcements' && (
+              <AdminAnnouncements
+                announcements={announcements}
+                onAddAnnouncement={handleAddAnnouncement}
+                onDeleteAnnouncement={handleDeleteAnnouncement}
+                onUpdateAnnouncement={handleUpdateAnnouncement}
+                showToast={showToast}
+              />
+            )}
 
-          {adminSection === 'polls' && (
-            <AdminPolls
-              polls={polls}
-              onAddPoll={handleAddPoll}
-              onTogglePollStatus={handleTogglePollStatus}
-              showToast={showToast}
-            />
-          )}
+            {adminSection === 'polls' && (
+              <AdminPolls
+                polls={polls}
+                onAddPoll={handleAddPoll}
+                onTogglePollStatus={handleTogglePollStatus}
+                showToast={showToast}
+              />
+            )}
 
-          {adminSection === 'reports' && (
-            <AdminReports
-              feedbacks={feedbacks}
-              showToast={showToast}
-            />
-          )}
+            {adminSection === 'reports' && (
+              <AdminReports
+                feedbacks={feedbacks}
+                showToast={showToast}
+              />
+            )}
 
-          {adminSection === 'management' && (
-            <AdminManagement
-              showToast={showToast}
-            />
-          )}
-        </AdminLayout>
+            {adminSection === 'management' && (
+              <AdminManagement
+                showToast={showToast}
+              />
+            )}
+          </AdminLayout>
+        </Suspense>
       ) : (
         <>
           <Header
@@ -289,11 +299,13 @@ export default function App() {
             )}
 
             {currentRoute === 'admin-login' && (
-              <AdminLoginPage
-                onLoginSuccess={handleLoginSuccess}
-                setCurrentRoute={setCurrentRoute}
-                showToast={showToast}
-              />
+              <Suspense fallback={<AdminLoadingFallback />}>
+                <AdminLoginPage
+                  onLoginSuccess={handleLoginSuccess}
+                  setCurrentRoute={setCurrentRoute}
+                  showToast={showToast}
+                />
+              </Suspense>
             )}
           </main>
 

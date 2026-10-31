@@ -222,4 +222,55 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(data.valid, true);
     assert.match(data.role, /Demo Mode/);
   });
+
+  test('Worker responses include hardened security headers (HSTS, nosniff, DENY)', async () => {
+    const req = new Request('https://worker.dev/health', { method: 'GET' });
+    const res = await worker.fetch(req, mockEnv, mockCtx);
+
+    assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(res.headers.get('x-frame-options'), 'DENY');
+    assert.match(res.headers.get('strict-transport-security'), /max-age=31536000/);
+  });
+
+  test('POST /api/feedback rejects oversized payloads with 413 DoS protection', async () => {
+    const req = new Request('https://worker.dev/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': '70000' // Exceeds 64KB threshold
+      },
+      body: JSON.stringify({ category: 'Hostel', content: 'Huge data...' })
+    });
+
+    const res = await worker.fetch(req, mockEnv, mockCtx);
+    assert.equal(res.status, 413);
+    const data = await res.json();
+    assert.match(data.error, /exceeds 64KB/i);
+  });
+
+  test('Production rate limiter returns 429 when request threshold exceeded', async () => {
+    const prodEnv = { ...mockEnv, ENVIRONMENT: 'production' };
+    const ipHeaders = { 'Content-Type': 'application/json', 'cf-connecting-ip': '198.51.100.22' };
+
+    // Trigger max rate limit for feedback (20 allowed)
+    for (let i = 0; i < 20; i++) {
+      const r = new Request('https://worker.dev/api/feedback', {
+        method: 'POST',
+        headers: ipHeaders,
+        body: JSON.stringify({ category: 'Academics', content: 'Normal feedback #' + i })
+      });
+      const res = await worker.fetch(r, prodEnv, mockCtx);
+      assert.equal(res.status, 200);
+    }
+
+    // 21st attempt from same IP must be rejected with 429
+    const blockedReq = new Request('https://worker.dev/api/feedback', {
+      method: 'POST',
+      headers: ipHeaders,
+      body: JSON.stringify({ category: 'Academics', content: 'Spam submission' })
+    });
+    const blockedRes = await worker.fetch(blockedReq, prodEnv, mockCtx);
+    assert.equal(blockedRes.status, 429);
+    assert.ok(blockedRes.headers.get('retry-after'));
+  });
 });

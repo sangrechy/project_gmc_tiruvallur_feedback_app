@@ -80,9 +80,20 @@ export const storageService = {
   },
 
   async addAnnouncement(announcement) {
+    const cleanTitle = (announcement.title || "").trim().slice(0, 200);
+    const cleanCategory = (announcement.category || "General").trim().slice(0, 100);
+    const cleanDesc = (announcement.description || announcement.content || "").trim().slice(0, 5000);
+
+    if (!cleanTitle) {
+      throw new Error("Announcement title is required.");
+    }
+
     const newItem = {
       ...announcement,
-      date: new Date().toISOString().split("T")[0],
+      title: cleanTitle,
+      category: cleanCategory,
+      description: cleanDesc,
+      date: announcement.date || new Date().toISOString().split("T")[0],
       createdAt: new Date().toISOString()
     };
 
@@ -242,8 +253,30 @@ export const storageService = {
   },
 
   async addPoll(pollData) {
+    const cleanQuestion = (pollData.question || "").trim().slice(0, 300);
+    const cleanCategory = (pollData.category || "General").trim().slice(0, 100);
+    const cleanOptions = (Array.isArray(pollData.options) ? pollData.options : [])
+      .slice(0, 10)
+      .map(opt => {
+        if (typeof opt === "string") {
+          return { text: opt.trim().slice(0, 200), votes: 0 };
+        }
+        return {
+          ...opt,
+          text: (opt.text || "").trim().slice(0, 200),
+          votes: Number(opt.votes) || 0
+        };
+      });
+
+    if (!cleanQuestion || cleanOptions.length < 2) {
+      throw new Error("A valid poll question and at least 2 options are required.");
+    }
+
     const newPoll = {
       ...pollData,
+      question: cleanQuestion,
+      category: cleanCategory,
+      options: cleanOptions,
       totalVotes: 0,
       status: "active",
       createdAt: new Date().toISOString()
@@ -282,10 +315,21 @@ export const storageService = {
 
   // ==================== ANONYMOUS FEEDBACK ====================
   async submitFeedback({ category, content, containsPII }) {
+    const cleanContent = typeof content === "string" ? content.trim().slice(0, 5000) : "";
+    const cleanCategory = typeof category === "string" ? category.trim().slice(0, 100) : "General";
+
+    if (!cleanContent) {
+      throw new Error("Feedback content is required.");
+    }
+
     // If backend worker is available, dispatch to serverless API
     let backendResult = null;
     try {
-      backendResult = await apiService.submitFeedback({ category, content, containsPII });
+      backendResult = await apiService.submitFeedback({
+        category: cleanCategory,
+        content: cleanContent,
+        containsPII
+      });
     } catch (err) {
       console.warn("Backend feedback submission skipped/failed:", err);
     }
@@ -294,7 +338,7 @@ export const storageService = {
     
     // Automatic PII Detection heuristics as additional privacy safety (doctor/student titles, roll nos, rooms, phone, email)
     const piiPattern = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|[0-9]{10}|(roll|reg|id)\s*(no|number|#)?\s*[:.-]?\s*[0-9]+|room\s*[0-9]+|my name is\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
-    const autoDetectedPII = piiPattern.test(content);
+    const autoDetectedPII = piiPattern.test(cleanContent);
     const finalContainsPII = backendResult?.containsPII !== undefined
       ? backendResult.containsPII
       : Boolean(containsPII || autoDetectedPII);
@@ -302,7 +346,7 @@ export const storageService = {
     // AI Analysis (Simulated / Prepared) - Bypassed strictly if contains PII
     let aiAnalysis = null;
     if (!finalContainsPII) {
-      const lower = content.toLowerCase();
+      const lower = cleanContent.toLowerCase();
       let sentiment = "Neutral";
       let urgency = "Medium";
       if (lower.includes("urgent") || lower.includes("danger") || lower.includes("broken") || lower.includes("failed") || lower.includes("bad")) {
@@ -314,17 +358,17 @@ export const storageService = {
       }
 
       aiAnalysis = {
-        category,
+        category: cleanCategory,
         sentiment,
         urgency,
-        summary: content.length > 90 ? content.slice(0, 87) + "..." : content
+        summary: cleanContent.length > 90 ? cleanContent.slice(0, 87) + "..." : cleanContent
       };
     }
 
     const feedbackDoc = {
       trackingId,
-      category,
-      content,
+      category: cleanCategory,
+      content: cleanContent,
       containsPII: finalContainsPII,
       status: "Received",
       createdAt: new Date().toISOString(),
@@ -460,15 +504,23 @@ export const storageService = {
   },
 
   async sendChatMessage(sessionId, sender, text) {
+    const cleanSessionId = typeof sessionId === "string" ? sessionId.trim().slice(0, 50) : "";
+    const cleanText = typeof text === "string" ? text.trim().slice(0, 2000) : "";
+    const cleanSender = (sender === "council" || sender === "admin") ? "council" : "student";
+
+    if (!cleanSessionId || !cleanText) {
+      throw new Error("Valid session ID and non-empty message text are required.");
+    }
+
     const chats = JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
-    const session = chats.find(c => c.sessionId === sessionId);
+    const session = chats.find(c => c.sessionId === cleanSessionId);
     if (!session) throw new Error("Chat session not found");
     if (session.status !== "active") throw new Error("This chat session has ended or expired");
 
     const newMsg = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      sender,
-      text,
+      sender: cleanSender,
+      text: cleanText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -478,7 +530,7 @@ export const storageService = {
 
     // Relay to backend worker (for Telegram Bot 2-way relay)
     try {
-      apiService.sendChatMessage(sessionId, sender, text);
+      apiService.sendChatMessage(cleanSessionId, cleanSender, cleanText);
     } catch (err) {
       console.warn("Backend chat relay error:", err);
     }
