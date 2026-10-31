@@ -83,7 +83,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
             {/* THEME TOGGLE (portfolio_2026 pattern, scaled cleanly for mobile) */}
             <div className="theme-toggle-container">
               <div 
-                className="theme-jane-preview"
+                className="theme-jane-preview hidden sm:flex"
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 title={isDarkMode ? "Switch to Light Theme" : "Switch to Dark Theme"}
                 aria-hidden="true"

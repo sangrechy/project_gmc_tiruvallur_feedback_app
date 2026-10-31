@@ -36,7 +36,7 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-10 bg-grid-pattern">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 pt-4 pb-28 sm:py-10 space-y-6 sm:space-y-10 bg-grid-pattern">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center justify-between pb-4 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
         <button 
@@ -54,7 +54,7 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
       </div>
 
       {/* Header with Bleeding Referring Sticker */}
-      <div className="relative mt-12">
+      <div className="relative mt-8 sm:mt-12">
         
         {/* REFERRING STICKER: Bleeding out of top-right edge */}
         <div 
@@ -69,7 +69,7 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
         </div>
 
         {/* Card (overflow-visible) */}
-        <div className="portal-card p-5 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
+        <div className="portal-card p-4 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-3 border border-sky-500/20">
             <Vote className="w-3.5 h-3.5" />
             <span>Collegiate Student Democracy</span>

@@ -50,7 +50,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-16 bg-grid-pattern">
+    <div className="max-w-md mx-auto px-3 sm:px-4 pt-4 pb-28 sm:py-16 bg-grid-pattern">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
         <button 
@@ -132,7 +132,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="rep.council@gmcthiruvallur.ac.in"
-                  className="w-full pl-10 pr-4 py-3 neu-input text-xs sm:text-sm placeholder-slate-400"
+                  className="w-full pl-10 pr-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
                 />
               </div>
             </div>
@@ -152,7 +152,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full pl-10 pr-4 py-3 neu-input text-xs sm:text-sm placeholder-slate-400"
+                  className="w-full pl-10 pr-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
                 />
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 portal-button-secondary text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all mt-4"
+              className="w-full py-3.5 portal-button-secondary text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95 mt-4"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>{isLoading ? "Authenticating..." : "Authorize Session"}</span>

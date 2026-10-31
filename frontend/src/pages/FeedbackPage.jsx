@@ -65,7 +65,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-8 bg-grid-pattern">
+    <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-4 pb-28 sm:py-10 space-y-6 sm:space-y-8 bg-grid-pattern">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center justify-between pb-4 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
         <button 
@@ -173,7 +173,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
           </div>
 
           {/* Form Card (overflow-visible to let Doctor bleed out) */}
-          <div className="portal-card p-5 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
+          <div className="portal-card p-4 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
             
             {/* Header info */}
             <div className="mb-8 pb-6 border-b border-slate-200/60 dark:border-slate-800">

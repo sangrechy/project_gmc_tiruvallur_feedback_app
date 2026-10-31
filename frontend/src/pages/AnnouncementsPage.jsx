@@ -15,7 +15,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10 bg-grid-pattern">
+    <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-4 pb-28 sm:py-10 space-y-6 sm:space-y-10 bg-grid-pattern">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center justify-between pb-4 border-b border-slate-200/60 dark:border-white/10 text-xs font-mono">
         <button 
@@ -33,7 +33,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
       </div>
 
       {/* Announcements Header Card with Bleeding Guard (Syringe removed) */}
-      <div className="relative mt-12">
+      <div className="relative mt-8 sm:mt-12">
         
         {/* GUARD STICKER: Bleeding out of top-left edge */}
         <div 
@@ -48,7 +48,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
         </div>
 
         {/* Header Card (overflow-visible) */}
-        <div className="portal-card p-5 sm:p-10 text-center relative overflow-visible pt-10 sm:pt-10">
+        <div className="portal-card p-4 sm:p-10 text-center relative overflow-visible pt-10 sm:pt-10">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold mb-3">
             <Megaphone className="w-3.5 h-3.5" />
             <span>Council Notice Board</span>

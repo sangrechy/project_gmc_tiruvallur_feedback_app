@@ -130,14 +130,36 @@
   }
 }
 
-/* Safe area insets for notched phones & iOS home bar */
+/* Safe area insets for notched phones & Android gesture navigation bar */
 .pb-safe {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
 }
 
 .pt-safe {
   padding-top: max(env(safe-area-inset-top, 0px), 12px);
 }
+
+/* Android & Touch devices active feedback (tactile haptic-like feel) */
+@media (hover: none) and (pointer: coarse) {
+  button, 
+  a, 
+  [role="button"],
+  .touch-btn {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  button:active, 
+  .portal-button-primary:active,
+  .portal-button-secondary:active,
+  .neu-button:active,
+  .neu-card:active {
+    transform: scale(0.97);
+    transition: transform 0.08s ease-out;
+  }
+}
+
 
 /* Subtle Modern Grid Background Pattern */
 .bg-grid-pattern {

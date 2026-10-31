@@ -123,7 +123,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   const isConnected = session.status === 'active';
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-8 bg-grid-pattern">
+    <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-4 pb-28 sm:py-10 space-y-4 sm:space-y-8 bg-grid-pattern">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center justify-between pb-4 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
         <button 
@@ -212,7 +212,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
           </div>
 
           {/* Message Stream with Neumorphic Inset */}
-          <div className="h-96 overflow-y-auto p-4 sm:p-5 rounded-2xl neu-pressed space-y-4">
+          <div className="h-[52vh] sm:h-96 min-h-[300px] overflow-y-auto p-3.5 sm:p-5 rounded-2xl neu-pressed space-y-3.5 sm:space-y-4">
             {session.messages.map((msg) => {
               const isCouncil = msg.sender === 'council';
               return (
@@ -241,23 +241,23 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
           {/* Message Input Form */}
           {isConnected ? (
             <form onSubmit={handleSendMessage} className="space-y-4">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <input
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Type your message to the council representative..."
                   disabled={isSending}
-                  className="flex-1 px-4 py-3.5 neu-input text-xs sm:text-sm placeholder-slate-400"
+                  className="flex-1 px-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
                 />
                 <button
                   type="submit"
                   disabled={!inputText.trim() || isSending}
                   title="Send Message"
-                  className="portal-button-primary px-5 py-3.5 font-semibold text-xs disabled:opacity-50 flex items-center space-x-1.5"
+                  className="portal-button-primary px-4 sm:px-5 py-3.5 font-bold text-xs disabled:opacity-50 flex items-center space-x-1.5 active:scale-95 shadow-md flex-shrink-0"
                 >
-                  <span>Send</span>
-                  <Send className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Send</span>
+                  <Send className="w-4 h-4" />
                 </button>
               </div>
 

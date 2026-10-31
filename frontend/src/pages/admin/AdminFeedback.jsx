@@ -135,7 +135,7 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, showT
       {/* Quick Filter Bar (Status Pills + Category Selector) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Status Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap select-none">
           <button
             onClick={() => setStatusFilter('ALL')}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${

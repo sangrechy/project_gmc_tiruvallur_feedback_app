@@ -46,9 +46,9 @@ export default function HomePage({
   };
 
   return (
-    <div className="space-y-16 pb-20 bg-grid-pattern">
+    <div className="space-y-12 sm:space-y-16 pb-28 sm:pb-20 bg-grid-pattern">
       {/* ================= HERO SECTION ================= */}
-      <section className="relative pt-12 sm:pt-16 pb-8 px-4 overflow-visible">
+      <section className="relative pt-8 sm:pt-16 pb-6 sm:pb-8 px-3 sm:px-4 overflow-visible">
         <div className="max-w-4xl mx-auto text-center relative z-10">
           
           {/* Hero Mascot with Vinyl Contour */}
@@ -119,7 +119,7 @@ export default function HomePage({
           </div>
 
           {/* Announcements Card Container */}
-          <div className="portal-card p-6 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
+          <div className="portal-card p-4 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-slate-200/60 dark:border-white/10 gap-3">
               <div>
                 <div className="flex items-center space-x-2">
@@ -304,7 +304,7 @@ export default function HomePage({
             </div>
 
             {/* Active Poll Card */}
-            <div className="portal-card p-6 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
+            <div className="portal-card p-4 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
               <div className="mb-6 pb-4 border-b border-slate-200/60 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center space-x-2">

@@ -4,10 +4,10 @@ import { ShieldCheck, Heart, Github, ExternalLink } from 'lucide-react';
 export default function Footer({ setCurrentRoute, isAdminLoggedIn }) {
   return (
     <footer className="mt-20 border-t border-slate-200/60 dark:border-white/10 bg-[#f8fafc]/80 dark:bg-[#07090e]/80 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12">
         
         {/* Main Footer Row */}
-        <div className="portal-card p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="portal-card p-4 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
           
           {/* Council Info & Brand */}
           <div className="text-center md:text-left flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
