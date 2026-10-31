@@ -375,6 +375,12 @@ export const storageService = {
       aiAnalysis
     };
 
+    let deliveredToServer = false;
+
+    if (backendResult?.success) {
+      deliveredToServer = true;
+    }
+
     if (isFirebaseConfigured && db) {
       try {
         const docRef = await addDoc(collection(db, "feedback"), {
@@ -382,6 +388,7 @@ export const storageService = {
           serverTimestamp: serverTimestamp()
         });
         feedbackDoc.id = docRef.id;
+        deliveredToServer = true;
       } catch (err) {
         console.warn("Firestore feedback submission fallback:", err);
       }
@@ -396,6 +403,7 @@ export const storageService = {
 
     return {
       success: true,
+      delivered: deliveredToServer,
       trackingId,
       containsPII: finalContainsPII
     };

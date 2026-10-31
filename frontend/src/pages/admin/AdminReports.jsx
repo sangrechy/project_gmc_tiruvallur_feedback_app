@@ -18,9 +18,15 @@ export default function AdminReports({ feedbacks, showToast }) {
   const generateReport = async () => {
     setIsGenerating(true);
     try {
-      const data = await apiService.generateAiReport(feedbacks);
+      const saved = localStorage.getItem('gmc_admin_session');
+      const token = saved ? JSON.parse(saved)?.token : null;
+      const data = await apiService.generateAiReport(feedbacks, token);
       setReportData(data);
-      showToast("AI intelligence report generated", "success");
+      if (data?.isAiGenerated) {
+        showToast("AI intelligence report generated via Cloudflare Worker", "success");
+      } else {
+        showToast("Feedback statistical distribution calculated", "info");
+      }
     } catch (err) {
       showToast("Failed to generate report: " + err.message, "error");
     } finally {

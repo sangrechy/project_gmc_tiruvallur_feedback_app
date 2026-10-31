@@ -66,17 +66,13 @@ export const apiService = {
       auth: {
         id: "auth",
         name: "Council Auth Shield",
-        status: (import.meta.env.VITE_COUNCIL_AUTH_TOKEN || isFirebaseConfigured) ? "connected" : "demo",
-        label: import.meta.env.VITE_COUNCIL_AUTH_TOKEN 
-          ? "Decoupled Master Token (Active)" 
-          : isFirebaseConfigured 
-            ? "Firebase Auth (Active)" 
-            : "Interactive Demo Auth",
-        details: import.meta.env.VITE_COUNCIL_AUTH_TOKEN
-          ? "Council master secret configured via environment variable"
-          : isFirebaseConfigured
-            ? "Protected by Firebase Authentication"
-            : "Demo authentication active; set VITE_COUNCIL_AUTH_TOKEN in Pages to lock down"
+        status: isFirebaseConfigured ? "connected" : "standby",
+        label: isFirebaseConfigured 
+          ? "Firebase Auth (Active)" 
+          : "Server-Verified Master Token",
+        details: isFirebaseConfigured
+          ? "Protected by Firebase Authentication"
+          : "Serverless timing-safe verification via Cloudflare Worker"
       }
     };
 
@@ -114,6 +110,11 @@ export const apiService = {
               statusReport.telegram.label = "Connected (Webhook Active)";
               statusReport.telegram.details = "Real-time council relay bot active on Telegram network";
             }
+            if (data.services.councilAuth) {
+              statusReport.auth.status = "connected";
+              statusReport.auth.label = "Server-Verified Council Auth (Active)";
+              statusReport.auth.details = "Protected by serverless timing-safe token verification";
+            }
             if (data.services.gmail) {
               statusReport.gmail.status = "connected";
               statusReport.gmail.label = "Connected (OAuth Ready)";
@@ -144,24 +145,38 @@ export const apiService = {
     return statusReport;
   },
 
-  async generateAiReport(feedbacks) {
-    if (this.isConfigured) {
+  async generateAiReport(feedbacks, token = null) {
+    let activeToken = token;
+    if (!activeToken && typeof localStorage !== "undefined") {
       try {
-        const res = await fetch(`${API_BASE}/api/ai/analyze`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ feedbacks })
-        });
-        if (res.ok) {
-          return await res.json();
-        }
-      } catch (err) {
-        console.warn("Cloudflare Worker AI API call failed, falling back to client synthesis:", err);
+        const saved = localStorage.getItem("gmc_admin_session");
+        activeToken = saved ? JSON.parse(saved)?.token : null;
+      } catch {
+        // Ignore session read error
       }
     }
 
-    // Client-side synthesis of AI report
-    const validFeedbacks = feedbacks.filter(f => !f.containsPII);
+    if (this.isConfigured && activeToken) {
+      try {
+        const res = await fetch(`${API_BASE}/api/ai/analyze`, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "X-Council-Token": activeToken.trim()
+          },
+          body: JSON.stringify({ feedbacks })
+        });
+        if (res.ok) {
+          const aiData = await res.json();
+          return { ...aiData, isAiGenerated: true };
+        }
+      } catch (err) {
+        console.warn("Cloudflare Worker AI API call failed, falling back to local statistics:", err);
+      }
+    }
+
+    // Client-side statistical calculation (honest metrics without fabricated AI text)
+    const validFeedbacks = (feedbacks || []).filter(f => !f.containsPII);
     const categoryCount = {};
     const sentimentCount = { Positive: 0, Neutral: 0, Negative: 0 };
     const urgencyCount = { High: 0, Medium: 0, Low: 0 };
@@ -177,20 +192,19 @@ export const apiService = {
     return {
       generatedAt: new Date().toISOString(),
       totalAnalyzed: validFeedbacks.length,
-      excludedPIICount: feedbacks.length - validFeedbacks.length,
+      excludedPIICount: (feedbacks || []).length - validFeedbacks.length,
       categoryDistribution: categoryCount,
       sentimentDistribution: sentimentCount,
       urgencyDistribution: urgencyCount,
-      executiveSummary: "Analysis of student submissions highlights key focus areas in Academics (lecture hall acoustic maintenance) and Student Transit (evening bus scheduling). General student morale remains positive regarding quick canteen facility repairs.",
-      recurringThemes: [
-        "Audio-visual equipment maintenance in Lecture Hall 3",
-        "Extended transport facility for late clinical duty students",
-        "Central Library evening air conditioning and extended hours"
-      ],
+      isAiGenerated: false,
+      executiveSummary: validFeedbacks.length > 0
+        ? `Statistical aggregation of ${validFeedbacks.length} student submissions across ${Object.keys(categoryCount).length} categories. Note: Automated AI narrative synthesis requires Cloudflare Worker with GROQ_API_KEY or GEMINI_API_KEY configured.`
+        : "No non-PII feedback submissions available to analyze.",
+      recurringThemes: Object.keys(categoryCount).map(c => `${c} (${categoryCount[c]} submissions)`),
       recommendations: [
-        "Escalate Lecture Hall 3 microphone replacement to biomedical engineering team",
-        "Submit transport extension proposal to College Dean's office",
-        "Continue periodic hygiene inspections in mess and canteen facilities"
+        "Review open grievances in the Feedback Review section",
+        "Monitor student polls for ongoing campus sentiment",
+        "Issue circulars via Announcements for resolved student matters"
       ]
     };
   },
@@ -230,58 +244,49 @@ export const apiService = {
   },
 
   async verifyCouncilToken(token) {
-    if (!token || !token.trim()) {
-      return { valid: false, error: "Please enter a valid token" };
+    if (!token || typeof token !== "string" || !token.trim()) {
+      return { valid: false, error: "Council Master Token is required" };
     }
     const cleanToken = token.trim();
 
-    // 1. If Cloudflare Worker is connected, verify with Worker backend
-    if (this.isConfigured) {
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/verify`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "X-Council-Token": cleanToken
-          },
-          body: JSON.stringify({ token: cleanToken })
-        });
-        const data = await res.json();
-        if (res.ok && data.valid) {
-          return {
-            valid: true,
-            user: {
-              email: "executive.council@gmcthiruvallur.ac.in",
-              name: data.role || "Council Executive",
-              role: data.role || "Council Executive"
-            }
-          };
-        } else {
-          return {
-            valid: false,
-            error: data.error || "Invalid Council Master Token / Passcode"
-          };
-        }
-      } catch (err) {
-        console.warn("Backend token verification failed, falling back to local env:", err);
-      }
-    }
-
-    // 2. Client-side check against VITE_COUNCIL_AUTH_TOKEN or default password
-    const clientSecret = import.meta.env.VITE_COUNCIL_AUTH_TOKEN || "GMC@Council2026!Admin";
-    if (cleanToken === clientSecret.trim()) {
-      return {
-        valid: true,
-        user: {
-          email: "executive.council@gmcthiruvallur.ac.in",
-          name: "Council Executive Representative",
-          role: "Council Executive"
-        }
-      };
-    } else {
+    if (!this.isConfigured) {
       return {
         valid: false,
-        error: "Invalid Council Master Token / Passcode"
+        error: "Backend authentication server is not reachable. Please ensure VITE_API_BASE_URL points to your active Cloudflare Worker."
+      };
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/verify`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Council-Token": cleanToken
+        },
+        body: JSON.stringify({ token: cleanToken })
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        return {
+          valid: true,
+          token: cleanToken,
+          user: {
+            email: "executive.council@gmcthiruvallur.ac.in",
+            name: data.role || "Council Executive",
+            role: data.role || "Council Executive",
+            token: cleanToken
+          }
+        };
+      } else {
+        return {
+          valid: false,
+          error: data.error || "Invalid Council Master Token / Passcode"
+        };
+      }
+    } catch (err) {
+      return {
+        valid: false,
+        error: "Authentication service connection error: " + err.message
       };
     }
   }

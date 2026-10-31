@@ -158,6 +158,33 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(data.sentimentDistribution['Negative'], 1);
   });
 
+  test('POST /api/ai/analyze rejects unauthorized requests in production', async () => {
+    const prodEnv = { ...mockEnv, ENVIRONMENT: 'production', COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
+    const req = new Request('https://worker.dev/api/ai/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feedbacks: [] })
+    });
+
+    const res = await worker.fetch(req, prodEnv, mockCtx);
+    assert.equal(res.status, 401);
+  });
+
+  test('POST /api/ai/analyze succeeds with valid X-Council-Token in production', async () => {
+    const prodEnv = { ...mockEnv, ENVIRONMENT: 'production', COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
+    const req = new Request('https://worker.dev/api/ai/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Council-Token': 'gmc-secret-2026'
+      },
+      body: JSON.stringify({ feedbacks: [] })
+    });
+
+    const res = await worker.fetch(req, prodEnv, mockCtx);
+    assert.equal(res.status, 200);
+  });
+
   test('OPTIONS request returns standard CORS headers', async () => {
     const req = new Request('https://worker.dev/api/feedback', { method: 'OPTIONS' });
     const res = await worker.fetch(req, mockEnv, mockCtx);
@@ -209,26 +236,17 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(data.valid, true);
   });
 
-  test('POST /api/auth/verify falls back to secure default token when unset in env', async () => {
-    // When unset, default token GMC@Council2026!Admin is required
-    const reqCorrect = new Request('https://worker.dev/api/auth/verify', {
+  test('POST /api/auth/verify fails closed with 503 when COUNCIL_AUTH_TOKEN unset in env', async () => {
+    const req = new Request('https://worker.dev/api/auth/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 'GMC@Council2026!Admin' })
+      body: JSON.stringify({ token: 'any-token' })
     });
-    const resCorrect = await worker.fetch(reqCorrect, mockEnv, mockCtx);
-    assert.equal(resCorrect.status, 200);
-    const dataCorrect = await resCorrect.json();
-    assert.equal(dataCorrect.valid, true);
-
-    // Arbitrary token is rejected with 401 (no open demo bypass)
-    const reqWrong = new Request('https://worker.dev/api/auth/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 'any-random-token' })
-    });
-    const resWrong = await worker.fetch(reqWrong, mockEnv, mockCtx);
-    assert.equal(resWrong.status, 401);
+    const res = await worker.fetch(req, mockEnv, mockCtx);
+    assert.equal(res.status, 503);
+    const data = await res.json();
+    assert.equal(data.valid, false);
+    assert.match(data.error, /not configured/);
   });
 
   test('Worker responses include hardened security headers (HSTS, nosniff, DENY)', async () => {

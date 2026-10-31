@@ -24,6 +24,7 @@ import {
   INITIAL_CHATS
 } from '../data/initialData';
 import { initLocalStore } from '../services/storageService';
+import { apiService } from '../services/apiService';
 
 describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
   beforeEach(() => {
@@ -103,6 +104,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     const showToast = vi.fn();
     const onSubmitFeedback = vi.fn().mockResolvedValue({
       success: true,
+      delivered: true,
       id: 'GMC-FB-7711',
       trackingId: 'GMC-FB-7711',
       containsPII: false
@@ -135,7 +137,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
 
     await waitFor(() => {
       expect(onSubmitFeedback).toHaveBeenCalled();
-      expect(screen.getByText('Feedback Received Anonymously')).toBeInTheDocument();
+      expect(screen.getByText('Feedback Dispatched Successfully')).toBeInTheDocument();
       expect(screen.getByText('GMC-FB-7711')).toBeInTheDocument();
       expect(screen.getByAltText('Thumbs Up Success Mascot')).toBeInTheDocument();
     });
@@ -201,6 +203,17 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
   });
 
   it('renders AdminLoginPage with FBI mascot and allows login with credentials', async () => {
+    vi.spyOn(apiService, 'verifyCouncilToken').mockResolvedValueOnce({
+      valid: true,
+      token: 'test-secret',
+      user: {
+        email: 'president.council@gmcthiruvallur.ac.in',
+        name: 'Council Executive',
+        role: 'Council Executive',
+        token: 'test-secret'
+      }
+    });
+
     const onLoginSuccess = vi.fn();
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
@@ -222,7 +235,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     const emailInput = screen.getByPlaceholderText('rep.council@gmcthiruvallur.ac.in');
     const passInput = screen.getByPlaceholderText('••••••••••••');
     fireEvent.change(emailInput, { target: { value: 'president.council@gmcthiruvallur.ac.in' } });
-    fireEvent.change(passInput, { target: { value: 'GMC@Council2026!Admin' } });
+    fireEvent.change(passInput, { target: { value: 'SecretToken123!' } });
 
     const submitBtn = screen.getByText('Authorize Session');
     fireEvent.click(submitBtn);
@@ -238,6 +251,17 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
   });
 
   it('allows council login using decoupled Master Token input', async () => {
+    vi.spyOn(apiService, 'verifyCouncilToken').mockResolvedValueOnce({
+      valid: true,
+      token: 'SecretToken123!',
+      user: {
+        email: 'executive.council@gmcthiruvallur.ac.in',
+        name: 'Council Executive',
+        role: 'Council Executive',
+        token: 'SecretToken123!'
+      }
+    });
+
     const onLoginSuccess = vi.fn();
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
@@ -251,8 +275,8 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
 
     expect(screen.getByText('Council Master Secret Token')).toBeInTheDocument();
-    const tokenInput = screen.getByPlaceholderText('Enter VITE_COUNCIL_AUTH_TOKEN secret');
-    fireEvent.change(tokenInput, { target: { value: 'GMC@Council2026!Admin' } });
+    const tokenInput = screen.getByPlaceholderText('Enter Council Master Passcode');
+    fireEvent.change(tokenInput, { target: { value: 'SecretToken123!' } });
 
     const authorizeBtn = screen.getByText('Authorize with Master Token');
     fireEvent.click(authorizeBtn);

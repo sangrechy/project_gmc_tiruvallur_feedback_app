@@ -102,11 +102,7 @@ cp frontend/.env.example frontend/.env
 ```
 Key frontend variables:
 ```env
-# Council Master Secret Token (Decoupled Authentication)
-# Council members enter this token on the login page to unlock admin clearance!
-VITE_COUNCIL_AUTH_TOKEN="your-secure-passcode-here"
-
-# Cloudflare Worker Backend URL (Optional - leave empty for standalone/local mode)
+# Cloudflare Worker Backend URL (Required for server-verified authentication and Telegram relay)
 VITE_API_BASE_URL="https://gmc-thiruvallur-backend.your-subdomain.workers.dev"
 
 # Firebase Keys (Optional - leave blank if using built-in local store)
@@ -153,8 +149,7 @@ You can deploy this portal entirely on Cloudflare's generous free tier ($0/month
    - **Root directory**: `/` (leave empty / root)
 5. Add **Environment Variables** (in Cloudflare Pages dashboard under **Settings > Environment Variables**):
    - `NODE_VERSION` = `20`
-   - `VITE_COUNCIL_AUTH_TOKEN` = `your-secret-council-passcode` *(e.g. `gmc-council-admin-2026`)*
-   - `VITE_API_BASE_URL` = *(Your Cloudflare Worker URL from Step 2, or leave empty for standalone)*
+   - `VITE_API_BASE_URL` = *(Your Cloudflare Worker URL from Step 2)*
 6. Click **Save and Deploy**!
    Your portal is instantly live at `https://<your-project>.pages.dev` with SPA deep-linking and security headers enabled!
 
@@ -169,7 +164,7 @@ You can deploy this portal entirely on Cloudflare's generous free tier ($0/month
 2. Your worker will be live at `https://gmc-thiruvallur-backend.<your-subdomain>.workers.dev`.
 3. Add your secrets:
    ```bash
-   npx wrangler secret put COUNCIL_AUTH_TOKEN   # Enter the same secret as VITE_COUNCIL_AUTH_TOKEN
+   npx wrangler secret put COUNCIL_AUTH_TOKEN   # Enter your private council master passcode
    npx wrangler secret put GROQ_API_KEY          # Free from https://console.groq.com
    npx wrangler secret put GEMINI_API_KEY        # Free from https://aistudio.google.com
    npx wrangler secret put TELEGRAM_BOT_TOKEN    # Free from @BotFather

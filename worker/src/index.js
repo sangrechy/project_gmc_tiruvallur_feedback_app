@@ -243,7 +243,21 @@ export default {
         }
 
         const cleanProvided = typeof providedToken === "string" ? providedToken.trim() : "";
-        const configuredToken = (env.COUNCIL_AUTH_TOKEN && env.COUNCIL_AUTH_TOKEN.trim()) || "GMC@Council2026!Admin";
+        const configuredToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
+
+        if (!configuredToken) {
+          return jsonResponse(
+            {
+              valid: false,
+              authenticated: false,
+              error: "Council authentication is not configured on the server. Please set COUNCIL_AUTH_TOKEN in Worker secrets.",
+            },
+            503,
+            env,
+            request,
+            { "Cache-Control": "no-store, max-age=0" }
+          );
+        }
 
         // Constant-time comparison eliminates timing side-channel attacks
         const isMatch = cleanProvided ? await timingSafeEqualStrings(cleanProvided, configuredToken) : false;
@@ -373,8 +387,8 @@ export default {
         if (body?.sender === "admin") {
           const authHdr = request.headers.get("Authorization") || "";
           const tokenHdr = authHdr.startsWith("Bearer ") ? authHdr.slice(7).trim() : request.headers.get("X-Council-Token") || "";
-          const confToken = (env.COUNCIL_AUTH_TOKEN && env.COUNCIL_AUTH_TOKEN.trim()) || "GMC@Council2026!Admin";
-          if (tokenHdr && (await timingSafeEqualStrings(tokenHdr, confToken))) {
+          const confToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
+          if (confToken && tokenHdr && (await timingSafeEqualStrings(tokenHdr, confToken))) {
             sender = "admin";
           }
         }
@@ -448,11 +462,11 @@ export default {
         // Enforce council authorization on expensive AI endpoints
         const authHdr = request.headers.get("Authorization") || "";
         const tokenHdr = authHdr.startsWith("Bearer ") ? authHdr.slice(7).trim() : request.headers.get("X-Council-Token") || "";
-        const confToken = (env.COUNCIL_AUTH_TOKEN && env.COUNCIL_AUTH_TOKEN.trim()) || "GMC@Council2026!Admin";
-        const isAuth = tokenHdr ? await timingSafeEqualStrings(tokenHdr, confToken) : false;
+        const confToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
+        const isAuth = confToken && tokenHdr ? await timingSafeEqualStrings(tokenHdr, confToken) : false;
 
         if (!isTestEnv && !isAuth) {
-          return jsonResponse({ error: "Unauthorized: Council access token required for AI triage" }, 401, env, request);
+          return jsonResponse({ error: "Unauthorized: Valid council access token required for AI triage" }, 401, env, request);
         }
 
         // Enforce rate limiting on expensive AI endpoints (15 calls / 5 mins)
@@ -523,79 +537,29 @@ export default {
 async function handleTelegramCommand(text, chatId, env) {
   const parts = text.split(" ");
   const command = parts[0].toLowerCase();
-  const args = parts.slice(1).join(" ");
 
   switch (command) {
     case "/start":
     case "/help":
       return (
         `🏛 *GMC Thiruvallur Student Council Bot*\n\n` +
-        `Welcome, Council Member!\n\n` +
-        `*ADMIN CONTROLS:*\n` +
-        `/announce <title> - <desc> : Publish circular to portal\n` +
-        `/poll <question> | <opt1> | <opt2> : Launch student poll\n` +
-        `/chat : View active student live chats\n` +
-        `/reply <sessionId> <msg> : Reply directly to student\n` +
-        `/feedback : View feedback metrics\n` +
-        `/issues : View open unresolved student grievances\n` +
-        `/report : Generate on-demand AI executive summary`
+        `This bot delivers real-time notifications when new grievances or live chat messages arrive from students.\n\n` +
+        `*COMMANDS:*\n` +
+        `• /status — Check worker alert service health\n` +
+        `• /help — Show command information\n\n` +
+        `👉 To triage feedback, manage live chats, or publish circulars, access the Council Executive Dashboard at your deployed URL.`
       );
 
-    case "/chat":
+    case "/status":
       return (
-        `💬 *Active Live Chat Sessions:*\n\n` +
-        `• Session \`GMC-X7K92\` (Connected 10:00 AM)\n` +
-        `• Session \`GMC-B4T81\` (Connected 04:20 PM)\n\n` +
-        `_Reply to any student using:_ \`/reply <sessionId> <message>\``
-      );
-
-    case "/reply":
-      const replyArgs = args.split(" ");
-      const sessionId = replyArgs[0];
-      const replyContent = replyArgs.slice(1).join(" ");
-
-      if (!sessionId || !replyContent) {
-        return `⚠️ *Usage:* \`/reply <sessionId> <your message>\`\nExample: \`/reply GMC-X7K92 The issue is being resolved.\``;
-      }
-      return `✅ *Reply Delivered to ${sessionId}!*\n"${replyContent}"`;
-
-    case "/feedback":
-      return (
-        `📊 *Student Feedback Metrics:*\n\n` +
-        `• *Total Received:* 120 submissions\n` +
-        `• *Unreviewed/Pending:* 08\n` +
-        `• *Top Category:* Academics (42%), Transport (28%)\n` +
-        `• *Student Sentiment:* 68% Positive/Constructive, 32% Concerns`
-      );
-
-    case "/issues":
-      return (
-        `⚠️ *Unresolved High-Priority Issues:*\n\n` +
-        `1. [Academics] Lecture Hall 3 microphone distortion during Pharmacology.\n` +
-        `2. [Transport] Evening 6:30 PM bus request for late clinical posting students.\n` +
-        `3. [Hostel] Block B water purifier maintenance request.`
-      );
-
-    case "/announce":
-      if (!args) {
-        return `⚠️ *Usage:* \`/announce [Category] Title - Description\``;
-      }
-      return `📢 *Announcement Broadcasted!*\n"${args}" has been queued for publishing.`;
-
-    case "/poll":
-      if (!args) {
-        return `⚠️ *Usage:* \`/poll Question | Option 1 | Option 2\``;
-      }
-      return `🗳 *Student Poll Created & Broadcasted!*\n"${args}"`;
-
-    case "/report":
-      return (
-        `🤖 *AI Executive Grievance Summary:*\n\n` +
-        `"Recent submissions indicate strong student engagement with high satisfaction regarding canteen water repairs. Priority attention is required for Lecture Hall 3 acoustics and evening clinical transport."`
+        `🟢 *Council Alert Service Status: Online*\n\n` +
+        `• College: ${env.COLLEGE_NAME || "GMC Thiruvallur"}\n` +
+        `• Environment: ${env.ENVIRONMENT || "production"}\n` +
+        `• Telegram Notification Relay: Active`
       );
 
     default:
-      return null;
+      return `⚠️ Unknown command. Type /help for assistance, or manage student services via the Council Admin Portal.`;
   }
 }
 

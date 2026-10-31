@@ -101,15 +101,21 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
 
           <div className="portal-card p-8 sm:p-12 text-center pt-16 sm:pt-20 space-y-6 overflow-visible">
             <div>
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold mb-3">
-                <CheckCircle className="w-4 h-4" />
-                <span>Grievance Logged Securely</span>
+              <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 border ${
+                submissionResult.delivered
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+              }`}>
+                {submissionResult.delivered ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                <span>{submissionResult.delivered ? "Grievance Transmitted to Council" : "Stored Locally (Server Offline)"}</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
-                Feedback Received Anonymously
+                {submissionResult.delivered ? "Feedback Dispatched Successfully" : "Stored in Local Browser"}
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
-                Your message has been assigned a cryptographic hash and forwarded to the Student Council for review.
+                {submissionResult.delivered
+                  ? "Your message has been assigned an anonymous tracking token and delivered to the Student Council review queue."
+                  : "The backend server is currently offline or unreachable. Your grievance is saved locally on this browser, but has not yet reached the council."}
               </p>
             </div>
 
@@ -129,14 +135,14 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
               <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left text-xs text-amber-700 dark:text-amber-300 flex items-start space-x-3 max-w-md mx-auto">
                 <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <strong>Privacy Filter Applied:</strong> Identifying elements (phone numbers, emails, or personal names) were sanitized to protect your anonymity.
+                  <strong>Privacy Filter Applied:</strong> Identifying elements (phone numbers, emails, or personal names) were detected and excluded from AI processing.
                 </div>
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/20 text-left text-xs text-sky-700 dark:text-sky-300 flex items-start space-x-3 max-w-md mx-auto">
                 <ShieldCheck className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <strong>Anonymity Guarantee:</strong> Zero IP addresses, cookies, or user identifiers were recorded.
+                  <strong>Anonymity:</strong> No personal user account or tracking cookie is tied to this submission.
                 </div>
               </div>
             )}

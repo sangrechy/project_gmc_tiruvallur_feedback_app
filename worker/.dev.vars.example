@@ -9,9 +9,9 @@
 # ==============================================================================
 # 1. Council Master Security Passcode (Decoupled Authentication)
 # ==============================================================================
-# Set any secure passphrase or token of your choice.
-# When set, only council members providing this token can verify access to admin APIs.
-COUNCIL_AUTH_TOKEN="GMC@Council2026!Admin"
+# Set a strong, private passphrase or token of your choice.
+# Required in production. Worker fails closed (503) if this variable is not configured.
+COUNCIL_AUTH_TOKEN=""
 
 # ==============================================================================
 # 2. Free AI Intelligence Engine (Zero Cost)

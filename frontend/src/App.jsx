@@ -97,6 +97,26 @@ export default function App() {
     loadData();
   }, [adminUser]);
 
+  // Validate existing admin session with backend on startup
+  useEffect(() => {
+    const validateExistingSession = async () => {
+      const saved = localStorage.getItem('gmc_admin_session');
+      if (!saved) return;
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed?.token) {
+          const result = await apiService.verifyCouncilToken(parsed.token);
+          if (!result.valid) {
+            handleLogout();
+          }
+        }
+      } catch {
+        handleLogout();
+      }
+    };
+    validateExistingSession();
+  }, []);
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
   };

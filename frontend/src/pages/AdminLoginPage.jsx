@@ -55,10 +55,10 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
           name: "Council Representative"
         });
       } else {
-        // Verify password against configured token or default council password
-        const configuredToken = import.meta.env.VITE_COUNCIL_AUTH_TOKEN || "GMC@Council2026!Admin";
-        if (password.trim() !== configuredToken.trim()) {
-          showToast("Invalid Council Passcode", "error");
+        // Verify passcode through the serverless backend
+        const result = await apiService.verifyCouncilToken(password);
+        if (!result.valid) {
+          showToast(result.error || "Invalid Council Passcode", "error");
           setIsLoading(false);
           return;
         }
@@ -66,7 +66,8 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
         onLoginSuccess({
           email: email.trim(),
           name: "Council Executive",
-          role: "Council Executive"
+          role: "Council Executive",
+          token: password.trim()
         });
       }
       showToast("Council security clearance validated", "success");
@@ -166,13 +167,13 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
                     type="password"
                     value={councilToken}
                     onChange={(e) => setCouncilToken(e.target.value)}
-                    placeholder="Enter VITE_COUNCIL_AUTH_TOKEN secret"
+                    placeholder="Enter Council Master Passcode"
                     className="w-full pl-10 pr-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
                     autoFocus
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
-                  Decoupled Cloudflare Pages authentication. Configured in your deployment environment variables.
+                  Server-verified authentication. Configured in Cloudflare Worker secrets.
                 </p>
               </div>
 
