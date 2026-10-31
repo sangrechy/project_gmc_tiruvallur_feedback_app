@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Sun, 
-  Moon, 
   Menu, 
   X, 
   Home, 
@@ -10,7 +8,6 @@ import {
   MessageCircle, 
   Vote, 
   Calendar,
-  ShieldCheck,
   ChevronRight
 } from 'lucide-react';
 
@@ -33,7 +30,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#edf2f9]/90 dark:bg-[#090e1a]/90 backdrop-blur-xl border-b border-slate-300/40 dark:border-slate-800/60 transition-colors duration-300">
+    <header className="sticky top-0 z-40 bg-[#f8fafc]/85 dark:bg-[#07090e]/85 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
@@ -42,7 +39,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
             onClick={() => handleNavClick('home')}
             className="flex items-center space-x-3.5 cursor-pointer group select-none"
           >
-            <div className="w-12 h-12 neu-card flex items-center justify-center font-bold text-sky-600 dark:text-sky-400 group-hover:scale-105 transition-transform duration-200">
+            <div className="w-12 h-12 portal-card flex items-center justify-center font-bold text-sky-600 dark:text-sky-400 group-hover:scale-105 transition-transform duration-200">
               <span className="font-mono text-base font-black tracking-tight">GMC</span>
             </div>
             <div>
@@ -62,7 +59,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
           </div>
 
           {/* Desktop Center Navigation */}
-          <nav className="hidden lg:flex items-center space-x-1.5 p-1.5 rounded-2xl neu-pressed bg-slate-200/50 dark:bg-slate-900/60">
+          <nav className="hidden lg:flex items-center space-x-1.5 p-1.5 rounded-2xl bg-slate-200/50 dark:bg-[#141c2e]/80 border border-slate-300/40 dark:border-white/5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentRoute === item.id;
@@ -73,7 +70,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
                   className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all ${
                     isActive
                       ? 'portal-button-primary shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-300/30 dark:hover:bg-slate-800/40'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-300/40 dark:hover:bg-white/5'
                   }`}
                 >
                   <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-inherit' : 'text-slate-400 dark:text-slate-500'}`} />
@@ -83,55 +80,37 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
             })}
           </nav>
 
-          {/* Right Controls: 2-Part Theme Switch + Council Login */}
-          <div className="flex items-center space-x-3">
+          {/* Right Controls: Theme Switch (portfolio_2026 style) + Council Login */}
+          <div className="flex items-center space-x-3.5">
             
-            {/* Tactile 2-Part Theme Switcher: Divided into Light & Dark Halves */}
-            <div 
-              className="p-1 rounded-2xl neu-pressed flex items-center bg-slate-200/70 dark:bg-slate-900/70 border border-slate-300/50 dark:border-slate-800"
-              role="group"
-              aria-label="Theme Mode Selection"
-            >
-              {/* Light Half */}
-              <button
-                type="button"
-                onClick={() => setIsDarkMode(false)}
-                title="Switch to Light Theme"
-                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl transition-all ${
-                  !isDarkMode
-                    ? 'neu-button bg-white text-sky-700 shadow-md font-bold scale-[1.02]'
-                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 opacity-70 hover:opacity-100'
-                }`}
+            {/* THEME TOGGLE (Day / Night with Mascot Preview as in portfolio_2026) */}
+            <div className="theme-toggle-container">
+              <div 
+                className="theme-jane-preview"
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                title={isDarkMode ? "Switch to Light Theme" : "Switch to Dark Theme"}
+                aria-hidden="true"
               >
-                <div className="w-5 h-5 rounded-md overflow-hidden flex-shrink-0">
-                  <img 
-                    src="/stickers/theme_light.png" 
-                    alt="Light Theme Mascot Half" 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-                <span className="text-[11px] font-mono uppercase tracking-wider hidden sm:inline">Light</span>
-              </button>
+                <img 
+                  src={isDarkMode ? "/stickers/theme_dark.png" : "/stickers/theme_light.png"} 
+                  alt="Theme Mascot Preview" 
+                  id="theme-jane"
+                  className="w-full h-full object-contain select-none"
+                />
+              </div>
 
-              {/* Dark Half */}
-              <button
-                type="button"
-                onClick={() => setIsDarkMode(true)}
-                title="Switch to Dark Theme"
-                className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl transition-all ${
-                  isDarkMode
-                    ? 'neu-button bg-[#10192e] text-sky-400 shadow-md font-bold scale-[1.02]'
-                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 opacity-70 hover:opacity-100'
-                }`}
+              <button 
+                id="theme-toggle-btn" 
+                className="theme-pill-btn" 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                aria-label="Toggle light and dark theme"
+                title={isDarkMode ? "Switch to Light Theme" : "Switch to Dark Theme"}
               >
-                <div className="w-5 h-5 rounded-md overflow-hidden flex-shrink-0">
-                  <img 
-                    src="/stickers/theme_dark.png" 
-                    alt="Dark Theme Mascot Half" 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-                <span className="text-[11px] font-mono uppercase tracking-wider hidden sm:inline">Dark</span>
+                <span className="pill-slider">
+                  <span className="pill-icon">
+                    {isDarkMode ? '🌙' : '☀️'}
+                  </span>
+                </span>
               </button>
             </div>
 
@@ -140,7 +119,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
               onClick={() => handleNavClick(isAdminLoggedIn ? 'admin-dashboard' : 'admin-login')}
               className={`relative px-3.5 py-2 neu-button flex items-center space-x-2 text-xs font-semibold rounded-xl transition-all group ${
                 currentRoute.startsWith('admin')
-                  ? 'neu-pressed text-sky-500'
+                  ? 'border-sky-500 text-sky-500 bg-sky-500/10'
                   : 'text-slate-700 dark:text-slate-200 hover:text-sky-500'
               }`}
             >
@@ -193,7 +172,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden px-4 pt-3 pb-6 space-y-2 border-t border-slate-300/40 dark:border-slate-800/80 bg-[#edf2f9] dark:bg-[#090e1a] animate-fadeIn">
+        <div className="lg:hidden px-4 pt-3 pb-6 space-y-2 border-t border-slate-200/60 dark:border-white/10 bg-[#f8fafc] dark:bg-[#07090e] animate-fadeIn">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentRoute === item.id;

@@ -6,11 +6,10 @@ import {
   Calendar, 
   Clock, 
   MapPin, 
-  Sparkles,
   ChevronRight,
   ShieldCheck,
   CheckCircle2,
-  Bell
+  Megaphone
 } from 'lucide-react';
 
 export default function HomePage({ 
@@ -52,31 +51,31 @@ export default function HomePage({
       <section className="relative pt-12 sm:pt-16 pb-8 px-4 overflow-visible">
         <div className="max-w-4xl mx-auto text-center relative z-10">
           
-          {/* Hero Welcome Mascot with Vinyl Sticker Contour */}
+          {/* Hero Mascot with Vinyl Contour */}
           <div className="flex justify-center mb-6">
             <div className="relative group cursor-pointer" onClick={() => setCurrentRoute('feedback')}>
               <div className="w-28 h-28 sm:w-36 sm:h-36 relative">
                 <img 
                   src="/stickers/look_there.webp" 
                   alt="Student Council Welcome Mascot" 
-                  className="w-full h-full object-contain filter drop-shadow(0 0 1.5px rgba(255,255,255,0.95)) drop-shadow(0 0 5px rgba(56,189,248,0.5)) drop-shadow(0 12px 24px rgba(0,0,0,0.4)) hover:scale-110 transition-transform duration-300 sticker-float-r"
+                  className="w-full h-full object-contain filter drop-shadow(0 0 1.5px rgba(255,255,255,0.95)) drop-shadow(0 0 5px rgba(56,189,248,0.5)) drop-shadow(0 12px 24px rgba(0,0,0,0.5)) hover:scale-110 transition-transform duration-300 sticker-float-r"
                 />
               </div>
             </div>
           </div>
 
           {/* Institutional Trust Badge */}
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full neu-pill text-sky-700 dark:text-sky-300 text-xs font-semibold mb-5 border border-sky-500/20">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full neu-pill text-xs font-semibold mb-5">
             <ShieldCheck className="w-4 h-4 text-sky-500" />
             <span>Autonomous Student Governance • GMC Thiruvallur</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-[1.15]">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.12]">
             Direct, Democratic &amp; Confidential<br className="hidden sm:inline" />
             <span className="text-sky-600 dark:text-sky-400 font-sans">Campus Voice.</span>
           </h1>
 
-          <p className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+          <p className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed">
             Empowering medical students with 100% anonymous grievance redressal, real-time ephemeral council chat, and open collegiate voting.
           </p>
 
@@ -84,7 +83,7 @@ export default function HomePage({
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => setCurrentRoute('feedback')}
-              className="portal-button-primary w-full sm:w-auto px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide shadow-lg group"
+              className="portal-button-primary w-full sm:w-auto px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide group"
             >
               <MessageSquarePlus className="w-4 h-4 transition-transform group-hover:scale-110" />
               <span>Submit Anonymous Feedback</span>
@@ -104,7 +103,7 @@ export default function HomePage({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         
-        {/* ================= LATEST ANNOUNCEMENTS WITH PROTRUDING GAURD & SYRINGE ================= */}
+        {/* ================= LATEST ANNOUNCEMENTS WITH PROTRUDING GAURD (SYRINGE REMOVED) ================= */}
         <section className="relative mt-8">
           
           {/* GUARD STICKER: Bleeding out of the top-left edge */}
@@ -119,40 +118,34 @@ export default function HomePage({
             />
           </div>
 
-          {/* SYRINGE STICKER: Bleeding out of the top-right edge */}
-          <div 
-            className="sticker-bleed sticker-float-r -top-12 sm:-top-16 -right-3 sm:-right-6 md:-right-8 w-24 sm:w-32 md:w-36 pointer-events-auto"
-            title="GMC Clinical Syringe Mascot"
-          >
-            <img 
-              src="/stickers/syringe.png" 
-              alt="Syringe Mascot Bleeding Out" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-
-          {/* Announcements Card Container (overflow-visible to allow bleeding) */}
+          {/* Announcements Card Container */}
           <div className="portal-card p-6 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-slate-200/60 dark:border-slate-800 gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-slate-200/60 dark:border-white/10 gap-3">
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-sky-500 status-pulse-dot" />
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
                     Latest Council Announcements
                   </h2>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Verified clinical postings, hostel notices, and emergency campus updates
+                  Verified clinical postings, hostel notices, and campus updates
                 </p>
               </div>
 
-              <button
-                onClick={() => setCurrentRoute('announcements')}
-                className="inline-flex items-center space-x-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 transition-colors"
-              >
-                <span>View All Updates</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center space-x-3">
+                <span className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-semibold">
+                  <Megaphone className="w-3 h-3 text-sky-500" />
+                  <span>Official Circulars</span>
+                </span>
+                <button
+                  onClick={() => setCurrentRoute('announcements')}
+                  className="inline-flex items-center space-x-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 transition-colors"
+                >
+                  <span>View All Updates</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -160,11 +153,11 @@ export default function HomePage({
                 <div
                   key={ann.id}
                   onClick={() => setCurrentRoute('announcements')}
-                  className="p-5 rounded-2xl neu-pressed hover:border-sky-500/40 transition-all cursor-pointer flex flex-col justify-between group"
+                  className="p-5 rounded-2xl bg-white/60 dark:bg-[#141c2e]/70 border border-slate-200/60 dark:border-white/5 hover:border-sky-500/40 transition-all cursor-pointer flex flex-col justify-between group"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2.5">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider neu-pill">
                         {ann.category}
                       </span>
                       <div className="text-[11px] font-mono text-slate-400 flex items-center space-x-1">
@@ -172,7 +165,7 @@ export default function HomePage({
                         <span>{ann.date}</span>
                       </div>
                     </div>
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm sm:text-base group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm sm:text-base group-hover:text-sky-500 transition-colors line-clamp-1">
                       {ann.title}
                     </h3>
                     <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
@@ -180,8 +173,8 @@ export default function HomePage({
                     </p>
                   </div>
                   
-                  <div className="mt-4 pt-3 border-t border-slate-200/40 dark:border-slate-800/80 flex items-center text-xs font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
-                    <span>Read Notice</span>
+                  <div className="mt-4 pt-3 border-t border-slate-200/40 dark:border-white/5 flex items-center text-xs font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
+                    <span>Read Circular</span>
                     <ChevronRight className="w-3.5 h-3.5 ml-1" />
                   </div>
                 </div>
@@ -193,7 +186,7 @@ export default function HomePage({
         {/* ================= QUICK ACCESS 4-CARD GRID ================= */}
         <section>
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
               Campus Portals &amp; Quick Access
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -209,10 +202,10 @@ export default function HomePage({
               className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
             >
               <div>
-                <div className="w-12 h-12 neu-card flex items-center justify-center mb-5 text-sky-500 group-hover:text-sky-400 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center mb-5 text-sky-500 group-hover:text-sky-400 transition-colors">
                   <MessageSquarePlus className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">
+                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
                   Anonymous Feedback
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
@@ -231,14 +224,14 @@ export default function HomePage({
               className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
             >
               <div>
-                <div className="w-12 h-12 neu-card flex items-center justify-center mb-5 text-blue-500 group-hover:text-blue-400 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-5 text-blue-500 group-hover:text-blue-400 transition-colors">
                   <MessageCircle className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">
+                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
                   Temporary Live Chat
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Encrypted one-on-one session with on-duty council reps. Backed by 24h browser cookies with instant self-purge.
+                  Encrypted session with student council representatives. Backed by 24h browser cookies with instant self-purge.
                 </p>
               </div>
               <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
@@ -253,14 +246,14 @@ export default function HomePage({
               className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
             >
               <div>
-                <div className="w-12 h-12 neu-card flex items-center justify-center mb-5 text-amber-500 group-hover:text-amber-400 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-5 text-amber-500 group-hover:text-amber-400 transition-colors">
                   <Vote className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">
+                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
                   Collegiate Polls
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Vote on academic schedules, canteen menu adjustments, cultural night dates, and student council resolutions.
+                  Vote on academic schedules, canteen menus, cultural night themes, and council resolutions.
                 </p>
               </div>
               <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
@@ -275,14 +268,14 @@ export default function HomePage({
               className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
             >
               <div>
-                <div className="w-12 h-12 neu-card flex items-center justify-center mb-5 text-purple-500 group-hover:text-purple-400 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-5 text-purple-500 group-hover:text-purple-400 transition-colors">
                   <Calendar className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">
+                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
                   Events &amp; Symposia
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Browse verified inter-college medical quizzes, sports meets, clinical workshops, and register instantly.
+                  Browse verified inter-college medical quizzes, sports meets, clinical workshops, and register online.
                 </p>
               </div>
               <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform">
@@ -301,7 +294,7 @@ export default function HomePage({
             {/* REFERRING STICKER: Bleeding out of the top-right corner */}
             <div 
               className="sticker-bleed sticker-float-r -top-12 sm:-top-16 -right-3 sm:-right-6 md:-right-8 w-28 sm:w-36 pointer-events-auto"
-              title="Student Thinking & Voting Mascot"
+              title="Student Opinion & Polling Mascot"
             >
               <img 
                 src="/stickers/refering.webp" 
@@ -312,11 +305,11 @@ export default function HomePage({
 
             {/* Active Poll Card */}
             <div className="portal-card p-6 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
-              <div className="mb-6 pb-4 border-b border-slate-200/60 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="mb-6 pb-4 border-b border-slate-200/60 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center space-x-2">
                     <Vote className="w-4 h-4 text-sky-500" />
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
                       Active Student Council Poll
                     </h2>
                   </div>
@@ -325,13 +318,13 @@ export default function HomePage({
                   </p>
                 </div>
                 
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-semibold neu-pill text-sky-600 dark:text-sky-400">
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-semibold neu-pill">
                   {featuredPoll.totalVotes} Total Votes Tallied
                 </span>
               </div>
 
               <div className="max-w-3xl">
-                <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200 mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
                   {featuredPoll.question}
                 </h3>
 
@@ -348,13 +341,13 @@ export default function HomePage({
                         onClick={() => setSelectedPollOption(idx)}
                         className={`relative p-4 rounded-xl cursor-pointer transition-all overflow-hidden ${
                           isSelected
-                            ? 'neu-pressed border-sky-500 ring-1 ring-sky-500/50'
-                            : 'neu-pressed hover:border-slate-400/40'
+                            ? 'bg-sky-500/10 border border-sky-500 ring-1 ring-sky-500/50'
+                            : 'bg-white/60 dark:bg-[#141c2e]/60 border border-slate-200/60 dark:border-white/5 hover:border-slate-400/40'
                         }`}
                       >
                         {/* Progress Fill Bar in background */}
                         <div 
-                          className="absolute inset-y-0 left-0 bg-sky-500/10 dark:bg-sky-500/15 transition-all duration-500 rounded-l-xl"
+                          className="absolute inset-y-0 left-0 bg-sky-500/15 dark:bg-sky-500/20 transition-all duration-500 rounded-l-xl"
                           style={{ width: `${percentage}%` }}
                         />
 
@@ -365,7 +358,7 @@ export default function HomePage({
                             }`}>
                               {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                             </div>
-                            <span className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200">
+                            <span className="text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100">
                               {opt.text}
                             </span>
                           </div>
@@ -408,7 +401,7 @@ export default function HomePage({
         <section>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
                 Upcoming Academic &amp; Cultural Events
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -434,7 +427,7 @@ export default function HomePage({
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full neu-pill">
                       {evt.category}
                     </span>
                     <span className="text-xs font-mono font-semibold text-slate-400">
@@ -442,7 +435,7 @@ export default function HomePage({
                     </span>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-500 transition-colors">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-sky-500 transition-colors">
                     {evt.title}
                   </h3>
 
@@ -462,7 +455,7 @@ export default function HomePage({
                   </p>
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-sky-600 dark:text-sky-400">
+                <div className="mt-5 pt-3 border-t border-slate-200/50 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-sky-600 dark:text-sky-400">
                   <span>Register &amp; Details</span>
                   <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>

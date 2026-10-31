@@ -3,7 +3,7 @@ import { ShieldCheck, Heart, Github, ExternalLink } from 'lucide-react';
 
 export default function Footer({ setCurrentRoute }) {
   return (
-    <footer className="mt-20 border-t border-slate-300/40 dark:border-slate-800/80 bg-[#edf2f9]/80 dark:bg-[#070b14]/80 backdrop-blur-md transition-colors">
+    <footer className="mt-20 border-t border-slate-200/60 dark:border-white/10 bg-[#f8fafc]/80 dark:bg-[#07090e]/80 backdrop-blur-md transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         {/* Main Footer Row */}

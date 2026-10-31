@@ -52,9 +52,9 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getAllByText('Events')[0]).toBeInTheDocument();
     expect(screen.getByText('Council Auth')).toBeInTheDocument();
 
-    // 2-Part Theme toggle click (Dark half)
-    const darkBtn = screen.getByTitle('Switch to Dark Theme');
-    fireEvent.click(darkBtn);
+    // Theme toggle button click
+    const themeBtn = screen.getByRole('button', { name: /Toggle light and dark theme/i });
+    fireEvent.click(themeBtn);
     expect(setIsDarkMode).toHaveBeenCalledWith(true);
 
     // Nav click
@@ -89,7 +89,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     // Verify presence of stickers
     expect(screen.getByAltText('Student Council Welcome Mascot')).toBeInTheDocument();
     expect(screen.getByAltText('Guard Mascot Bleeding Out')).toBeInTheDocument();
-    expect(screen.getByAltText('Syringe Mascot Bleeding Out')).toBeInTheDocument();
     expect(screen.getByAltText('Thinking Polling Mascot Bleeding Out')).toBeInTheDocument();
 
     // CTA routing
@@ -190,7 +189,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByRole('button', { name: 'IMPORTANT' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ACADEMIC' })).toBeInTheDocument();
     expect(screen.getByAltText('Guard Mascot Bleeding Out')).toBeInTheDocument();
-    expect(screen.getByAltText('Syringe Mascot Bleeding Out')).toBeInTheDocument();
 
     // Click IMPORTANT filter button
     fireEvent.click(screen.getByRole('button', { name: 'IMPORTANT' }));

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Megaphone, Search, Pin, Clock, Calendar, AlertCircle, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Megaphone, Search, Pin, Clock, ArrowLeft } from 'lucide-react';
 
 export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
   const [activeCategory, setActiveCategory] = useState('ALL');
@@ -17,7 +17,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10 bg-grid-pattern">
       {/* Navigation Breadcrumb */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200/60 dark:border-white/10 text-xs font-mono">
         <button 
           onClick={() => setCurrentRoute('home')}
           className="flex items-center space-x-1 text-slate-500 hover:text-sky-500 transition-colors"
@@ -32,7 +32,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
         </div>
       </div>
 
-      {/* Announcements Header Card with Bleeding Guard & Syringe */}
+      {/* Announcements Header Card with Bleeding Guard (Syringe removed) */}
       <div className="relative mt-12">
         
         {/* GUARD STICKER: Bleeding out of top-left edge */}
@@ -47,25 +47,13 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
           />
         </div>
 
-        {/* SYRINGE STICKER: Bleeding out of top-right edge */}
-        <div 
-          className="sticker-bleed sticker-float-r -top-12 sm:-top-16 -right-3 sm:-right-6 md:-right-8 w-24 sm:w-32 md:w-36 pointer-events-auto"
-          title="Clinical Syringe Mascot"
-        >
-          <img 
-            src="/stickers/syringe.png" 
-            alt="Syringe Mascot Bleeding Out" 
-            className="w-full h-full object-contain"
-          />
-        </div>
-
         {/* Header Card (overflow-visible) */}
         <div className="portal-card p-6 sm:p-10 text-center relative overflow-visible pt-10 sm:pt-10">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-3 border border-sky-500/20">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold mb-3">
             <Megaphone className="w-3.5 h-3.5" />
             <span>Verified Administrative Board</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
             Official Campus Announcements
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-lg mx-auto leading-relaxed">
@@ -124,7 +112,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
                       <span>PINNED</span>
                     </span>
                   )}
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider neu-pill">
                     {ann.category}
                   </span>
                 </div>
@@ -135,7 +123,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
                 </div>
               </div>
 
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                 {ann.title}
               </h2>
 

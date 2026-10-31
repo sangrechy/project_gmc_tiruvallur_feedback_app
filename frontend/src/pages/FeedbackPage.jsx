@@ -206,7 +206,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
                     className="w-full px-4 py-3.5 neu-input text-xs sm:text-sm font-medium appearance-none"
                   >
                     {categories.map((cat) => (
-                      <option key={cat} value={cat} className="bg-[#edf2f9] dark:bg-[#090e1a] text-slate-900 dark:text-slate-100">
+                      <option key={cat} value={cat} className="bg-[#f8fafc] dark:bg-[#0e131f] text-slate-900 dark:text-slate-100">
                         {cat}
                       </option>
                     ))}

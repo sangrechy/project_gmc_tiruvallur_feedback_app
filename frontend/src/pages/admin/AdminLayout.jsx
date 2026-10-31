@@ -43,9 +43,9 @@ export default function AdminLayout({
   };
 
   return (
-    <div className="min-h-screen bg-[#edf2f9] dark:bg-[#090e1a] flex flex-col font-sans transition-colors duration-300 bg-grid-pattern">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#07090e] flex flex-col font-sans transition-colors duration-300 bg-grid-pattern">
       {/* Admin Top Header with FBI security sticker */}
-      <header className="bg-[#edf2f9]/90 dark:bg-[#090e1a]/90 sticky top-0 z-40 border-b border-slate-300/40 dark:border-slate-800/80 backdrop-blur-md">
+      <header className="bg-[#f8fafc]/90 dark:bg-[#07090e]/90 sticky top-0 z-40 border-b border-slate-200/60 dark:border-white/10 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 text-xs">
           <div className="flex items-center space-x-3">
             <button
