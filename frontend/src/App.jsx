@@ -24,7 +24,9 @@ const AdminManagement = lazy(() => import('./pages/admin/AdminManagement'));
 const AdminStatus = lazy(() => import('./pages/admin/AdminStatus'));
 
 import { storageService } from './services/storageService';
-import { isFirebaseConfigured } from './services/firebase';
+import { apiService } from './services/apiService';
+import { isFirebaseConfigured, auth } from './services/firebase';
+import { signOut } from 'firebase/auth';
 
 const AdminLoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center p-6 bg-[#f8fafc] dark:bg-[#07090e]">
@@ -109,13 +111,14 @@ export default function App() {
           return;
         }
         const tokenToVerify = parsed?.sessionToken || parsed?.token;
-        if (tokenToVerify) {
+        if (tokenToVerify && apiService.isConfigured) {
           const result = await apiService.verifyCouncilToken(tokenToVerify);
           if (!result.valid) {
             handleLogout();
           }
         }
-      } catch {
+      } catch (err) {
+        console.warn("Session validation error:", err);
         handleLogout();
       }
     };
@@ -158,6 +161,9 @@ export default function App() {
     setFeedbacks([]);
     setChats([]);
     localStorage.removeItem('gmc_admin_session');
+    if (isFirebaseConfigured && auth?.currentUser) {
+      signOut(auth).catch(() => {});
+    }
     setCurrentRoute('home');
     showToast("Council session ended", "info");
   };

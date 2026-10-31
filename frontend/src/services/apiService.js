@@ -130,16 +130,6 @@ export const apiService = {
         statusReport.backend.label = "Worker Unreachable (Network/CORS)";
         statusReport.backend.details = err.name === "AbortError" ? "Ping timed out after 3.5s" : err.message;
       }
-    } else {
-      // Check direct client-side environment keys if configured
-      if (import.meta.env.VITE_GEMINI_API_KEY) {
-        statusReport.aiApi.status = "connected";
-        statusReport.aiApi.label = "Connected (Direct Client Gemini Key)";
-      }
-      if (import.meta.env.VITE_TELEGRAM_BOT_TOKEN) {
-        statusReport.telegram.status = "connected";
-        statusReport.telegram.label = "Configured (Direct Client Token)";
-      }
     }
 
     return statusReport;
@@ -150,7 +140,10 @@ export const apiService = {
     if (!activeToken && typeof localStorage !== "undefined") {
       try {
         const saved = localStorage.getItem("gmc_admin_session");
-        activeToken = saved ? JSON.parse(saved)?.token : null;
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          activeToken = parsed?.sessionToken || parsed?.token || null;
+        }
       } catch {
         // Ignore session read error
       }
@@ -158,11 +151,13 @@ export const apiService = {
 
     if (this.isConfigured && activeToken) {
       try {
+        const cleanToken = activeToken.trim();
         const res = await fetch(`${API_BASE}/api/ai/analyze`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
-            "X-Council-Token": activeToken.trim()
+            "Authorization": `Bearer ${cleanToken}`,
+            "X-Council-Token": cleanToken
           },
           body: JSON.stringify({ feedbacks })
         });
@@ -228,10 +223,28 @@ export const apiService = {
 
   async sendChatMessage(sessionId, sender, text) {
     const targetUrl = `${API_BASE}/api/chat/message`;
+    let sessionToken = null;
+    if (typeof localStorage !== "undefined") {
+      try {
+        const saved = localStorage.getItem("gmc_admin_session");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          sessionToken = parsed?.sessionToken || parsed?.token || null;
+        }
+      } catch {
+        // Ignore session read error
+      }
+    }
+
+    const headers = { "Content-Type": "application/json" };
+    if (sessionToken) {
+      headers["Authorization"] = `Bearer ${sessionToken}`;
+    }
+
     try {
       const res = await fetch(targetUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ sessionId, sender, text })
       });
       if (res.ok) {

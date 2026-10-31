@@ -401,8 +401,11 @@ export const storageService = {
     // Delivery is ONLY considered true if the grievance was durably written to Cloud Firestore
     if (isFirebaseConfigured && db) {
       try {
+        // Strip client-side aiAnalysis before writing to Firestore:
+        // Firestore security rules strictly reserve aiAnalysis to council admins
+        const { aiAnalysis: _omit, ...cloudDoc } = feedbackDoc;
         const docRef = await addDoc(collection(db, "feedback"), {
-          ...feedbackDoc,
+          ...cloudDoc,
           serverTimestamp: serverTimestamp()
         });
         feedbackDoc.id = docRef.id;
@@ -424,6 +427,7 @@ export const storageService = {
       delivered: deliveredToServer,
       trackingId,
       containsPII: finalContainsPII,
+      piiDetected: finalContainsPII,
       alertDispatched: Boolean(backendResult?.telegramAlertSent)
     };
   },
@@ -705,18 +709,45 @@ export const storageService = {
 
   // ==================== COUNCIL ADMINS ====================
   async getAdmins() {
+    if (isFirebaseConfigured && db) {
+      try {
+        const snap = await getDocs(collection(db, "admins"));
+        const cloudAdmins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (cloudAdmins.length > 0) {
+          localStorage.setItem(KEYS.ADMINS, JSON.stringify(cloudAdmins));
+          return cloudAdmins;
+        }
+      } catch (err) {
+        console.warn("Firestore getAdmins fallback to local:", err);
+      }
+    }
     return JSON.parse(localStorage.getItem(KEYS.ADMINS) || "[]");
   },
 
   async addAdmin(adminData) {
-    const admins = JSON.parse(localStorage.getItem(KEYS.ADMINS) || "[]");
+    const cleanEmail = (adminData.email || "").trim().toLowerCase();
     const newAdmin = {
-      id: `admin-${Date.now()}`,
       ...adminData,
+      email: cleanEmail,
       status: "Active"
     };
-    admins.push(newAdmin);
+
+    if (isFirebaseConfigured && db && cleanEmail) {
+      try {
+        await setDoc(doc(db, "admins", cleanEmail), newAdmin);
+        return { id: cleanEmail, ...newAdmin };
+      } catch (err) {
+        console.warn("Firestore addAdmin fallback to local:", err);
+      }
+    }
+
+    const admins = JSON.parse(localStorage.getItem(KEYS.ADMINS) || "[]");
+    const created = {
+      id: cleanEmail || `admin-${Date.now()}`,
+      ...newAdmin
+    };
+    admins.push(created);
     localStorage.setItem(KEYS.ADMINS, JSON.stringify(admins));
-    return newAdmin;
+    return created;
   }
 };

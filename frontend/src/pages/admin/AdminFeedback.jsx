@@ -41,10 +41,15 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, showT
   const resolvedCount = feedbacks.filter(f => f.status === 'Resolved').length;
 
   const filtered = feedbacks.filter((fb) => {
+    const content = fb.content || '';
+    const trackingId = fb.trackingId || fb.id || '';
+    const notes = fb.councilNotes || '';
+    const term = searchTerm.toLowerCase();
+
     const matchesSearch = 
-      fb.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      fb.trackingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (fb.councilNotes && fb.councilNotes.toLowerCase().includes(searchTerm.toLowerCase()));
+      content.toLowerCase().includes(term) ||
+      trackingId.toLowerCase().includes(term) ||
+      notes.toLowerCase().includes(term);
     
     const matchesStatus = 
       statusFilter === 'ALL' ? true :

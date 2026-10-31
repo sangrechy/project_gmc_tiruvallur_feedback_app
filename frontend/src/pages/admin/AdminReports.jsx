@@ -19,7 +19,7 @@ export default function AdminReports({ feedbacks, showToast }) {
     setIsGenerating(true);
     try {
       const saved = localStorage.getItem('gmc_admin_session');
-      const token = saved ? JSON.parse(saved)?.token : null;
+      const token = saved ? (JSON.parse(saved)?.sessionToken || JSON.parse(saved)?.token) : null;
       const data = await apiService.generateAiReport(feedbacks, token);
       setReportData(data);
       if (data?.isAiGenerated) {

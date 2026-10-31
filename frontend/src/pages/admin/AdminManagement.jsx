@@ -37,16 +37,9 @@ export default function AdminManagement({ showToast }) {
   };
 
   const telegramCommands = [
-    { cmd: '/announce', desc: 'Publish an urgent or academic announcement to the college portal' },
-    { cmd: '/edit', desc: 'Edit existing active announcement by ID' },
-    { cmd: '/delete', desc: 'Remove an announcement' },
-    { cmd: '/poll', desc: 'Launch a new student poll with custom voting choices' },
-    { cmd: '/event', desc: 'Create and broadcast upcoming college event' },
-    { cmd: '/chat', desc: 'List all currently active student chat sessions' },
-    { cmd: '/reply <id> <msg>', desc: 'Directly send a council response to student session' },
-    { cmd: '/feedback', desc: 'Display feedback metrics and sentiment distribution summary' },
-    { cmd: '/issues', desc: 'View urgent unresolved student grievances' },
-    { cmd: '/report', desc: 'Trigger on-demand Groq / Gemini AI report generation' },
+    { cmd: '/status', desc: 'Check health status and connection of the Council alert relay service' },
+    { cmd: '/help', desc: 'Display command overview and emergency contact guidance' },
+    { cmd: '/start', desc: 'Initialize conversation with GMC Student Council Notification Bot' },
   ];
 
   return (
@@ -120,7 +113,7 @@ export default function AdminManagement({ showToast }) {
         </div>
 
         <p className="text-xs text-slate-600 dark:text-slate-400">
-          Council representatives can manage the entire portal on the move using Telegram Bot commands. The Cloudflare Worker handles webhooks and forwards requests securely to Firestore.
+          The Telegram Bot serves as a real-time notification relay, alerting council members instantly when new student grievances or live chat inquiries are submitted. For data security and audit trails, all portal management (grievance triage, circulars, live chat responses, and polls) is conducted securely via this web dashboard.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">

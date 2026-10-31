@@ -131,7 +131,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
             </div>
 
             {/* Redaction Notice if PII was detected */}
-            {submissionResult.piiDetected ? (
+            {(submissionResult.piiDetected || submissionResult.containsPII) ? (
               <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left text-xs text-amber-700 dark:text-amber-300 flex items-start space-x-3 max-w-md mx-auto">
                 <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                 <div>
