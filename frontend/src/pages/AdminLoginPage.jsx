@@ -22,12 +22,18 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
     try {
       const result = await apiService.verifyCouncilToken(councilToken);
       if (result.valid) {
-        onLoginSuccess(result.user || {
+        onLoginSuccess({
           email: "executive.council@gmcthiruvallur.ac.in",
-          name: "Council Executive",
-          role: "Council Executive"
+          name: result.role || "Council Executive",
+          role: result.role || "Council Executive",
+          sessionToken: result.sessionToken,
+          expiresAt: result.expiresAt
         });
-        showToast("Council clearance validated via Master Token", "success");
+        if (isFirebaseConfigured) {
+          showToast("Worker authenticated via Master Token. (For Cloud Firestore access, use Council Email login)", "info");
+        } else {
+          showToast("Council clearance validated via Master Token", "success");
+        }
       } else {
         showToast(result.error || "Invalid Council Master Token / Passcode", "error");
       }
@@ -49,11 +55,26 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
     try {
       if (isFirebaseConfigured && auth) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        let sessionToken = null;
+        let expiresAt = null;
+        if (apiService.isConfigured) {
+          try {
+            const workerAuth = await apiService.verifyCouncilToken(password);
+            if (workerAuth.valid) {
+              sessionToken = workerAuth.sessionToken;
+              expiresAt = workerAuth.expiresAt;
+            }
+          } catch {
+            // Worker master passcode may differ from individual admin password
+          }
+        }
         onLoginSuccess({
           email: userCredential.user.email,
           uid: userCredential.user.uid,
           name: "Council Representative",
           role: "Council Executive",
+          sessionToken,
+          expiresAt,
           isFirebaseUser: true
         });
       } else {

@@ -267,16 +267,22 @@ export const apiService = {
       });
       const data = await res.json();
       if (res.ok && data.valid) {
+        if (!data.sessionToken || typeof data.sessionToken !== "string" || !data.sessionToken.startsWith("gmc_sess.")) {
+          return {
+            valid: false,
+            error: "Authentication service failed to issue a secure cryptographic session token."
+          };
+        }
         return {
           valid: true,
-          sessionToken: data.sessionToken || cleanToken,
+          sessionToken: data.sessionToken,
           expiresAt: data.expiresAt,
           role: data.role || "Council Executive",
           user: {
             email: "executive.council@gmcthiruvallur.ac.in",
             name: data.role || "Council Executive",
             role: data.role || "Council Executive",
-            sessionToken: data.sessionToken || cleanToken,
+            sessionToken: data.sessionToken,
             expiresAt: data.expiresAt
           }
         };

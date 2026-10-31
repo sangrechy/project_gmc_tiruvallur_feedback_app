@@ -170,7 +170,7 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(res.status, 401);
   });
 
-  test('POST /api/ai/analyze succeeds with valid X-Council-Token in production', async () => {
+  test('POST /api/ai/analyze rejects raw master token on operational endpoints with 401', async () => {
     const prodEnv = { ...mockEnv, ENVIRONMENT: 'production', COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
     const req = new Request('https://worker.dev/api/ai/analyze', {
       method: 'POST',
@@ -182,7 +182,9 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     });
 
     const res = await worker.fetch(req, prodEnv, mockCtx);
-    assert.equal(res.status, 200);
+    assert.equal(res.status, 401);
+    const data = await res.json();
+    assert.match(data.error, /Unauthorized/);
   });
 
   test('OPTIONS request returns standard CORS headers', async () => {

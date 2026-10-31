@@ -92,6 +92,7 @@ describe('Storage Service Blackbox & Unit Verification', () => {
     it('creates an ephemeral session with format GMC-XXXXX and initial greeting', async () => {
       const session = await storageService.getOrCreateChatSession();
       expect(session.sessionId).toMatch(/^GMC-[A-Z0-9]{5}$/);
+      expect(session.id).toBe(session.sessionId); // Ensured document key matches sessionId
       expect(session.status).toBe('active');
       expect(session.messages.length).toBeGreaterThanOrEqual(1);
       expect(session.messages[0].sender).toBe('council');
@@ -106,6 +107,15 @@ describe('Storage Service Blackbox & Unit Verification', () => {
 
       const reloaded = await storageService.getOrCreateChatSession(session.sessionId);
       expect(reloaded.messages.some(m => m.text === 'When does the sports room open?')).toBe(true);
+    });
+
+    it('retrieves all chats via getAllChats for admin dashboard triage', async () => {
+      const session = await storageService.getOrCreateChatSession();
+      await storageService.sendChatMessage(session.sessionId, 'student', 'Hello Council!');
+
+      const allChats = await storageService.getAllChats();
+      expect(Array.isArray(allChats)).toBe(true);
+      expect(allChats.some(c => c.sessionId === session.sessionId)).toBe(true);
     });
 
     it('safely terminates session on endChatSession and blocks further messages', async () => {

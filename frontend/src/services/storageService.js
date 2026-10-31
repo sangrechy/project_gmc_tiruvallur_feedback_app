@@ -1,5 +1,5 @@
 // Unified Storage Service: Seamlessly switches between Firebase Firestore and LocalStorage
-import { db, isFirebaseConfigured } from "./firebase";
+import { db, auth, isFirebaseConfigured } from "./firebase";
 import { apiService } from "./apiService";
 import {
   collection,
@@ -13,7 +13,8 @@ import {
   query,
   orderBy,
   where,
-  serverTimestamp
+  serverTimestamp,
+  runTransaction
 } from "firebase/firestore";
 import {
   INITIAL_ANNOUNCEMENTS,
@@ -222,35 +223,39 @@ export const storageService = {
 
     if (isFirebaseConfigured && db) {
       const pollRef = doc(db, "polls", pollId);
-      const pollSnap = await getDoc(pollRef);
-      if (!pollSnap.exists()) {
-        throw new Error("Poll not found");
-      }
-      const pollData = pollSnap.data();
-      if (pollData.status !== "active") {
-        throw new Error("This poll is closed and no longer accepting votes.");
-      }
-      if (!pollData.options || !pollData.options[optionIndex]) {
-        throw new Error("Invalid poll option selected.");
-      }
-
-      const updatedOptions = pollData.options.map((opt, idx) => {
-        if (idx === optionIndex) {
-          return { ...opt, votes: (opt.votes || 0) + 1 };
+      await runTransaction(db, async (transaction) => {
+        const pollSnap = await transaction.get(pollRef);
+        if (!pollSnap.exists()) {
+          throw new Error("Poll not found");
         }
-        return opt;
-      });
+        const pollData = pollSnap.data();
+        if (pollData.status !== "active") {
+          throw new Error("This poll is closed and no longer accepting votes.");
+        }
+        if (!pollData.options || !pollData.options[optionIndex]) {
+          throw new Error("Invalid poll option selected.");
+        }
 
-      // 1. Record individual vote ballot in votes subcollection
-      await addDoc(collection(pollRef, "votes"), {
-        selectedOption: optionIndex,
-        timestamp: serverTimestamp()
-      });
+        const updatedOptions = pollData.options.map((opt, idx) => {
+          const currentCount = Number(opt.votes) || 0;
+          if (idx === optionIndex) {
+            return { text: opt.text, votes: currentCount + 1 };
+          }
+          return { text: opt.text, votes: currentCount };
+        });
 
-      // 2. Atomically update poll options and increment totalVotes by 1
-      await updateDoc(pollRef, {
-        options: updatedOptions,
-        totalVotes: (pollData.totalVotes || 0) + 1
+        // 1. Atomically record individual ballot doc in votes subcollection
+        const voteDocRef = doc(collection(pollRef, "votes"));
+        transaction.set(voteDocRef, {
+          selectedOption: optionIndex,
+          timestamp: serverTimestamp()
+        });
+
+        // 2. Atomically update poll options and increment totalVotes by 1 in same commit
+        transaction.update(pollRef, {
+          options: updatedOptions,
+          totalVotes: (Number(pollData.totalVotes) || 0) + 1
+        });
       });
     }
 
@@ -485,29 +490,79 @@ export const storageService = {
 
   async getOrCreateChatSession(requestedSessionId = null) {
     const chats = JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
-    
-    // Check if session exists
-    if (requestedSessionId) {
-      const existing = chats.find(c => c.sessionId === requestedSessionId);
-      if (existing) {
-        // Check 24-hr expiry
-        const hoursAgo = (Date.now() - new Date(existing.lastActivity || existing.createdAt).getTime()) / (1000 * 60 * 60);
-        if (hoursAgo > 24) {
-          existing.status = "expired";
-          localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
-        }
-        return existing;
+    const sessionId = (typeof requestedSessionId === "string" && requestedSessionId.trim())
+      ? requestedSessionId.trim().slice(0, 50)
+      : this.generateSessionId();
+
+    const currentUserUid = auth?.currentUser?.uid || null;
+
+    // Check if session exists in memory/local first
+    let existing = chats.find(c => c.sessionId === sessionId);
+    if (existing) {
+      // Check 24-hr expiry
+      const hoursAgo = (Date.now() - new Date(existing.lastActivity || existing.createdAt).getTime()) / (1000 * 60 * 60);
+      if (hoursAgo > 24) {
+        existing.status = "expired";
+        localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
       }
     }
 
+    // If Firebase is configured, sync with Cloud Firestore
+    if (isFirebaseConfigured && db) {
+      try {
+        const chatRef = doc(db, "chats", sessionId);
+        const chatSnap = await getDoc(chatRef);
+
+        if (chatSnap.exists()) {
+          const cloudData = chatSnap.data();
+          const messagesSnap = await getDocs(collection(chatRef, "messages"));
+          const cloudMessages = messagesSnap.docs.map(m => ({ id: m.id, ...m.data() }));
+          cloudMessages.sort((a, b) => {
+            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
+            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
+            return timeA - timeB;
+          });
+
+          const syncedSession = {
+            id: sessionId,
+            sessionId,
+            status: cloudData.status || "active",
+            createdAt: cloudData.createdAt?.toDate ? cloudData.createdAt.toDate().toISOString() : (existing?.createdAt || new Date().toISOString()),
+            lastActivity: cloudData.lastActivity?.toDate ? cloudData.lastActivity.toDate().toISOString() : (existing?.lastActivity || new Date().toISOString()),
+            ownerUid: cloudData.ownerUid || currentUserUid,
+            messages: cloudMessages.length > 0 ? cloudMessages : (existing?.messages || [])
+          };
+
+          const idx = chats.findIndex(c => c.sessionId === sessionId);
+          if (idx >= 0) chats[idx] = syncedSession;
+          else chats.unshift(syncedSession);
+          localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
+          return syncedSession;
+        } else {
+          // Create new chat document in Firestore keyed by sessionId
+          await setDoc(chatRef, {
+            sessionId,
+            status: "active",
+            createdAt: serverTimestamp(),
+            lastActivity: serverTimestamp(),
+            ...(currentUserUid ? { ownerUid: currentUserUid } : {})
+          });
+        }
+      } catch (err) {
+        console.warn("Firestore getOrCreateChatSession sync warning:", err);
+      }
+    }
+
+    if (existing) return existing;
+
     // Create new session
-    const sessionId = requestedSessionId || this.generateSessionId();
     const newSession = {
-      id: `chat-${Date.now()}`,
+      id: sessionId,
       sessionId,
       status: "active",
       createdAt: new Date().toISOString(),
       lastActivity: new Date().toISOString(),
+      ownerUid: currentUserUid,
       messages: [
         {
           id: `m-init-${Date.now()}`,
@@ -520,20 +575,6 @@ export const storageService = {
 
     chats.unshift(newSession);
     localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
-
-    if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, "chats", newSession.id), {
-          sessionId,
-          status: "active",
-          createdAt: serverTimestamp(),
-          lastActivity: serverTimestamp()
-        });
-      } catch (err) {
-        console.warn("Firestore create chat session fallback:", err);
-      }
-    }
-
     return newSession;
   },
 
@@ -553,6 +594,7 @@ export const storageService = {
 
     const newMsg = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      sessionId: cleanSessionId,
       sender: cleanSender,
       text: cleanText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -607,10 +649,57 @@ export const storageService = {
       });
       localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
     }
+
+    // Update Cloud Firestore status to ended and purge cloud messages to honor privacy
+    if (isFirebaseConfigured && db) {
+      try {
+        const chatRef = doc(db, "chats", sessionId);
+        await updateDoc(chatRef, {
+          status: "ended",
+          endedAt: serverTimestamp()
+        });
+        const messagesSnap = await getDocs(collection(chatRef, "messages"));
+        const deleteOps = messagesSnap.docs.map(m => deleteDoc(m.ref));
+        await Promise.all(deleteOps);
+      } catch (err) {
+        console.warn("Firestore endChatSession warning:", err);
+      }
+    }
     return true;
   },
 
   async getAllChats() {
+    if (isFirebaseConfigured && db) {
+      try {
+        const snap = await getDocs(collection(db, "chats"));
+        const chatPromises = snap.docs.map(async (d) => {
+          const chatData = d.data();
+          const messagesSnap = await getDocs(collection(d.ref, "messages"));
+          const messages = messagesSnap.docs.map(m => ({ id: m.id, ...m.data() }));
+          messages.sort((a, b) => {
+            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
+            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
+            return timeA - timeB;
+          });
+          return {
+            id: d.id,
+            sessionId: chatData.sessionId || d.id,
+            status: chatData.status || "active",
+            createdAt: chatData.createdAt?.toDate ? chatData.createdAt.toDate().toISOString() : new Date().toISOString(),
+            lastActivity: chatData.lastActivity?.toDate ? chatData.lastActivity.toDate().toISOString() : new Date().toISOString(),
+            ownerUid: chatData.ownerUid || null,
+            messages: messages.length > 0 ? messages : (chatData.messages || [])
+          };
+        });
+        const cloudChats = await Promise.all(chatPromises);
+        if (cloudChats.length > 0) {
+          localStorage.setItem(KEYS.CHATS, JSON.stringify(cloudChats));
+          return cloudChats;
+        }
+      } catch (err) {
+        console.warn("Firestore getAllChats fallback to local:", err);
+      }
+    }
     return JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
   },
 

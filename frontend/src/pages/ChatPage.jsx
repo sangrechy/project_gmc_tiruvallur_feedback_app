@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { cookieService } from '../services/cookieService';
+import { auth, isFirebaseConfigured } from '../services/firebase';
+import { signInAnonymously } from 'firebase/auth';
 
 export default function ChatPage({ setCurrentRoute, showToast }) {
   const [session, setSession] = useState(null);
@@ -31,6 +33,15 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
     }
 
     async function loadChat() {
+      // If Firebase is configured, ensure anonymous auth session for cloud ownership
+      if (isFirebaseConfigured && auth && !auth.currentUser) {
+        try {
+          await signInAnonymously(auth);
+        } catch (err) {
+          console.warn("Anonymous auth failed, continuing in ephemeral mode:", err);
+        }
+      }
+
       const s = await storageService.getOrCreateChatSession(activeSessionId);
       setSession(s);
       activeSessionIdRef.current = s.sessionId;

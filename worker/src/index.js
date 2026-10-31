@@ -208,7 +208,10 @@ async function verifySessionToken(token, secretKey) {
 }
 
 /**
- * Universal admin authorization check (supports raw master token or signed session token)
+ * Universal admin authorization check for operational endpoints.
+ * Strictly requires a signed, unexpired session token (HMAC-SHA256).
+ * Raw master passcodes are rejected on operational endpoints to prevent
+ * session expiry bypass and enforce the 8-hour token lifetime.
  */
 async function authenticateAdminRequest(request, configuredToken) {
   if (!configuredToken) return false;
@@ -218,17 +221,14 @@ async function authenticateAdminRequest(request, configuredToken) {
     : (request.headers.get("X-Council-Token") || "").trim();
   if (!token) return false;
 
-  // 1. Direct master token comparison (constant-time)
-  if (await timingSafeEqualStrings(token, configuredToken)) {
-    return true;
-  }
-
-  // 2. Short-lived session token verification
+  // Operational endpoints strictly require signed session tokens
   if (token.startsWith("gmc_sess.")) {
     const sessionRes = await verifySessionToken(token, configuredToken);
     return sessionRes.valid;
   }
 
+  // Raw master passcodes cannot directly access operational endpoints;
+  // they must first be exchanged at /api/auth/verify for a session token.
   return false;
 }
 
