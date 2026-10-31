@@ -66,9 +66,17 @@ export const apiService = {
       auth: {
         id: "auth",
         name: "Council Auth Shield",
-        status: "connected",
-        label: "Master Token Shield (Active)",
-        details: "Council administrative privileges active via secure decoupled token"
+        status: (import.meta.env.VITE_COUNCIL_AUTH_TOKEN || isFirebaseConfigured) ? "connected" : "demo",
+        label: import.meta.env.VITE_COUNCIL_AUTH_TOKEN 
+          ? "Decoupled Master Token (Active)" 
+          : isFirebaseConfigured 
+            ? "Firebase Auth (Active)" 
+            : "Interactive Demo Auth",
+        details: import.meta.env.VITE_COUNCIL_AUTH_TOKEN
+          ? "Council master secret configured via environment variable"
+          : isFirebaseConfigured
+            ? "Protected by Firebase Authentication"
+            : "Demo authentication active; set VITE_COUNCIL_AUTH_TOKEN in Pages to lock down"
       }
     };
 
@@ -219,6 +227,76 @@ export const apiService = {
       console.warn("Worker /api/chat/message call failed, falling back to local relay:", err);
     }
     return null;
+  },
+
+  async verifyCouncilToken(token) {
+    if (!token || !token.trim()) {
+      return { valid: false, error: "Please enter a valid token" };
+    }
+    const cleanToken = token.trim();
+
+    // 1. If Cloudflare Worker is connected, verify with Worker backend
+    if (this.isConfigured) {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/verify`, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "X-Council-Token": cleanToken
+          },
+          body: JSON.stringify({ token: cleanToken })
+        });
+        const data = await res.json();
+        if (res.ok && data.valid) {
+          return {
+            valid: true,
+            user: {
+              email: "executive.council@gmcthiruvallur.ac.in",
+              name: data.role || "Council Executive",
+              role: data.role || "Council Executive"
+            }
+          };
+        } else {
+          return {
+            valid: false,
+            error: data.error || "Invalid Council Master Token / Passcode"
+          };
+        }
+      } catch (err) {
+        console.warn("Backend token verification failed, falling back to local env:", err);
+      }
+    }
+
+    // 2. Client-side decoupled check against VITE_COUNCIL_AUTH_TOKEN
+    const clientSecret = import.meta.env.VITE_COUNCIL_AUTH_TOKEN;
+    if (clientSecret && clientSecret.trim()) {
+      if (cleanToken === clientSecret.trim()) {
+        return {
+          valid: true,
+          user: {
+            email: "executive.council@gmcthiruvallur.ac.in",
+            name: "Council Executive Representative",
+            role: "Council Executive"
+          }
+        };
+      } else {
+        return {
+          valid: false,
+          error: "Invalid Council Master Token / Passcode"
+        };
+      }
+    }
+
+    // 3. Fallback / Demo mode when neither Worker nor VITE_COUNCIL_AUTH_TOKEN is set
+    return {
+      valid: true,
+      user: {
+        email: "president.council@gmcthiruvallur.ac.in",
+        name: "Dr. K. Vignesh (Council President)",
+        role: "Council President"
+      }
+    };
   }
 };
+
 

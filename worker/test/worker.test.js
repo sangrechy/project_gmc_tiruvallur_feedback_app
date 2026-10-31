@@ -164,4 +164,62 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(res.status, 200);
     assert.equal(res.headers.get('Access-Control-Allow-Origin'), '*');
   });
+
+  test('POST /api/auth/verify succeeds with correct COUNCIL_AUTH_TOKEN', async () => {
+    const customEnv = { ...mockEnv, COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
+    const req = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: 'gmc-secret-2026' })
+    });
+
+    const res = await worker.fetch(req, customEnv, mockCtx);
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.valid, true);
+    assert.equal(data.authenticated, true);
+    assert.equal(data.role, 'Council Executive');
+  });
+
+  test('POST /api/auth/verify rejects incorrect COUNCIL_AUTH_TOKEN with 401', async () => {
+    const customEnv = { ...mockEnv, COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
+    const req = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: 'wrong-token' })
+    });
+
+    const res = await worker.fetch(req, customEnv, mockCtx);
+    assert.equal(res.status, 401);
+    const data = await res.json();
+    assert.equal(data.valid, false);
+    assert.equal(data.authenticated, false);
+  });
+
+  test('POST /api/auth/verify supports Authorization Bearer header', async () => {
+    const customEnv = { ...mockEnv, COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
+    const req = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer gmc-secret-2026' }
+    });
+
+    const res = await worker.fetch(req, customEnv, mockCtx);
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.valid, true);
+  });
+
+  test('POST /api/auth/verify falls back to demo clearance when token unset in env', async () => {
+    const req = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: 'any-token' })
+    });
+
+    const res = await worker.fetch(req, mockEnv, mockCtx);
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.valid, true);
+    assert.match(data.role, /Demo Mode/);
+  });
 });

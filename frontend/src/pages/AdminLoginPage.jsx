@@ -1,12 +1,42 @@
 import React, { useState } from 'react';
-import { Lock, Mail, KeyRound, ArrowLeft, ShieldAlert, Sparkles, ChevronRight } from 'lucide-react';
+import { Lock, Mail, KeyRound, ArrowLeft, ShieldAlert, Sparkles, ChevronRight, Key } from 'lucide-react';
 import { auth, isFirebaseConfigured } from '../services/firebase';
+import { apiService } from '../services/apiService';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showToast }) {
+  const [authMode, setAuthMode] = useState('token'); // 'token' or 'credentials'
+  const [councilToken, setCouncilToken] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleTokenLogin = async (e) => {
+    e.preventDefault();
+    if (!councilToken.trim()) {
+      showToast("Please enter Council Master Token or Passcode", "error");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await apiService.verifyCouncilToken(councilToken);
+      if (result.valid) {
+        onLoginSuccess(result.user || {
+          email: "executive.council@gmcthiruvallur.ac.in",
+          name: "Council Executive",
+          role: "Council Executive"
+        });
+        showToast("Council clearance validated via Master Token", "success");
+      } else {
+        showToast(result.error || "Invalid Council Master Token / Passcode", "error");
+      }
+    } catch (err) {
+      showToast("Token validation error: " + err.message, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,7 +55,15 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
           name: "Council Representative"
         });
       } else {
-        // Demo authentication simulation
+        // If VITE_COUNCIL_AUTH_TOKEN is configured, verify password against it
+        const configuredToken = import.meta.env.VITE_COUNCIL_AUTH_TOKEN;
+        if (configuredToken && password.trim() !== configuredToken.trim()) {
+          showToast("Invalid Council Passcode", "error");
+          setIsLoading(false);
+          return;
+        }
+
+        // Demo / decoupled authentication
         onLoginSuccess({
           email: email.trim(),
           name: "Dr. K. Vignesh (Council President)",
@@ -115,60 +153,127 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
             </button>
           </div>
 
-          {/* Standard Credentials Form */}
-          <form onSubmit={handleLogin} className="space-y-4 pt-2 text-left">
-            <div>
-              <label 
-                htmlFor="council_email"
-                className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 font-mono"
-              >
-                Council Email
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  id="council_email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="rep.council@gmcthiruvallur.ac.in"
-                  className="w-full pl-10 pr-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label 
-                htmlFor="council_password"
-                className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 font-mono"
-              >
-                Passcode
-              </label>
-              <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  id="council_password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-10 pr-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
-                />
-              </div>
-            </div>
-
+          {/* Authentication Mode Switcher */}
+          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-200/60 dark:bg-slate-900/60 border border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
             <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3.5 portal-button-secondary text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95 mt-4"
+              type="button"
+              onClick={() => setAuthMode('token')}
+              className={`py-2 px-3 rounded-lg font-bold flex items-center justify-center space-x-1.5 transition-all ${
+                authMode === 'token'
+                  ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
             >
-              <Lock className="w-3.5 h-3.5" />
-              <span>{isLoading ? "Authenticating..." : "Authorize Session"}</span>
+              <Key className="w-3.5 h-3.5" />
+              <span>Master Token</span>
             </button>
-          </form>
+            <button
+              type="button"
+              onClick={() => setAuthMode('credentials')}
+              className={`py-2 px-3 rounded-lg font-bold flex items-center justify-center space-x-1.5 transition-all ${
+                authMode === 'credentials'
+                  ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Email & Passcode</span>
+            </button>
+          </div>
+
+          {authMode === 'token' ? (
+            /* Decoupled Master Token Form */
+            <form onSubmit={handleTokenLogin} className="space-y-4 pt-1 text-left">
+              <div>
+                <label 
+                  htmlFor="council_token"
+                  className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 font-mono"
+                >
+                  Council Master Secret Token
+                </label>
+                <div className="relative">
+                  <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    id="council_token"
+                    type="password"
+                    value={councilToken}
+                    onChange={(e) => setCouncilToken(e.target.value)}
+                    placeholder="Enter VITE_COUNCIL_AUTH_TOKEN secret"
+                    className="w-full pl-10 pr-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
+                    autoFocus
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
+                  Decoupled Cloudflare Pages authentication. Configured in your deployment environment variables.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3.5 portal-button-secondary text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95 mt-4"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>{isLoading ? "Validating Token..." : "Authorize with Master Token"}</span>
+              </button>
+            </form>
+          ) : (
+            /* Standard Email & Credentials Form */
+            <form onSubmit={handleLogin} className="space-y-4 pt-1 text-left">
+              <div>
+                <label 
+                  htmlFor="council_email"
+                  className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 font-mono"
+                >
+                  Council Email
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    id="council_email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="rep.council@gmcthiruvallur.ac.in"
+                    className="w-full pl-10 pr-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label 
+                  htmlFor="council_password"
+                  className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 font-mono"
+                >
+                  Passcode
+                </label>
+                <div className="relative">
+                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    id="council_password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full pl-10 pr-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3.5 portal-button-secondary text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95 mt-4"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>{isLoading ? "Authenticating..." : "Authorize Session"}</span>
+              </button>
+            </form>
+          )}
 
         </div>
       </div>
     </div>
   );
 }
+

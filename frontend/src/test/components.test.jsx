@@ -230,6 +230,31 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
   });
 
+  it('allows council login using decoupled Master Token input', async () => {
+    const onLoginSuccess = vi.fn();
+    const setCurrentRoute = vi.fn();
+    const showToast = vi.fn();
+
+    render(
+      <AdminLoginPage
+        onLoginSuccess={onLoginSuccess}
+        setCurrentRoute={setCurrentRoute}
+        showToast={showToast}
+      />
+    );
+
+    expect(screen.getByText('Council Master Secret Token')).toBeInTheDocument();
+    const tokenInput = screen.getByPlaceholderText('Enter VITE_COUNCIL_AUTH_TOKEN secret');
+    fireEvent.change(tokenInput, { target: { value: 'gmc-council-admin-2026' } });
+
+    const authorizeBtn = screen.getByText('Authorize with Master Token');
+    fireEvent.click(authorizeBtn);
+
+    await waitFor(() => {
+      expect(onLoginSuccess).toHaveBeenCalled();
+    });
+  });
+
   it('renders AdminDashboard overview matching metrics, triage table, and quick actions', () => {
     const setCurrentSection = vi.fn();
     const onUpdateFeedbackStatus = vi.fn();

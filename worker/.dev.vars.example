@@ -1,27 +1,51 @@
 # Cloudflare Worker Environment Secrets (.dev.vars)
-# Copy this file to .dev.vars for local wrangler dev testing,
-# or add these secrets in Cloudflare Dashboard / via `wrangler secret put <KEY>`
+# 100% Compatible with Cloudflare Workers Free Tier (100,000 requests/day at $0 cost)
+#
+# For local development: copy this file to `.dev.vars`
+# For Cloudflare production deployment:
+#   Either set secrets via CLI: `wrangler secret put <KEY>`
+#   Or set in Cloudflare Dashboard: Workers & Pages > your-worker > Settings > Variables and Secrets
 
-# 1. Firebase Service Account (For server-side Firestore operations)
+# ==============================================================================
+# 1. Council Master Security Passcode (Decoupled Authentication)
+# ==============================================================================
+# Set any secure passphrase or token of your choice.
+# When set, only council members providing this token can verify access to admin APIs.
+COUNCIL_AUTH_TOKEN="gmc-council-admin-2026-secret"
+
+# ==============================================================================
+# 2. Free AI Intelligence Engine (Zero Cost)
+# ==============================================================================
+# Groq API Key (Free tier: ultra-fast Llama 3.3 70B inference at https://console.groq.com)
+GROQ_API_KEY=""
+
+# Google Gemini API Key (Free tier: 15 RPM at https://aistudio.google.com)
+GEMINI_API_KEY=""
+
+# ==============================================================================
+# 3. Free Telegram Bot Live Relay & Notification Alerts
+# ==============================================================================
+# Bot token created free via Telegram @BotFather
+TELEGRAM_BOT_TOKEN=""
+
+# Telegram Council Group Chat ID or Council Admin personal Telegram user ID
+# (Get via @userinfobot or invite bot to group and check updates)
+TELEGRAM_ADMIN_CHAT_ID=""
+
+# Optional secret string to verify incoming Telegram webhook authenticity
+TELEGRAM_WEBHOOK_SECRET=""
+
+# ==============================================================================
+# 4. Optional Firebase Service Account (For Cloud Firestore backend sync)
+# ==============================================================================
+# If left empty, portal operates with client-side & in-memory serverless storage
 FIREBASE_PROJECT_ID=""
 FIREBASE_CLIENT_EMAIL=""
 FIREBASE_PRIVATE_KEY=""
 
-# 2. Telegram Bot Integration (For council notifications and Live Chat relay)
-# Created via @BotFather
-TELEGRAM_BOT_TOKEN=""
-# The Council Group Chat ID or Admin Telegram user ID
-TELEGRAM_ADMIN_CHAT_ID=""
-# Optional secret token to verify Telegram webhook authenticity
-TELEGRAM_WEBHOOK_SECRET=""
-
-# 3. AI Providers (For feedback classification, sentiment, and reports)
-# Groq API Key (Fast free tier: https://console.groq.com)
-GROQ_API_KEY=""
-# Google Gemini API Key (Generous free tier: https://aistudio.google.com)
-GEMINI_API_KEY=""
-
-# 4. Gmail API Integration (For generic council email alerts)
+# ==============================================================================
+# 5. Optional Gmail API Integration (For council email notifications)
+# ==============================================================================
 GMAIL_CLIENT_ID=""
 GMAIL_CLIENT_SECRET=""
 GMAIL_REFRESH_TOKEN=""

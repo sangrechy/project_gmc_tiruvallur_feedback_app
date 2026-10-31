@@ -12,7 +12,7 @@
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, X-Council-Token",
 };
 
 function jsonResponse(data, status = 200) {
@@ -43,6 +43,7 @@ export default {
           college: env.COLLEGE_NAME || "GMC Thiruvallur",
           environment: env.ENVIRONMENT || "production",
           services: {
+            councilAuth: Boolean(env.COUNCIL_AUTH_TOKEN),
             telegramBot: Boolean(env.TELEGRAM_BOT_TOKEN),
             groqAI: Boolean(env.GROQ_API_KEY),
             geminiAI: Boolean(env.GEMINI_API_KEY),
@@ -53,7 +54,56 @@ export default {
         });
       }
 
-      // 2. Feedback Submission Endpoint
+      // 2. Council Token Authentication & Verification Endpoint
+      if (path === "/api/auth/verify" && request.method === "POST") {
+        let providedToken = "";
+        try {
+          const body = await request.json();
+          providedToken = body?.token || "";
+        } catch {
+          // If body is empty, check headers
+        }
+
+        if (!providedToken) {
+          const authHeader = request.headers.get("Authorization") || "";
+          if (authHeader.startsWith("Bearer ")) {
+            providedToken = authHeader.slice(7).trim();
+          } else {
+            providedToken = request.headers.get("X-Council-Token") || "";
+          }
+        }
+
+        const configuredToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
+
+        if (configuredToken) {
+          if (providedToken && providedToken.trim() === configuredToken) {
+            return jsonResponse({
+              valid: true,
+              authenticated: true,
+              role: "Council Executive",
+              college: env.COLLEGE_NAME || "GMC Thiruvallur",
+              message: "Council authentication successful"
+            });
+          } else {
+            return jsonResponse({
+              valid: false,
+              authenticated: false,
+              error: "Invalid Council Master Token / Passcode"
+            }, 401);
+          }
+        } else {
+          // No token set in environment - interactive demo mode
+          return jsonResponse({
+            valid: true,
+            authenticated: true,
+            role: "Council Executive (Demo Mode)",
+            college: env.COLLEGE_NAME || "GMC Thiruvallur",
+            notice: "Running in open demo mode. Set COUNCIL_AUTH_TOKEN secret in Cloudflare to enforce lockdown."
+          });
+        }
+      }
+
+      // 3. Feedback Submission Endpoint
       if (path === "/api/feedback" && request.method === "POST") {
         const body = await request.json();
         const { category, content, containsPII } = body;
