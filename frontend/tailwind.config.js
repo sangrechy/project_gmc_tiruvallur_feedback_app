@@ -36,6 +36,9 @@ export default {
       borderRadius: {
         '2xl': '20px',
         '3xl': '28px',
+      },
+      spacing: {
+        '22': '5.5rem',
       }
     },
   },

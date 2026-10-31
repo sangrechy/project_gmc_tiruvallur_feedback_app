@@ -293,7 +293,7 @@ export default function HomePage({
             
             {/* REFERRING STICKER: Bleeding out of the top-right corner */}
             <div 
-              className="sticker-bleed sticker-float-r -top-11 sm:-top-16 right-1 sm:-right-6 w-22 sm:w-36 pointer-events-auto"
+              className="sticker-bleed sticker-float-r -top-10 sm:-top-16 right-1 sm:-right-6 w-20 h-20 sm:w-32 sm:h-32 md:w-36 md:h-36 pointer-events-auto"
               title="Student Opinion & Polling Mascot"
             >
               <img 
