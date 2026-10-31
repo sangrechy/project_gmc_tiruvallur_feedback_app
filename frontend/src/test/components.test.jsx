@@ -15,6 +15,7 @@ import AdminLoginPage from '../pages/AdminLoginPage';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminReports from '../pages/admin/AdminReports';
 import AdminStatus from '../pages/admin/AdminStatus';
+import AdminFeedback from '../pages/admin/AdminFeedback';
 
 import {
   INITIAL_ANNOUNCEMENTS,
@@ -261,6 +262,32 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('Launch Poll')).toBeInTheDocument();
     expect(screen.getByText('Create Event')).toBeInTheDocument();
     expect(screen.getByText('Export Report')).toBeInTheDocument();
+  });
+
+  it('renders AdminFeedback with direct-reading cards and 1-click status update triggers', async () => {
+    const onUpdateFeedbackStatus = vi.fn();
+    const showToast = vi.fn();
+
+    render(
+      <AdminFeedback
+        feedbacks={INITIAL_FEEDBACK}
+        onUpdateFeedbackStatus={onUpdateFeedbackStatus}
+        showToast={showToast}
+      />
+    );
+
+    expect(screen.getByText('Feedback Review')).toBeInTheDocument();
+    expect(screen.getByText(/Read student grievances directly/i)).toBeInTheDocument();
+    expect(screen.getByText(INITIAL_FEEDBACK[0].content)).toBeInTheDocument();
+
+    // Verify 1-click Mark Resolved or Under Review button exists
+    const markResolvedBtns = screen.getAllByRole('button', { name: /Mark Resolved/i });
+    expect(markResolvedBtns.length).toBeGreaterThan(0);
+    fireEvent.click(markResolvedBtns[0]);
+
+    await waitFor(() => {
+      expect(onUpdateFeedbackStatus).toHaveBeenCalled();
+    });
   });
 
   it('renders AdminStatus with AI API, Backend, Telegram, Gmail screenshot debug telemetry', async () => {

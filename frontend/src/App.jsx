@@ -162,8 +162,8 @@ export default function App() {
     setPolls(updated);
   };
 
-  const handleUpdateFeedbackStatus = async (id, status) => {
-    await storageService.updateFeedbackStatus(id, status);
+  const handleUpdateFeedbackStatus = async (id, status, notes) => {
+    await storageService.updateFeedbackStatus(id, status, notes);
     const updated = await storageService.getFeedbacks();
     setFeedbacks(updated);
   };
@@ -333,7 +333,10 @@ export default function App() {
             )}
           </main>
 
-          <Footer setCurrentRoute={setCurrentRoute} />
+          <Footer 
+            setCurrentRoute={setCurrentRoute} 
+            isAdminLoggedIn={!!adminUser} 
+          />
           
           {/* Thumb-Friendly Mobile Bottom Navigation Bar */}
           <MobileBottomNav 

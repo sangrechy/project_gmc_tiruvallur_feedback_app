@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Heart, Github, ExternalLink } from 'lucide-react';
 
-export default function Footer({ setCurrentRoute }) {
+export default function Footer({ setCurrentRoute, isAdminLoggedIn }) {
   return (
     <footer className="mt-20 border-t border-slate-200/60 dark:border-white/10 bg-[#f8fafc]/80 dark:bg-[#07090e]/80 backdrop-blur-md transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -51,10 +51,10 @@ export default function Footer({ setCurrentRoute }) {
               Live Chat
             </button>
             <button 
-              onClick={() => setCurrentRoute('admin-login')}
+              onClick={() => setCurrentRoute(isAdminLoggedIn ? 'admin-dashboard' : 'admin-login')}
               className="px-3.5 py-2 neu-button text-sky-600 dark:text-sky-400 font-bold transition-colors"
             >
-              Council Login
+              {isAdminLoggedIn ? 'Council Dashboard' : 'Council Login'}
             </button>
           </div>
 
@@ -84,8 +84,16 @@ export default function Footer({ setCurrentRoute }) {
             <ShieldCheck className="w-4 h-4 text-sky-500 flex-shrink-0" />
             <span>Direct, Democratic &amp; Confidential Campus Voice</span>
           </div>
-          <div className="font-mono text-slate-400">
-            Government Medical College &amp; Hospital, Thiruvallur, Tamil Nadu
+          <div className="flex items-center space-x-3 font-mono">
+            <button 
+              onClick={() => setCurrentRoute(isAdminLoggedIn ? 'admin-dashboard' : 'admin-login')}
+              className="text-slate-500 hover:text-sky-500 underline transition-colors cursor-pointer"
+            >
+              Council Admin Portal
+            </button>
+            <span className="text-slate-400">
+              GMC Thiruvallur, Tamil Nadu
+            </span>
           </div>
         </div>
 

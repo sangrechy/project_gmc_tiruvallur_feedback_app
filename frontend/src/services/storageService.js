@@ -358,14 +358,25 @@ export const storageService = {
     return JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
   },
 
-  async updateFeedbackStatus(id, newStatus) {
+  async updateFeedbackStatus(id, newStatus, councilNotes) {
     const list = JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
-    const updated = list.map(f => f.id === id ? { ...f, status: newStatus } : f);
+    const updated = list.map(f => {
+      if (f.id === id) {
+        return { 
+          ...f, 
+          status: newStatus,
+          ...(councilNotes !== undefined ? { councilNotes } : {})
+        };
+      }
+      return f;
+    });
     localStorage.setItem(KEYS.FEEDBACK, JSON.stringify(updated));
 
     if (isFirebaseConfigured && db) {
       try {
-        await updateDoc(doc(db, "feedback", id), { status: newStatus });
+        const updateData = { status: newStatus };
+        if (councilNotes !== undefined) updateData.councilNotes = councilNotes;
+        await updateDoc(doc(db, "feedback", id), updateData);
       } catch (err) {
         console.warn("Firestore update feedback status error:", err);
       }

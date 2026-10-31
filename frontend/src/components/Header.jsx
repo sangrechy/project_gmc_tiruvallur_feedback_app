@@ -170,6 +170,24 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
               </button>
             );
           })}
+
+          {/* Dedicated Council Auth Link in Mobile Drawer */}
+          <button
+            onClick={() => handleNavClick(isAdminLoggedIn ? 'admin-dashboard' : 'admin-login')}
+            className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-xs font-semibold tracking-wide transition-all min-h-[46px] border border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-400 mt-2"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0">
+                <img 
+                  src="/stickers/fbi.webp" 
+                  alt="FBI Council Security" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-sm font-bold">{isAdminLoggedIn ? "Council Dashboard" : "Council Auth"}</span>
+            </div>
+            <ChevronRight className="w-4 h-4 opacity-50" />
+          </button>
         </div>
       )}
     </header>

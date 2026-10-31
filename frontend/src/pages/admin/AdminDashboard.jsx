@@ -222,20 +222,33 @@ export default function AdminDashboard({
 
       {/* Recent Feedback Table */}
       <div className="portal-card p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-3 gap-2">
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
               Recent Anonymous Grievances
             </h2>
             <p className="text-[11px] text-slate-500">Latest incoming student feedback entries</p>
           </div>
-          <button
-            onClick={() => setCurrentSection('feedback')}
-            className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 flex items-center space-x-1"
-          >
-            <span>View All</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentSection('feedback')}
+              className="portal-button-primary px-3 py-1.5 text-xs font-semibold flex items-center space-x-1.5"
+            >
+              <span>Review Feedback</span>
+              {unreadFeedbackCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white text-sky-600 font-bold">
+                  {unreadFeedbackCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setCurrentSection('feedback')}
+              className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 flex items-center space-x-1 neu-button px-2.5 py-1.5 rounded-xl"
+            >
+              <span>View All</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
