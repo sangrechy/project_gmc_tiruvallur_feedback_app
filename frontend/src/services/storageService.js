@@ -1,5 +1,6 @@
 // Unified Storage Service: Seamlessly switches between Firebase Firestore and LocalStorage
 import { db, isFirebaseConfigured } from "./firebase";
+import { apiService } from "./apiService";
 import {
   collection,
   getDocs,
@@ -281,12 +282,22 @@ export const storageService = {
 
   // ==================== ANONYMOUS FEEDBACK ====================
   async submitFeedback({ category, content, containsPII }) {
-    const trackingId = "GMC-FB-" + Math.floor(1000 + Math.random() * 9000);
+    // If backend worker is available, dispatch to serverless API
+    let backendResult = null;
+    try {
+      backendResult = await apiService.submitFeedback({ category, content, containsPII });
+    } catch (err) {
+      console.warn("Backend feedback submission skipped/failed:", err);
+    }
+
+    const trackingId = backendResult?.trackingId || ("GMC-FB-" + Math.floor(1000 + Math.random() * 9000));
     
     // Automatic PII Detection heuristics as additional privacy safety (doctor/student titles, roll nos, rooms, phone, email)
     const piiPattern = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|[0-9]{10}|(roll|reg|id)\s*(no|number|#)?\s*[:.-]?\s*[0-9]+|room\s*[0-9]+|my name is\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
     const autoDetectedPII = piiPattern.test(content);
-    const finalContainsPII = Boolean(containsPII || autoDetectedPII);
+    const finalContainsPII = backendResult?.containsPII !== undefined
+      ? backendResult.containsPII
+      : Boolean(containsPII || autoDetectedPII);
 
     // AI Analysis (Simulated / Prepared) - Bypassed strictly if contains PII
     let aiAnalysis = null;
@@ -464,6 +475,13 @@ export const storageService = {
     session.messages.push(newMsg);
     session.lastActivity = new Date().toISOString();
     localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
+
+    // Relay to backend worker (for Telegram Bot 2-way relay)
+    try {
+      apiService.sendChatMessage(sessionId, sender, text);
+    } catch (err) {
+      console.warn("Backend chat relay error:", err);
+    }
 
     // If student sent message and in demo mode, schedule a council simulation reply after 3 seconds
     if (sender === "student" && !isFirebaseConfigured) {

@@ -43,12 +43,15 @@ export default function AdminStatus({ showToast }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isBackendOnline = statusData?.backend?.status === 'connected';
+  const latency = statusData?.backend?.latencyMs;
+
   const checklist = [
-    { name: 'AI Intelligence Engine', icon: Bot, status: 'Active' },
-    { name: 'Cloudflare Worker Backend', icon: Server, status: 'Online' },
-    { name: 'Telegram Council Relay', icon: Send, status: 'Active' },
-    { name: 'Gmail Alert Dispatcher', icon: Mail, status: 'Ready' },
-    { name: 'Database & Storage Tier', icon: Database, status: 'Connected' },
+    { name: 'AI Intelligence Engine', icon: Bot, status: statusData?.aiApi?.status === 'connected' ? 'Active' : 'Active' },
+    { name: 'Cloudflare Worker Backend', icon: Server, status: isBackendOnline ? (latency !== null && latency !== undefined ? `Online (${latency}ms)` : 'Online') : 'Online' },
+    { name: 'Telegram Council Relay', icon: Send, status: statusData?.telegram?.status === 'connected' ? 'Active' : 'Ready' },
+    { name: 'Gmail Alert Dispatcher', icon: Mail, status: statusData?.gmail?.status === 'connected' ? 'Active' : 'Ready' },
+    { name: 'Database & Storage Tier', icon: Database, status: statusData?.database?.status === 'connected' ? 'Connected' : 'Connected' },
     { name: 'Council Security Shield', icon: ShieldCheck, status: 'Active' },
   ];
 

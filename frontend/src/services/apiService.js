@@ -185,6 +185,40 @@ export const apiService = {
         "Continue periodic hygiene inspections in mess and canteen facilities"
       ]
     };
+  },
+
+  async submitFeedback({ category, content, containsPII }) {
+    const targetUrl = `${API_BASE}/api/feedback`;
+    try {
+      const res = await fetch(targetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, content, containsPII })
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      console.warn("Worker /api/feedback call failed, falling back to local storage:", err);
+    }
+    return null;
+  },
+
+  async sendChatMessage(sessionId, sender, text) {
+    const targetUrl = `${API_BASE}/api/chat/message`;
+    try {
+      const res = await fetch(targetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, sender, text })
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      console.warn("Worker /api/chat/message call failed, falling back to local relay:", err);
+    }
+    return null;
   }
 };
 

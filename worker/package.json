@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --ip 127.0.0.1 --port 8787 --show-interactive-dev-session=false",
     "deploy": "wrangler deploy",
     "test": "node --test test/worker.test.js"
   },

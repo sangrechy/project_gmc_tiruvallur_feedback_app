@@ -4,7 +4,9 @@
   "private": true,
   "description": "GMC Thiruvallur Student Council Portal - Anonymous Feedback, Ephemeral Live Chat, Polls, Announcements, Events & AI Triage",
   "scripts": {
-    "dev": "npm --prefix frontend run dev",
+    "dev": "concurrently -n \"backend,frontend\" -c \"magenta,cyan\" \"npm run worker:dev\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:all": "npm run dev",
     "build": "npm --prefix frontend run build",
     "preview": "npm --prefix frontend run preview",
     "test": "npm --prefix frontend run test && node --test worker/test/worker.test.js",
@@ -22,5 +24,8 @@
     "tailwind"
   ],
   "author": "GMC Thiruvallur Student Council",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
 }
