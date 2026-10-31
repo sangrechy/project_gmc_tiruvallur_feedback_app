@@ -83,7 +83,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
           <div>
             <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2 border border-sky-500/20">
               <ShieldAlert className="w-3 h-3 text-sky-500" />
-              <span>Official Representative Access</span>
+              <span>Council Executive Access</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
               Council Admin Portal

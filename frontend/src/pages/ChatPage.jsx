@@ -115,7 +115,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   if (!session) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-24 text-center text-slate-500 font-mono text-xs">
-        Initializing encrypted ephemeral student council relay...
+        Initializing student council chat...
       </div>
     );
   }
@@ -136,7 +136,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
         <div className="flex items-center space-x-1 text-slate-400">
           <span>PORTAL</span>
           <span>/</span>
-          <span className="text-sky-600 dark:text-sky-400 font-bold">EPHEMERAL RELAY</span>
+          <span className="text-sky-600 dark:text-sky-400 font-bold">LIVE CHAT</span>
         </div>
       </div>
 
@@ -164,7 +164,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
               <div>
                 <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-2 border border-sky-500/20">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>24-Hour Ephemeral Direct Relay</span>
+                  <span>24-Hour Temporary Chat</span>
                 </div>
                 <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
                   Student Council Live Chat

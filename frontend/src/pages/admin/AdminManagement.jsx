@@ -123,7 +123,7 @@ export default function AdminManagement({ showToast }) {
         </div>
 
         <p className="text-xs text-slate-600 dark:text-slate-400">
-          Council representatives can manage the entire portal on the move using official Telegram Bot commands. The Cloudflare Worker handles webhooks and forwards requests securely to Firestore.
+          Council representatives can manage the entire portal on the move using Telegram Bot commands. The Cloudflare Worker handles webhooks and forwards requests securely to Firestore.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
@@ -176,7 +176,7 @@ export default function AdminManagement({ showToast }) {
 
               <div>
                 <label className="block text-xs font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Council Official Email
+                  Council Representative Email
                 </label>
                 <input
                   type="email"

@@ -27,7 +27,7 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
     setVotingPollId(pollId);
     try {
       await onVotePoll(pollId, selected);
-      showToast("Your official vote has been tallied successfully!", "success");
+      showToast("Your vote has been counted successfully!", "success");
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -202,7 +202,7 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
                       className="portal-button-primary px-6 py-2.5 text-xs font-semibold disabled:opacity-50 flex items-center space-x-2"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{isVotingThis ? "Submitting Vote..." : "Cast Official Vote"}</span>
+                      <span>{isVotingThis ? "Submitting Vote..." : "Cast Vote"}</span>
                     </button>
                   </div>
                 )}
@@ -210,7 +210,7 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
                 {hasVoted && (
                   <div className="pt-2 flex items-center space-x-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Your vote is confirmed and counted in the official record.</span>
+                    <span>Your vote has been recorded.</span>
                   </div>
                 )}
               </div>

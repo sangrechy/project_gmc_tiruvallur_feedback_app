@@ -179,16 +179,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#e6edf8] dark:bg-[#0c1427] text-slate-800 dark:text-slate-100 transition-colors duration-300">
-      {/* Decoupled environment banner - informative & elegant */}
-      {!isFirebaseConfigured && (
-        <div className="bg-sky-950/80 text-sky-200 text-[11px] font-mono py-1.5 px-4 text-center border-b border-sky-800/50 flex items-center justify-center space-x-2">
-          <Database className="w-3.5 h-3.5 text-emerald-400" />
-          <span>
-            <strong>Storage Mode:</strong> Interactive Local Mode (Full functionality active. To connect cloud Firestore, populate .env variables)
-          </span>
-        </div>
-      )}
-
       {/* Render Main App or Admin Console */}
       {currentRoute === 'admin-dashboard' && adminUser ? (
         <AdminLayout

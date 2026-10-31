@@ -37,7 +37,7 @@ export default function HomePage({
     setIsSubmittingVote(true);
     try {
       await onVotePoll(featuredPoll.id, selectedPollOption);
-      showToast("Your vote has been officially tallied!", "success");
+      showToast("Your vote has been counted!", "success");
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -64,10 +64,10 @@ export default function HomePage({
             </div>
           </div>
 
-          {/* Institutional Trust Badge */}
+          {/* Student Council Badge */}
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full neu-pill text-xs font-semibold mb-5">
             <ShieldCheck className="w-4 h-4 text-sky-500" />
-            <span>Autonomous Student Governance • GMC Thiruvallur</span>
+            <span>Student Council • GMC Thiruvallur</span>
           </div>
 
           <h1 className="text-2xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
@@ -76,7 +76,7 @@ export default function HomePage({
           </h1>
 
           <p className="mt-4 sm:mt-5 text-sm sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed">
-            Empowering medical students with 100% anonymous grievance redressal, real-time ephemeral council chat, and open collegiate voting.
+            Your voice. Your campus. Your council.
           </p>
 
           {/* Clean Primary Action Buttons */}
@@ -129,14 +129,14 @@ export default function HomePage({
                   </h2>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Verified clinical postings, hostel notices, and campus updates
+                  Clinical postings, hostel notices, and campus updates
                 </p>
               </div>
 
               <div className="flex items-center space-x-3">
                 <span className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-semibold">
                   <Megaphone className="w-3 h-3 text-sky-500" />
-                  <span>Official Circulars</span>
+                  <span>Council Circulars</span>
                 </span>
                 <button
                   onClick={() => setCurrentRoute('announcements')}
@@ -275,7 +275,7 @@ export default function HomePage({
                   Events &amp; Symposia
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Browse verified inter-college medical quizzes, sports meets, clinical workshops, and register online.
+                  Browse upcoming inter-college medical quizzes, sports meets, clinical workshops, and register online.
                 </p>
               </div>
               <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform">
@@ -379,7 +379,7 @@ export default function HomePage({
                       className="portal-button-primary w-full sm:w-auto px-6 py-2.5 text-xs font-semibold disabled:opacity-50 flex items-center justify-center space-x-2"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{isSubmittingVote ? "Tallying Vote..." : "Submit Official Ballot"}</span>
+                      <span>{isSubmittingVote ? "Tallying Vote..." : "Submit Vote"}</span>
                     </button>
 
                     <button

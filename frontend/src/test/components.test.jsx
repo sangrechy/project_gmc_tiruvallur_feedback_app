@@ -30,7 +30,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     initLocalStore();
   });
 
-  it('renders Header with official branding, 2-part theme switch, and navigation items', () => {
+  it('renders Header with council branding, 2-part theme switch, and navigation items', () => {
     const setCurrentRoute = vi.fn();
     const setIsDarkMode = vi.fn();
 
@@ -186,7 +186,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText('Official Campus Announcements')).toBeInTheDocument();
+    expect(screen.getByText('Campus Announcements')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ALL' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'IMPORTANT' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ACADEMIC' })).toBeInTheDocument();
@@ -304,7 +304,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     });
   });
 
-  it('renders Footer with official GMC accreditation and developer credit to sangrechy', () => {
+  it('renders Footer with GMC student council branding and developer credit to sangrechy', () => {
     const setCurrentRoute = vi.fn();
 
     render(<Footer setCurrentRoute={setCurrentRoute} />);

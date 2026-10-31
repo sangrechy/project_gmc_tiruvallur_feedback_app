@@ -19,7 +19,7 @@ export default function Footer({ setCurrentRoute }) {
                 GMC THIRUVALLUR STUDENT COUNCIL
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Official Voice • Autonomous Campus Representation • Student Welfare
+                Campus Representation • Student Welfare
               </p>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function Footer({ setCurrentRoute }) {
         <div className="mt-8 pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 gap-3 border-t border-slate-300/30 dark:border-slate-800/50">
           <div className="flex items-center space-x-2">
             <ShieldCheck className="w-4 h-4 text-sky-500 flex-shrink-0" />
-            <span>Zero-Trace Anonymous Grievance Engine • 24-Hour Ephemeral Live Chat Relayed to Council</span>
+            <span>Direct, Democratic &amp; Confidential Campus Voice</span>
           </div>
           <div className="font-mono text-slate-400">
             Government Medical College &amp; Hospital, Thiruvallur, Tamil Nadu

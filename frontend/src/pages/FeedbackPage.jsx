@@ -115,7 +115,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
             <div className="p-4 rounded-2xl neu-pressed max-w-md mx-auto text-left font-mono text-xs space-y-2">
               <div className="flex items-center justify-between text-slate-400">
                 <span>Reference Tracking Token:</span>
-                <span className="text-[10px] uppercase font-bold text-sky-500">Zero-Trace Validated</span>
+                <span className="text-[10px] uppercase font-bold text-sky-500">Anonymous Token</span>
               </div>
               <div className="p-2.5 rounded-xl bg-slate-900/40 text-sky-400 font-mono text-center tracking-widest break-all select-all font-bold">
                 {submissionResult.id}
@@ -178,7 +178,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
             <div className="mb-8 pb-6 border-b border-slate-200/60 dark:border-slate-800">
               <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-2 border border-sky-500/20">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Zero-Trace Student Grievance Channel</span>
+                <span>Student Grievance Channel</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
                 Anonymous Feedback Portal

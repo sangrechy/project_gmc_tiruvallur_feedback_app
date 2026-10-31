@@ -28,7 +28,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
         <div className="flex items-center space-x-1 text-slate-400">
           <span>PORTAL</span>
           <span>/</span>
-          <span className="text-sky-600 dark:text-sky-400 font-bold">OFFICIAL DISPATCHES</span>
+          <span className="text-sky-600 dark:text-sky-400 font-bold">CAMPUS DISPATCHES</span>
         </div>
       </div>
 
@@ -51,10 +51,10 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
         <div className="portal-card p-5 sm:p-10 text-center relative overflow-visible pt-10 sm:pt-10">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold mb-3">
             <Megaphone className="w-3.5 h-3.5" />
-            <span>Verified Administrative Board</span>
+            <span>Council Notice Board</span>
           </div>
           <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
-            Official Campus Announcements
+            Campus Announcements
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-lg mx-auto leading-relaxed">
             Direct clinical rotations, university examination circulars, hostel administrative notices, and emergency advisories.

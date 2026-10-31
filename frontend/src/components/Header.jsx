@@ -48,10 +48,6 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
                 <span className="font-extrabold text-xs sm:text-base lg:text-lg tracking-tight text-slate-900 dark:text-slate-100 font-sans truncate">
                   GMC THIRUVALLUR
                 </span>
-                <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 status-pulse-dot" />
-                  Official
-                </span>
               </div>
               <div className="text-[10px] sm:text-[11px] font-semibold text-sky-600 dark:text-sky-400 tracking-wider uppercase truncate">
                 Student Council Portal

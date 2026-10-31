@@ -68,7 +68,7 @@ export const apiService = {
         name: "Council Auth Shield",
         status: "connected",
         label: "Master Token Shield (Active)",
-        details: "Council administrative privileges verified via secure decoupled token"
+        details: "Council administrative privileges active via secure decoupled token"
       }
     };
 
