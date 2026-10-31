@@ -363,6 +363,8 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('sangrechy')).toBeInTheDocument();
     const githubLink = screen.getByRole('link', { name: /sangrechy/i });
     expect(githubLink).toHaveAttribute('href', 'https://github.com/sangrechy');
+    const mailLink = screen.getByRole('link', { name: /Contact Developer/i });
+    expect(mailLink).toHaveAttribute('href', 'mailto:sangrechy@gmail.com?subject=GMC%20Thiruvallur%20Feedback%20Portal');
   });
 
   it('renders MobileBottomNav with 5 thumb-friendly items and navigates on tap', () => {

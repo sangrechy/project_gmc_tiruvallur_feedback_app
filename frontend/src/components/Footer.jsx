@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Heart, Github, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Heart, Github, ExternalLink, Mail } from 'lucide-react';
 
 export default function Footer({ setCurrentRoute, isAdminLoggedIn }) {
   return (
@@ -63,7 +63,7 @@ export default function Footer({ setCurrentRoute, isAdminLoggedIn }) {
             <div className="font-mono text-slate-500 dark:text-slate-400">
               © {new Date().getFullYear()} GMC Thiruvallur
             </div>
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl neu-pressed bg-slate-200/50 dark:bg-slate-900/60 border border-slate-300/40 dark:border-slate-800">
+            <div className="inline-flex flex-wrap items-center justify-center md:justify-end gap-2 px-3.5 py-1.5 rounded-xl neu-pressed bg-slate-200/50 dark:bg-slate-900/60 border border-slate-300/40 dark:border-slate-800">
               <span className="text-slate-500 dark:text-slate-400 text-[11px]">Developed by</span>
               <a 
                 href="https://github.com/sangrechy" 
@@ -73,6 +73,15 @@ export default function Footer({ setCurrentRoute, isAdminLoggedIn }) {
               >
                 <span>sangrechy</span>
                 <Github className="w-3 h-3 ml-0.5 inline" />
+              </a>
+              <span className="text-slate-400 dark:text-slate-600 font-light">•</span>
+              <a 
+                href="mailto:sangrechy@gmail.com?subject=GMC%20Thiruvallur%20Feedback%20Portal"
+                className="font-medium text-slate-600 dark:text-slate-300 hover:text-sky-500 dark:hover:text-sky-400 hover:underline flex items-center space-x-1 text-[11px] transition-colors"
+                title="Send an email to developer"
+              >
+                <Mail className="w-3 h-3 inline text-sky-500" />
+                <span>Contact Developer</span>
               </a>
             </div>
           </div>

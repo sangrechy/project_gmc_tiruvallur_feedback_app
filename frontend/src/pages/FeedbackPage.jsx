@@ -27,7 +27,8 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
     'Library & E-Resources',
     'Sports & Cultural Welfare',
     'Transportation',
-    'General Council Inquiry'
+    'General Council Inquiry',
+    'Others'
   ];
 
   const handleSubmit = async (e) => {

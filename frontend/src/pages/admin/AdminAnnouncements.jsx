@@ -63,14 +63,14 @@ export default function AdminAnnouncements({ announcements, onAddAnnouncement, o
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
             Announcements
           </h1>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="portal-button-primary text-xs font-semibold flex items-center space-x-1.5 self-start sm:self-auto"
+          className="portal-button-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 self-start sm:self-auto shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>Post Announcement</span>

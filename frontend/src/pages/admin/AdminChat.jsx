@@ -63,8 +63,8 @@ export default function AdminChat({ chats, onRefreshChats, showToast }) {
     <div className="space-y-4 animate-fadeIn font-sans max-w-5xl mx-auto">
       
       {/* Friendly Header (No Telegram dev relay jargon!) */}
-      <div className="pb-3 border-b border-slate-200/60 dark:border-slate-800">
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+      <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
           Student Chats
         </h1>
       </div>

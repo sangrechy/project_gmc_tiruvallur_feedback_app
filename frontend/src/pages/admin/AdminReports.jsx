@@ -67,7 +67,7 @@ export default function AdminReports({ feedbacks, showToast }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-mono uppercase tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
             AI Analytics &amp; Summary
           </h1>
         </div>
@@ -76,7 +76,7 @@ export default function AdminReports({ feedbacks, showToast }) {
           <button
             onClick={generateReport}
             disabled={isGenerating}
-            className="portal-button-primary text-xs font-mono font-bold flex items-center space-x-1.5 active:scale-95"
+            className="portal-button-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 active:scale-95 shadow-sm"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
             <span>{isGenerating ? "Analyzing..." : "Refresh AI Report"}</span>
@@ -84,7 +84,7 @@ export default function AdminReports({ feedbacks, showToast }) {
 
           <button
             onClick={exportCSV}
-            className="portal-button-secondary text-xs font-mono flex items-center space-x-1"
+            className="portal-button-secondary px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5"
             title="Export CSV"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -93,7 +93,7 @@ export default function AdminReports({ feedbacks, showToast }) {
 
           <button
             onClick={exportJSON}
-            className="portal-button-secondary text-xs font-mono flex items-center space-x-1"
+            className="portal-button-secondary px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5"
             title="Export JSON"
           >
             <FileCode className="w-3.5 h-3.5" />

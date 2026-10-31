@@ -75,20 +75,17 @@ export default function AdminPolls({ polls, onAddPoll, onTogglePollStatus, showT
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-mono uppercase tracking-tight">
-            POLL MANAGEMENT
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+            Poll Management
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Launch student voting, monitor distributions, and close polls
-          </p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="portal-button-primary text-xs font-mono font-bold flex items-center space-x-1.5"
+          className="portal-button-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>[CREATE POLL]</span>
+          <span>Create Poll</span>
         </button>
       </div>
 

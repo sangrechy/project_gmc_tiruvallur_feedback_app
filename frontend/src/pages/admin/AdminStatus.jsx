@@ -59,9 +59,9 @@ export default function AdminStatus({ showToast }) {
     <div className="max-w-3xl mx-auto space-y-6 animate-fadeIn font-sans py-4">
       
       {/* Title */}
-      <div className="text-center">
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-          App Status & Subsystem Health
+      <div className="text-center pb-4 border-b border-slate-200/60 dark:border-slate-800">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+          App Status &amp; Subsystem Health
         </h1>
       </div>
 

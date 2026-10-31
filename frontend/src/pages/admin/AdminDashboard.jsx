@@ -63,9 +63,9 @@ export default function AdminDashboard({
   return (
     <div className="space-y-6 sm:space-y-8 animate-fadeIn">
       {/* Overview Header with Mascot */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
             Council Executive Overview
           </h1>
         </div>
