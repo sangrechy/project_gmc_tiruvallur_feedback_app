@@ -8,7 +8,8 @@ import {
   ArrowLeft,
   Info,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  ShieldAlert
 } from 'lucide-react';
 
 export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showToast }) {
@@ -239,6 +240,35 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
                   className="w-full p-4 neu-input text-xs sm:text-sm placeholder-slate-400 transition-all resize-y leading-relaxed"
                   required
                 />
+              </div>
+
+              {/* Sensitive Info Toggle to Avoid AI Analysis */}
+              <div className="p-4 rounded-2xl neu-card border border-slate-200/60 dark:border-white/10 flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                    <label 
+                      htmlFor="contains_pii_toggle" 
+                      className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
+                    >
+                      Contains specific info to be avoided by AI
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Turn on if this feedback includes names, doctor or staff titles, roll numbers, or sensitive specifics. When enabled, this message strictly bypasses AI processing and is routed directly to the student council.
+                  </p>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                  <input
+                    type="checkbox"
+                    id="contains_pii_toggle"
+                    checked={containsPII}
+                    onChange={(e) => setContainsPII(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
               </div>
 
               {/* Privacy Disclaimer Callout */}

@@ -125,6 +125,12 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('Detailed Message')).toBeInTheDocument();
     expect(screen.getByAltText('GMC Doctor Mascot Bleeding Out')).toBeInTheDocument();
 
+    expect(screen.getByText('Contains specific info to be avoided by AI')).toBeInTheDocument();
+
+    const piiToggle = screen.getByLabelText('Contains specific info to be avoided by AI');
+    fireEvent.click(piiToggle);
+    expect(piiToggle.checked).toBe(true);
+
     const textarea = screen.getByPlaceholderText(/Describe your concern with specific context/);
     fireEvent.change(textarea, { target: { value: 'Requesting extra study table lamps in the central reading hall.' } });
 
