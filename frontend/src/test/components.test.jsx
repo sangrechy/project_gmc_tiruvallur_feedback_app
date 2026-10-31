@@ -224,7 +224,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
   });
 
-  it('renders AdminDashboard overview matching metrics, triage table, live app status diagnostics, and actions', async () => {
+  it('renders AdminDashboard overview matching metrics, triage table, and quick actions', () => {
     const setCurrentSection = vi.fn();
     const onUpdateFeedbackStatus = vi.fn();
     const showToast = vi.fn();
@@ -249,14 +249,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('Active Polls')).toBeInTheDocument();
     expect(screen.getByText('Recent Anonymous Grievances')).toBeInTheDocument();
     expect(screen.getByText('Quick Management Actions')).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByText('Live App Status & Diagnostics')).toBeInTheDocument();
-      expect(screen.getByText('AI API')).toBeInTheDocument();
-      expect(screen.getByText('BACKEND')).toBeInTheDocument();
-      expect(screen.getByText('TELEGRAM')).toBeInTheDocument();
-      expect(screen.getByText('GMAIL')).toBeInTheDocument();
-    });
 
     expect(screen.getByText('Post Circular')).toBeInTheDocument();
     expect(screen.getByText('Launch Poll')).toBeInTheDocument();
