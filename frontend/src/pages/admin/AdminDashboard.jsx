@@ -85,7 +85,11 @@ export default function AdminDashboard({
       {/* 4 Metric Boxes with Neumorphic styling */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {/* Box 1: Total Feedback */}
-        <div className="portal-card p-5 text-center">
+        <div 
+          onClick={() => setCurrentSection('feedback')}
+          className="portal-card p-5 text-center cursor-pointer hover:border-sky-500/50 transition-all hover:scale-[1.02]"
+          title="Click to view all feedback"
+        >
           <div className="text-2xl sm:text-4xl font-extrabold text-sky-600 dark:text-sky-400 font-mono">
             {totalFeedbackCount < 10 ? `0${totalFeedbackCount}` : totalFeedbackCount}
           </div>
@@ -95,7 +99,11 @@ export default function AdminDashboard({
         </div>
 
         {/* Box 2: Unread */}
-        <div className="portal-card p-5 text-center">
+        <div 
+          onClick={() => setCurrentSection('feedback')}
+          className="portal-card p-5 text-center cursor-pointer hover:border-amber-500/50 transition-all hover:scale-[1.02]"
+          title="Click to review pending feedback"
+        >
           <div className="text-2xl sm:text-4xl font-extrabold text-amber-500 font-mono">
             {unreadFeedbackCount < 10 ? `0${unreadFeedbackCount}` : unreadFeedbackCount}
           </div>
@@ -105,7 +113,11 @@ export default function AdminDashboard({
         </div>
 
         {/* Box 3: Chats */}
-        <div className="portal-card p-5 text-center">
+        <div 
+          onClick={() => setCurrentSection('chat')}
+          className="portal-card p-5 text-center cursor-pointer hover:border-blue-500/50 transition-all hover:scale-[1.02]"
+          title="Click to open live chats"
+        >
           <div className="text-2xl sm:text-4xl font-extrabold text-blue-500 font-mono">
             {activeChatsCount < 10 ? `0${activeChatsCount}` : activeChatsCount}
           </div>
@@ -115,7 +127,11 @@ export default function AdminDashboard({
         </div>
 
         {/* Box 4: Polls */}
-        <div className="portal-card p-5 text-center">
+        <div 
+          onClick={() => setCurrentSection('polls')}
+          className="portal-card p-5 text-center cursor-pointer hover:border-purple-500/50 transition-all hover:scale-[1.02]"
+          title="Click to view polls"
+        >
           <div className="text-2xl sm:text-4xl font-extrabold text-purple-500 font-mono">
             {activePollsCount < 10 ? `0${activePollsCount}` : activePollsCount}
           </div>
