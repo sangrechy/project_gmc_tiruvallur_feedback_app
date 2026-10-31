@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import MobileBottomNav from './components/MobileBottomNav';
 import Toast from './components/Toast';
 
 // Student Pages
@@ -278,7 +279,7 @@ export default function App() {
             isAdminLoggedIn={Boolean(adminUser)}
           />
 
-          <main className="flex-1">
+          <main className="flex-1 pb-20 md:pb-0">
             {currentRoute === 'home' && (
               <HomePage
                 setCurrentRoute={setCurrentRoute}
@@ -338,6 +339,12 @@ export default function App() {
           </main>
 
           <Footer setCurrentRoute={setCurrentRoute} />
+          
+          {/* Thumb-Friendly Mobile Bottom Navigation Bar */}
+          <MobileBottomNav 
+            currentRoute={currentRoute} 
+            setCurrentRoute={setCurrentRoute} 
+          />
         </>
       )}
 

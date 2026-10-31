@@ -145,7 +145,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
         
         {/* MYSELF STICKER: Bleeding out of the top-right corner */}
         <div 
-          className="sticker-bleed sticker-float-r -top-14 sm:-top-18 -right-3 sm:-right-8 w-28 sm:w-36 pointer-events-auto"
+          className="sticker-bleed sticker-float-r -top-12 sm:-top-18 right-1 sm:-right-8 w-22 sm:w-36 pointer-events-auto"
           title="Student Council Live Chat Representative"
         >
           <img 
@@ -156,7 +156,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
         </div>
 
         {/* Card (overflow-visible to let mascot bleed out) */}
-        <div className="portal-card p-6 sm:p-8 space-y-6 relative overflow-visible pt-10 sm:pt-10">
+        <div className="portal-card p-4 sm:p-8 space-y-6 relative overflow-visible pt-10 sm:pt-10">
           
           {/* Header Banner */}
           <div className="border-b border-slate-200/60 dark:border-slate-800 pb-5">

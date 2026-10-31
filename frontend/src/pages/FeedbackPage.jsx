@@ -161,7 +161,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
           
           {/* DOCTOR STICKER: Bleeding prominently out of top-right corner */}
           <div 
-            className="sticker-bleed sticker-float-r -top-16 sm:-top-20 -right-3 sm:-right-8 w-28 sm:w-36 md:w-44 pointer-events-auto"
+            className="sticker-bleed sticker-float-r -top-14 sm:-top-20 right-1 sm:-right-8 w-24 sm:w-36 md:w-44 pointer-events-auto"
             title="GMC Clinical Council Doctor Mascot"
           >
             <img 
@@ -172,7 +172,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
           </div>
 
           {/* Form Card (overflow-visible to let Doctor bleed out) */}
-          <div className="portal-card p-6 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
+          <div className="portal-card p-5 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
             
             {/* Header info */}
             <div className="mb-8 pb-6 border-b border-slate-200/60 dark:border-slate-800">

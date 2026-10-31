@@ -37,7 +37,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
         
         {/* GUARD STICKER: Bleeding out of top-left edge */}
         <div 
-          className="sticker-bleed sticker-float-l -top-12 sm:-top-16 -left-3 sm:-left-6 md:-left-8 w-24 sm:w-32 md:w-36 pointer-events-auto"
+          className="sticker-bleed sticker-float-l -top-11 sm:-top-16 left-1 sm:-left-6 w-20 sm:w-32 md:w-36 pointer-events-auto"
           title="Council Campus Security Guard"
         >
           <img 
@@ -48,12 +48,12 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
         </div>
 
         {/* Header Card (overflow-visible) */}
-        <div className="portal-card p-6 sm:p-10 text-center relative overflow-visible pt-10 sm:pt-10">
+        <div className="portal-card p-5 sm:p-10 text-center relative overflow-visible pt-10 sm:pt-10">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold mb-3">
             <Megaphone className="w-3.5 h-3.5" />
             <span>Verified Administrative Board</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
+          <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
             Official Campus Announcements
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-lg mx-auto leading-relaxed">
@@ -63,14 +63,14 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* Category Pills */}
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        {/* Category Pills (Touch friendly horizontal scroll on mobile) */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-2 px-2 sm:mx-0 sm:px-0 sm:flex-wrap">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all whitespace-nowrap min-h-[40px] flex items-center justify-center ${
                 activeCategory === cat
                   ? 'portal-button-primary shadow-sm'
                   : 'neu-button text-slate-600 dark:text-slate-300'

@@ -32,7 +32,7 @@ export default function EventsPage({ events, setCurrentRoute, showToast }) {
         
         {/* EAT STICKER: Bleeding out of top-right edge */}
         <div 
-          className="sticker-bleed sticker-float-r -top-14 sm:-top-18 -right-3 sm:-right-8 w-28 sm:w-36 pointer-events-auto"
+          className="sticker-bleed sticker-float-r -top-11 sm:-top-18 right-1 sm:-right-8 w-22 sm:w-36 pointer-events-auto"
           title="Campus Event Celebration Mascot"
         >
           <img 
@@ -43,7 +43,7 @@ export default function EventsPage({ events, setCurrentRoute, showToast }) {
         </div>
 
         {/* Card (overflow-visible) */}
-        <div className="portal-card p-6 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
+        <div className="portal-card p-5 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-3 border border-sky-500/20">
             <Calendar className="w-3.5 h-3.5" />
             <span>Collegiate Activities &amp; Symposia</span>

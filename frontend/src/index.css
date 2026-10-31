@@ -63,20 +63,56 @@
 }
 
 @layer base {
-  html, body {
+  html {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+
+  body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    cursor: url('/stickers/pointer_cursor.png') 2 2, auto;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     letter-spacing: -0.011em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
     transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  button, a, input, select, textarea, [role="button"], label {
-    cursor: url('/stickers/pointer_cursor.png') 2 2, pointer !important;
+  /* Custom mouse cursor applied ONLY to devices with fine pointers (desktops/laptops).
+     Touch devices (phones/tablets) use native touch feedback! */
+  @media (pointer: fine) {
+    html, body {
+      cursor: url('/stickers/pointer_cursor.png') 2 2, auto;
+    }
+
+    button, a, input, select, textarea, [role="button"], label {
+      cursor: url('/stickers/pointer_cursor.png') 2 2, pointer !important;
+    }
   }
+
+  /* Prevent iOS Safari auto-zoom on input focus by ensuring at least 16px font-size */
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
+/* Safe area insets for notched phones & iOS home bar */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+}
+
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top, 0px), 12px);
 }
 
 /* Subtle Modern Grid Background Pattern */
@@ -93,10 +129,19 @@
     linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
 }
 
-/* Custom Sleek Scrollbars */
+/* Hide scrollbars for smooth mobile touch scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom Sleek Scrollbars for desktop */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -114,15 +159,21 @@
 
 /* ================= MODERN SURFACE CARDS & PANELS ================= */
 
-/* Clean Glass Cards (No muddy AI slop!) */
+/* Clean Glass Cards (Responsive mobile padding & borders) */
 .portal-card, .neu-card {
   background: var(--bg-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
-  border-radius: 20px;
+  border-radius: 18px;
   box-shadow: var(--card-shadow);
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 640px) {
+  .portal-card, .neu-card {
+    border-radius: 20px;
+  }
 }
 
 .portal-card:hover, .neu-card:hover {
@@ -152,15 +203,19 @@
   transition: all 0.2s ease;
 }
 
-/* Primary Button */
+/* Touch-optimized Buttons (Min 44px height on mobile) */
 .portal-button-primary, .neu-btn-primary {
   background: var(--accent-gradient);
   color: #ffffff;
   font-weight: 600;
   border-radius: 12px;
+  min-height: 44px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 4px 14px var(--accent-glow);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dark .portal-button-primary, .dark .neu-btn-primary {
@@ -178,7 +233,7 @@
 }
 
 .portal-button-primary:active, .neu-btn-primary:active {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.99);
 }
 
 /* Secondary Button */
@@ -187,9 +242,13 @@
   color: var(--text-primary);
   font-weight: 600;
   border-radius: 12px;
+  min-height: 44px;
   border: 1px solid var(--border-medium);
   backdrop-filter: blur(12px);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .portal-button-secondary:hover, .neu-btn-secondary:hover, .neu-button:hover {
@@ -200,7 +259,7 @@
 }
 
 .portal-button-secondary:active, .neu-btn-secondary:active, .neu-button:active {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.99);
 }
 
 /* Circle Buttons */
@@ -228,18 +287,32 @@
 .theme-toggle-container {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .theme-toggle-container {
+    gap: 10px;
+  }
 }
 
 .theme-jane-preview {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s ease;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .theme-jane-preview {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 .theme-jane-preview:hover {
@@ -247,8 +320,8 @@
 }
 
 .theme-pill-btn {
-  width: 58px;
-  height: 30px;
+  width: 52px;
+  height: 28px;
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
   border-radius: 30px;
@@ -258,7 +331,15 @@
   display: flex;
   align-items: center;
   outline: none;
+  flex-shrink: 0;
   transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .theme-pill-btn {
+    width: 58px;
+    height: 30px;
+  }
 }
 
 .theme-pill-btn:hover {
@@ -266,30 +347,50 @@
 }
 
 .pill-slider {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   background: var(--accent-primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: absolute;
-  left: 4px;
+  left: 3px;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   color: #ffffff;
 }
 
+@media (min-width: 640px) {
+  .pill-slider {
+    width: 22px;
+    height: 22px;
+    left: 4px;
+  }
+}
+
 .dark .pill-slider {
-  transform: translateX(28px);
+  transform: translateX(24px);
   background: #38bdf8;
   color: #07090e;
 }
 
+@media (min-width: 640px) {
+  .dark .pill-slider {
+    transform: translateX(28px);
+  }
+}
+
 .pill-icon {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   line-height: 1;
   user-select: none;
+}
+
+@media (min-width: 640px) {
+  .pill-icon {
+    font-size: 0.72rem;
+  }
 }
 
 /* ================= VINYL BLEEDING STICKER SYSTEM ================= */
@@ -314,26 +415,22 @@
 }
 
 .sticker-bleed:hover {
-  transform: scale(1.1) rotate(2.5deg) translateY(-4px);
+  transform: scale(1.08) rotate(2deg) translateY(-3px);
   filter: 
     drop-shadow(0 0 2px #ffffff)
     drop-shadow(0 0 8px rgba(56, 189, 248, 0.85))
     drop-shadow(0 16px 30px rgba(0, 0, 0, 0.7));
 }
 
-.sticker-bleed-left:hover {
-  transform: scale(1.1) rotate(-2.5deg) translateY(-4px);
-}
-
 /* Floating Animations */
 @keyframes stickerFloatRight {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-7px) rotate(1.5deg); }
+  50% { transform: translateY(-5px) rotate(1.2deg); }
 }
 
 @keyframes stickerFloatLeft {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-7px) rotate(-1.5deg); }
+  50% { transform: translateY(-5px) rotate(-1.2deg); }
 }
 
 .sticker-float-r {

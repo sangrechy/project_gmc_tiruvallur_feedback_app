@@ -68,7 +68,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
         
         {/* FBI STICKER: Bleeding out of top edge center */}
         <div 
-          className="sticker-bleed sticker-float-r -top-14 sm:-top-18 left-1/2 -translate-x-1/2 w-28 sm:w-36 pointer-events-auto"
+          className="sticker-bleed sticker-float-r -top-12 sm:-top-18 left-1/2 -translate-x-1/2 w-24 sm:w-36 pointer-events-auto"
           title="FBI Security Clearance Mascot"
         >
           <img 
@@ -79,7 +79,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
         </div>
 
         {/* Card (overflow-visible) */}
-        <div className="portal-card p-6 sm:p-10 space-y-6 text-center relative overflow-visible pt-16 sm:pt-20">
+        <div className="portal-card p-5 sm:p-10 space-y-6 text-center relative overflow-visible pt-14 sm:pt-20">
           <div>
             <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2 border border-sky-500/20">
               <ShieldAlert className="w-3 h-3 text-sky-500" />

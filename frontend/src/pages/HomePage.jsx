@@ -70,20 +70,20 @@ export default function HomePage({
             <span>Autonomous Student Governance • GMC Thiruvallur</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+          <h1 className="text-2xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
             Direct, Democratic &amp; Confidential<br className="hidden sm:inline" />
             <span className="text-sky-600 dark:text-sky-400 font-sans">Campus Voice.</span>
           </h1>
 
-          <p className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed">
+          <p className="mt-4 sm:mt-5 text-sm sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed">
             Empowering medical students with 100% anonymous grievance redressal, real-time ephemeral council chat, and open collegiate voting.
           </p>
 
           {/* Clean Primary Action Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <button
               onClick={() => setCurrentRoute('feedback')}
-              className="portal-button-primary w-full sm:w-auto px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide group"
+              className="portal-button-primary w-full sm:w-auto px-6 sm:px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide group"
             >
               <MessageSquarePlus className="w-4 h-4 transition-transform group-hover:scale-110" />
               <span>Submit Anonymous Feedback</span>
@@ -92,7 +92,7 @@ export default function HomePage({
 
             <button
               onClick={() => setCurrentRoute('chat')}
-              className="portal-button-secondary w-full sm:w-auto px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide"
+              className="portal-button-secondary w-full sm:w-auto px-6 sm:px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide"
             >
               <MessageCircle className="w-4 h-4 text-sky-500" />
               <span>Talk to Student Council</span>
@@ -101,14 +101,14 @@ export default function HomePage({
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
         
-        {/* ================= LATEST ANNOUNCEMENTS WITH PROTRUDING GAURD (SYRINGE REMOVED) ================= */}
+        {/* ================= LATEST ANNOUNCEMENTS WITH PROTRUDING GAURD ================= */}
         <section className="relative mt-8">
           
           {/* GUARD STICKER: Bleeding out of the top-left edge */}
           <div 
-            className="sticker-bleed sticker-float-l -top-12 sm:-top-16 -left-3 sm:-left-6 md:-left-8 w-24 sm:w-32 md:w-36 pointer-events-auto"
+            className="sticker-bleed sticker-float-l -top-11 sm:-top-16 left-1 sm:-left-6 w-20 sm:w-32 md:w-36 pointer-events-auto"
             title="Council Campus Security Guard"
           >
             <img 
@@ -293,7 +293,7 @@ export default function HomePage({
             
             {/* REFERRING STICKER: Bleeding out of the top-right corner */}
             <div 
-              className="sticker-bleed sticker-float-r -top-12 sm:-top-16 -right-3 sm:-right-6 md:-right-8 w-28 sm:w-36 pointer-events-auto"
+              className="sticker-bleed sticker-float-r -top-11 sm:-top-16 right-1 sm:-right-6 w-22 sm:w-36 pointer-events-auto"
               title="Student Opinion & Polling Mascot"
             >
               <img 

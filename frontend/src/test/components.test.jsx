@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import MobileBottomNav from '../components/MobileBottomNav';
 import HomePage from '../pages/HomePage';
 import FeedbackPage from '../pages/FeedbackPage';
 import ChatPage from '../pages/ChatPage';
@@ -283,4 +284,29 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     const githubLink = screen.getByRole('link', { name: /sangrechy/i });
     expect(githubLink).toHaveAttribute('href', 'https://github.com/sangrechy');
   });
+
+  it('renders MobileBottomNav with 5 thumb-friendly items and navigates on tap', () => {
+    const setCurrentRoute = vi.fn();
+
+    render(
+      <MobileBottomNav
+        currentRoute="home"
+        setCurrentRoute={setCurrentRoute}
+      />
+    );
+
+    expect(screen.getByRole('navigation', { name: 'Mobile Navigation' })).toBeInTheDocument();
+    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByText('Notices')).toBeInTheDocument();
+    expect(screen.getByText('Feedback')).toBeInTheDocument();
+    expect(screen.getByText('Live Chat')).toBeInTheDocument();
+    expect(screen.getByText('Polls')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Feedback'));
+    expect(setCurrentRoute).toHaveBeenCalledWith('feedback');
+
+    fireEvent.click(screen.getByText('Live Chat'));
+    expect(setCurrentRoute).toHaveBeenCalledWith('chat');
+  });
 });
+
