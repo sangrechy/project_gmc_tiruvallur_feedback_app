@@ -347,12 +347,10 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     });
   });
 
-  it('renders Footer with GMC student council branding and developer credit to sangrechy', () => {
-    const setCurrentRoute = vi.fn();
+  it('renders Footer with GMC copyright and developer credit to sangrechy', () => {
+    render(<Footer />);
 
-    render(<Footer setCurrentRoute={setCurrentRoute} />);
-
-    expect(screen.getByText('GMC THIRUVALLUR STUDENT COUNCIL')).toBeInTheDocument();
+    expect(screen.getByText(/GMC Thiruvallur/i)).toBeInTheDocument();
     expect(screen.getByText('Developed by')).toBeInTheDocument();
     expect(screen.getByText('sangrechy')).toBeInTheDocument();
     const githubLink = screen.getByRole('link', { name: /sangrechy/i });

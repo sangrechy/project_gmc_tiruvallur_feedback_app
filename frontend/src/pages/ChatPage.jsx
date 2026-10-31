@@ -259,16 +259,16 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
               </div>
 
               {/* End Chat Bar */}
-              <div className="flex items-center justify-between pt-2 text-xs font-mono">
-                <div className="text-slate-400 flex items-center space-x-1.5">
-                  <Clock className="w-3.5 h-3.5 text-sky-500" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 pt-2 text-xs font-mono">
+                <div className="text-slate-400 flex items-center space-x-1.5 min-w-0">
+                  <Clock className="w-3.5 h-3.5 text-sky-500 flex-shrink-0" />
                   <span>Session auto-expires after 24 hours</span>
                 </div>
                 
                 <button
                   type="button"
                   onClick={() => setShowEndModal(true)}
-                  className="text-red-500 hover:text-red-600 font-bold uppercase tracking-wider flex items-center space-x-1 transition-colors"
+                  className="text-red-500 hover:text-red-600 font-bold uppercase tracking-wider flex items-center space-x-1 transition-colors self-end sm:self-auto flex-shrink-0 active:scale-95"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>End Live Session</span>

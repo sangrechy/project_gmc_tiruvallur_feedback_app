@@ -28,11 +28,11 @@ import { isFirebaseConfigured } from './services/firebase';
 import { ShieldCheck, Sparkles, Database } from 'lucide-react';
 
 export default function App() {
-  // Theme state: defaults to dark theme with blue shade
+  // Theme state: defaults to light theme
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('gmc_theme');
     if (saved) return saved === 'dark';
-    return true; // Default to dark theme with blue shade as requested!
+    return false; // Default to light theme!
   });
 
   // Routing state

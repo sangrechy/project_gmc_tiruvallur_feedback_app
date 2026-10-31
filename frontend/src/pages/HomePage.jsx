@@ -171,88 +171,9 @@ export default function HomePage({
           </div>
         </section>
 
-        {/* ================= QUICK ACCESS 3-CARD GRID ================= */}
-        <section>
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
-              Quick Access
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Card 1: Anonymous Feedback */}
-            <div 
-              onClick={() => setCurrentRoute('feedback')}
-              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center mb-5 text-sky-500 group-hover:text-sky-400 transition-colors">
-                  <MessageSquarePlus className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
-                  Anonymous Feedback
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Submit grievances regarding clinical rotas, hostel amenities, or faculty concerns with zero credential logging.
-                </p>
-              </div>
-              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
-                <span>Submit Grievance</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* Card 2: Temporary Live Chat */}
-            <div 
-              onClick={() => setCurrentRoute('chat')}
-              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-5 text-blue-500 group-hover:text-blue-400 transition-colors">
-                  <MessageCircle className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
-                  Temporary Live Chat
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Encrypted session with student council representatives. Backed by 24h browser cookies with instant self-purge.
-                </p>
-              </div>
-              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
-                <span>Connect Live</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* Card 3: Student Polls */}
-            <div 
-              onClick={() => setCurrentRoute('polls')}
-              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
-            >
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-5 text-amber-500 group-hover:text-amber-400 transition-colors">
-                  <Vote className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
-                  Collegiate Polls
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                  Vote on academic schedules, canteen menus, cultural night themes, and council resolutions.
-                </p>
-              </div>
-              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
-                <span>Cast Your Vote</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-          </div>
-        </section>
-
         {/* ================= ACTIVE POLLS WIDGET WITH PROTRUDING REFERING STICKER ================= */}
         {featuredPoll && (
-          <section className="relative mt-12">
+          <section className="relative mt-8 sm:mt-12">
             
             {/* REFERRING STICKER: Bleeding out of the top-right corner */}
             <div 
@@ -354,6 +275,85 @@ export default function HomePage({
             </div>
           </section>
         )}
+
+        {/* ================= QUICK ACCESS 3-CARD GRID ================= */}
+        <section className="mt-8 sm:mt-12">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
+              Quick Access
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Card 1: Anonymous Feedback */}
+            <div 
+              onClick={() => setCurrentRoute('feedback')}
+              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center mb-5 text-sky-500 group-hover:text-sky-400 transition-colors">
+                  <MessageSquarePlus className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
+                  Anonymous Feedback
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+                  Submit grievances regarding clinical rotas, hostel amenities, or faculty concerns with zero credential logging.
+                </p>
+              </div>
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
+                <span>Submit Grievance</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Card 2: Temporary Live Chat */}
+            <div 
+              onClick={() => setCurrentRoute('chat')}
+              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-5 text-blue-500 group-hover:text-blue-400 transition-colors">
+                  <MessageCircle className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
+                  Temporary Live Chat
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+                  Encrypted session with student council representatives. Backed by 24h browser cookies with instant self-purge.
+                </p>
+              </div>
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
+                <span>Connect Live</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Card 3: Student Polls */}
+            <div 
+              onClick={() => setCurrentRoute('polls')}
+              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-5 text-amber-500 group-hover:text-amber-400 transition-colors">
+                  <Vote className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
+                  Collegiate Polls
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+                  Vote on academic schedules, canteen menus, cultural night themes, and council resolutions.
+                </p>
+              </div>
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
+                <span>Cast Your Vote</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+          </div>
+        </section>
 
       </div>
     </div>
