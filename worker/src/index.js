@@ -110,6 +110,129 @@ async function timingSafeEqualStrings(a, b) {
 }
 
 /**
+ * Base64URL string/buffer encoder
+ */
+function base64UrlEncode(bufferOrString) {
+  let base64;
+  if (typeof bufferOrString === "string") {
+    base64 = btoa(bufferOrString);
+  } else {
+    const bytes = new Uint8Array(bufferOrString);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    base64 = btoa(binary);
+  }
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/**
+ * Base64URL string decoder to byte array
+ */
+function base64UrlDecodeToBytes(str) {
+  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (base64.length % 4) {
+    base64 += "=";
+  }
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/**
+ * Generate a cryptographically signed, short-lived session token (HMAC-SHA256)
+ * Prevents raw master passcodes from ever being stored in browser localStorage
+ */
+async function createSessionToken(payload, secretKey) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secretKey),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const payloadJson = JSON.stringify(payload);
+  const b64Payload = base64UrlEncode(payloadJson);
+  const dataToSign = enc.encode(`gmc_sess.${b64Payload}`);
+  const signatureBuffer = await crypto.subtle.sign("HMAC", key, dataToSign);
+  const b64Sig = base64UrlEncode(signatureBuffer);
+  return `gmc_sess.${b64Payload}.${b64Sig}`;
+}
+
+/**
+ * Verify a short-lived session token (HMAC-SHA256 signature + expiration)
+ */
+async function verifySessionToken(token, secretKey) {
+  if (typeof token !== "string" || !token.startsWith("gmc_sess.")) {
+    return { valid: false, error: "Malformed session token format" };
+  }
+  const parts = token.split(".");
+  if (parts.length !== 3 || parts[0] !== "gmc_sess") {
+    return { valid: false, error: "Malformed session token format" };
+  }
+  const b64Payload = parts[1];
+  const b64Sig = parts[2];
+
+  try {
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      enc.encode(secretKey),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+    const dataToVerify = enc.encode(`gmc_sess.${b64Payload}`);
+    const sigBytes = base64UrlDecodeToBytes(b64Sig);
+    const isValid = await crypto.subtle.verify("HMAC", key, sigBytes, dataToVerify);
+    if (!isValid) {
+      return { valid: false, error: "Invalid session signature" };
+    }
+
+    const payloadJson = atob(b64Payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const payload = JSON.parse(payloadJson);
+
+    if (payload.exp && Date.now() > payload.exp) {
+      return { valid: false, error: "Session token has expired", expired: true };
+    }
+
+    return { valid: true, payload };
+  } catch {
+    return { valid: false, error: "Session token verification failed" };
+  }
+}
+
+/**
+ * Universal admin authorization check (supports raw master token or signed session token)
+ */
+async function authenticateAdminRequest(request, configuredToken) {
+  if (!configuredToken) return false;
+  const authHdr = request.headers.get("Authorization") || "";
+  let token = authHdr.startsWith("Bearer ")
+    ? authHdr.slice(7).trim()
+    : (request.headers.get("X-Council-Token") || "").trim();
+  if (!token) return false;
+
+  // 1. Direct master token comparison (constant-time)
+  if (await timingSafeEqualStrings(token, configuredToken)) {
+    return true;
+  }
+
+  // 2. Short-lived session token verification
+  if (token.startsWith("gmc_sess.")) {
+    const sessionRes = await verifySessionToken(token, configuredToken);
+    return sessionRes.valid;
+  }
+
+  return false;
+}
+
+/**
  * Escape Markdown special characters for Telegram Bot API
  */
 function escapeTelegramMarkdown(str) {
@@ -259,15 +382,63 @@ export default {
           );
         }
 
+        if (cleanProvided.startsWith("gmc_sess.")) {
+          const sessionResult = await verifySessionToken(cleanProvided, configuredToken);
+          if (sessionResult.valid) {
+            return jsonResponse(
+              {
+                valid: true,
+                authenticated: true,
+                role: sessionResult.payload?.role || "Council Executive",
+                sessionToken: cleanProvided,
+                expiresAt: sessionResult.payload?.exp,
+                college: env.COLLEGE_NAME || "GMC Thiruvallur",
+                message: "Session token validated",
+              },
+              200,
+              env,
+              request,
+              { "Cache-Control": "no-store, max-age=0" }
+            );
+          } else {
+            return jsonResponse(
+              {
+                valid: false,
+                authenticated: false,
+                error: sessionResult.error || "Session token expired or invalid",
+              },
+              401,
+              env,
+              request,
+              { "Cache-Control": "no-store, max-age=0" }
+            );
+          }
+        }
+
         // Constant-time comparison eliminates timing side-channel attacks
         const isMatch = cleanProvided ? await timingSafeEqualStrings(cleanProvided, configuredToken) : false;
 
         if (isMatch) {
+          const expiresAt = Date.now() + 8 * 3600 * 1000; // 8-hour session token
+          const sessionToken = await createSessionToken(
+            {
+              sub: "council_admin",
+              role: "Council Executive",
+              college: env.COLLEGE_NAME || "GMC Thiruvallur",
+              iat: Date.now(),
+              exp: expiresAt,
+              jti: typeof crypto.randomUUID === "function" ? crypto.randomUUID() : String(Math.random())
+            },
+            configuredToken
+          );
+
           return jsonResponse(
             {
               valid: true,
               authenticated: true,
               role: "Council Executive",
+              sessionToken,
+              expiresAt,
               college: env.COLLEGE_NAME || "GMC Thiruvallur",
               message: "Council authentication successful",
             },
@@ -281,7 +452,7 @@ export default {
             {
               valid: false,
               authenticated: false,
-              error: "Invalid Council Master Token / Passcode",
+              error: "Invalid Council Master Passcode or Session Token",
             },
             401,
             env,
@@ -352,7 +523,8 @@ export default {
             success: true,
             trackingId,
             containsPII: finalContainsPII,
-            message: "Feedback safely recorded",
+            telegramAlertSent: Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_ADMIN_CHAT_ID),
+            message: "Feedback validated and tracking reference token generated",
           },
           200,
           env,
@@ -384,12 +556,11 @@ export default {
         const body = await request.json();
         const sessionId = sanitizeInput(body?.sessionId || "", 50);
         let sender = "student";
-        if (body?.sender === "admin") {
-          const authHdr = request.headers.get("Authorization") || "";
-          const tokenHdr = authHdr.startsWith("Bearer ") ? authHdr.slice(7).trim() : request.headers.get("X-Council-Token") || "";
+        if (body?.sender === "admin" || body?.sender === "council") {
           const confToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
-          if (confToken && tokenHdr && (await timingSafeEqualStrings(tokenHdr, confToken))) {
-            sender = "admin";
+          const isAdmin = await authenticateAdminRequest(request, confToken);
+          if (isAdmin) {
+            sender = "council";
           }
         }
         const text = sanitizeInput(body?.text || "", 2000);
@@ -406,8 +577,7 @@ export default {
             `💬 *Student Live Chat Message*\n` +
             `🆔 *Session:* \`${safeSessionId}\`\n\n` +
             `"${safeText}"\n\n` +
-            `👉 *To reply from Telegram, send:*\n` +
-            "`/reply " + safeSessionId + " <your response>`";
+            `👉 *Log in to Council Executive Portal to participate in this session.*`;
 
           ctx.waitUntil(sendTelegramMessage(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_ADMIN_CHAT_ID, chatMsg));
         }
@@ -460,10 +630,8 @@ export default {
       // 7. AI Intelligence Triage Endpoint (Groq / Gemini)
       if (path === "/api/ai/analyze" && request.method === "POST") {
         // Enforce council authorization on expensive AI endpoints
-        const authHdr = request.headers.get("Authorization") || "";
-        const tokenHdr = authHdr.startsWith("Bearer ") ? authHdr.slice(7).trim() : request.headers.get("X-Council-Token") || "";
         const confToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
-        const isAuth = confToken && tokenHdr ? await timingSafeEqualStrings(tokenHdr, confToken) : false;
+        const isAuth = await authenticateAdminRequest(request, confToken);
 
         if (!isTestEnv && !isAuth) {
           return jsonResponse({ error: "Unauthorized: Valid council access token required for AI triage" }, 401, env, request);

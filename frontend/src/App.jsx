@@ -104,8 +104,13 @@ export default function App() {
       if (!saved) return;
       try {
         const parsed = JSON.parse(saved);
-        if (parsed?.token) {
-          const result = await apiService.verifyCouncilToken(parsed.token);
+        if (parsed?.expiresAt && Date.now() > parsed.expiresAt) {
+          handleLogout();
+          return;
+        }
+        const tokenToVerify = parsed?.sessionToken || parsed?.token;
+        if (tokenToVerify) {
+          const result = await apiService.verifyCouncilToken(tokenToVerify);
           if (!result.valid) {
             handleLogout();
           }
@@ -123,8 +128,18 @@ export default function App() {
 
   // Admin session handlers
   const handleLoginSuccess = async (user) => {
-    setAdminUser(user);
-    localStorage.setItem('gmc_admin_session', JSON.stringify(user));
+    // Sanitize user object to ensure raw password is NEVER persisted in browser storage
+    const safeUser = {
+      email: user.email || "executive.council@gmcthiruvallur.ac.in",
+      name: user.name || "Council Executive",
+      role: user.role || "Council Executive",
+      sessionToken: user.sessionToken || null,
+      expiresAt: user.expiresAt || null,
+      uid: user.uid || null,
+      isFirebaseUser: Boolean(user.isFirebaseUser)
+    };
+    setAdminUser(safeUser);
+    localStorage.setItem('gmc_admin_session', JSON.stringify(safeUser));
     try {
       const [fbList, chatList] = await Promise.all([
         storageService.getFeedbacks(),

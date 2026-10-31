@@ -107,15 +107,15 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
                   : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
               }`}>
                 {submissionResult.delivered ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-                <span>{submissionResult.delivered ? "Grievance Transmitted to Council" : "Stored Locally (Server Offline)"}</span>
+                <span>{submissionResult.delivered ? "Grievance Recorded in Council Database" : "Saved in Browser Only (Cloud Database Disconnected)"}</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
                 {submissionResult.delivered ? "Feedback Dispatched Successfully" : "Stored in Local Browser"}
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
                 {submissionResult.delivered
-                  ? "Your message has been assigned an anonymous tracking token and delivered to the Student Council review queue."
-                  : "The backend server is currently offline or unreachable. Your grievance is saved locally on this browser, but has not yet reached the council."}
+                  ? "Your message has been assigned an anonymous tracking token and securely recorded in the Student Council database."
+                  : "Cloud database is currently not connected or unreachable. Your grievance is saved locally on this browser, but has not yet reached the Council database."}
               </p>
             </div>
 

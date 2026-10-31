@@ -5,7 +5,7 @@ import { apiService } from '../services/apiService';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showToast }) {
-  const [authMode, setAuthMode] = useState('token'); // 'token' or 'credentials'
+  const [authMode, setAuthMode] = useState(isFirebaseConfigured ? 'credentials' : 'token'); // 'credentials' for Firestore, 'token' for serverless
   const [councilToken, setCouncilToken] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,7 +52,9 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
         onLoginSuccess({
           email: userCredential.user.email,
           uid: userCredential.user.uid,
-          name: "Council Representative"
+          name: "Council Representative",
+          role: "Council Executive",
+          isFirebaseUser: true
         });
       } else {
         // Verify passcode through the serverless backend
@@ -65,9 +67,10 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
 
         onLoginSuccess({
           email: email.trim(),
-          name: "Council Executive",
-          role: "Council Executive",
-          token: password.trim()
+          name: result.role || "Council Executive",
+          role: result.role || "Council Executive",
+          sessionToken: result.sessionToken,
+          expiresAt: result.expiresAt
         });
       }
       showToast("Council security clearance validated", "success");

@@ -4,6 +4,7 @@ import { apiService } from "./apiService";
 import {
   collection,
   getDocs,
+  getDoc,
   doc,
   setDoc,
   addDoc,
@@ -219,6 +220,40 @@ export const storageService = {
       throw new Error("You have already voted in this poll!");
     }
 
+    if (isFirebaseConfigured && db) {
+      const pollRef = doc(db, "polls", pollId);
+      const pollSnap = await getDoc(pollRef);
+      if (!pollSnap.exists()) {
+        throw new Error("Poll not found");
+      }
+      const pollData = pollSnap.data();
+      if (pollData.status !== "active") {
+        throw new Error("This poll is closed and no longer accepting votes.");
+      }
+      if (!pollData.options || !pollData.options[optionIndex]) {
+        throw new Error("Invalid poll option selected.");
+      }
+
+      const updatedOptions = pollData.options.map((opt, idx) => {
+        if (idx === optionIndex) {
+          return { ...opt, votes: (opt.votes || 0) + 1 };
+        }
+        return opt;
+      });
+
+      // 1. Record individual vote ballot in votes subcollection
+      await addDoc(collection(pollRef, "votes"), {
+        selectedOption: optionIndex,
+        timestamp: serverTimestamp()
+      });
+
+      // 2. Atomically update poll options and increment totalVotes by 1
+      await updateDoc(pollRef, {
+        options: updatedOptions,
+        totalVotes: (pollData.totalVotes || 0) + 1
+      });
+    }
+
     userVotes[pollId] = optionIndex;
     localStorage.setItem(KEYS.USER_VOTES, JSON.stringify(userVotes));
 
@@ -228,25 +263,6 @@ export const storageService = {
       targetPoll.options[optionIndex].votes += 1;
       targetPoll.totalVotes = (targetPoll.totalVotes || 0) + 1;
       localStorage.setItem(KEYS.POLLS, JSON.stringify(polls));
-    }
-
-    if (isFirebaseConfigured && db) {
-      try {
-        const pollRef = doc(db, "polls", pollId);
-        // Record vote subcollection
-        await addDoc(collection(pollRef, "votes"), {
-          selectedOption: optionIndex,
-          timestamp: serverTimestamp()
-        });
-        if (targetPoll) {
-          await updateDoc(pollRef, {
-            options: targetPoll.options,
-            totalVotes: targetPoll.totalVotes
-          });
-        }
-      } catch (err) {
-        console.warn("Firestore vote recording warning:", err);
-      }
     }
 
     return true;
@@ -377,10 +393,7 @@ export const storageService = {
 
     let deliveredToServer = false;
 
-    if (backendResult?.success) {
-      deliveredToServer = true;
-    }
-
+    // Delivery is ONLY considered true if the grievance was durably written to Cloud Firestore
     if (isFirebaseConfigured && db) {
       try {
         const docRef = await addDoc(collection(db, "feedback"), {
@@ -390,7 +403,7 @@ export const storageService = {
         feedbackDoc.id = docRef.id;
         deliveredToServer = true;
       } catch (err) {
-        console.warn("Firestore feedback submission fallback:", err);
+        console.warn("Firestore feedback submission error, stored locally:", err);
       }
     }
 
@@ -405,7 +418,8 @@ export const storageService = {
       success: true,
       delivered: deliveredToServer,
       trackingId,
-      containsPII: finalContainsPII
+      containsPII: finalContainsPII,
+      alertDispatched: Boolean(backendResult?.telegramAlertSent)
     };
   },
 
@@ -415,7 +429,11 @@ export const storageService = {
         const snap = await getDocs(collection(db, "feedback"));
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
       } catch (err) {
-        console.warn("Firestore getFeedbacks fallback:", err);
+        if (err.code === "permission-denied") {
+          console.warn("Firestore feedback read permission-denied: Council email login required for Cloud Firestore clearance. Falling back to local store.", err);
+        } else {
+          console.warn("Firestore getFeedbacks fallback:", err);
+        }
       }
     }
     return JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
@@ -544,30 +562,32 @@ export const storageService = {
     session.lastActivity = new Date().toISOString();
     localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
 
-    // Relay to backend worker (for Telegram Bot 2-way relay)
+    // Persist to Cloud Firestore if connected
+    if (isFirebaseConfigured && db) {
+      try {
+        const chatRef = doc(db, "chats", cleanSessionId);
+        await addDoc(collection(chatRef, "messages"), {
+          sessionId: cleanSessionId,
+          sender: cleanSender === "council" ? "admin" : "student",
+          text: cleanText,
+          timestamp: newMsg.timestamp,
+          createdAt: serverTimestamp()
+        });
+        await setDoc(chatRef, {
+          sessionId: cleanSessionId,
+          status: "active",
+          lastActivity: serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        console.warn("Firestore chat message write warning:", err);
+      }
+    }
+
+    // Relay to backend worker (for Telegram Bot notification relay)
     try {
       apiService.sendChatMessage(cleanSessionId, cleanSender, cleanText);
     } catch (err) {
       console.warn("Backend chat relay error:", err);
-    }
-
-    // If student sent message and in demo mode, schedule a council simulation reply after 3 seconds
-    if (sender === "student" && !isFirebaseConfigured) {
-      setTimeout(() => {
-        const liveChats = JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
-        const s = liveChats.find(c => c.sessionId === sessionId);
-        if (s && s.status === "active") {
-          s.messages.push({
-            id: `msg-${Date.now()}-reply`,
-            sender: "council",
-            text: "Thank you for sharing this with us. The council has noted this and will review it in our upcoming committee meeting.",
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
-          s.lastActivity = new Date().toISOString();
-          localStorage.setItem(KEYS.CHATS, JSON.stringify(liveChats));
-          window.dispatchEvent(new CustomEvent("gmc-chat-updated", { detail: { sessionId } }));
-        }
-      }, 2500);
     }
 
     return newMsg;

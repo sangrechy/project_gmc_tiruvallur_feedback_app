@@ -192,7 +192,7 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(res.headers.get('Access-Control-Allow-Origin'), '*');
   });
 
-  test('POST /api/auth/verify succeeds with correct COUNCIL_AUTH_TOKEN', async () => {
+  test('POST /api/auth/verify succeeds with correct COUNCIL_AUTH_TOKEN and issues signed session token', async () => {
     const customEnv = { ...mockEnv, COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
     const req = new Request('https://worker.dev/api/auth/verify', {
       method: 'POST',
@@ -206,6 +206,68 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(data.valid, true);
     assert.equal(data.authenticated, true);
     assert.equal(data.role, 'Council Executive');
+    assert.ok(typeof data.sessionToken === 'string' && data.sessionToken.startsWith('gmc_sess.'));
+    assert.ok(data.expiresAt > Date.now());
+    assert.equal(data.token, undefined); // Master token is NEVER echoed back to client!
+  });
+
+  test('POST /api/auth/verify validates an issued session token without master passcode', async () => {
+    const customEnv = { ...mockEnv, COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
+    // Step 1: Exchange master token for session token
+    const loginReq = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: 'gmc-secret-2026' })
+    });
+    const loginRes = await worker.fetch(loginReq, customEnv, mockCtx);
+    const { sessionToken } = await loginRes.json();
+
+    // Step 2: Validate the session token on subsequent calls
+    const sessionReq = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${sessionToken}` }
+    });
+    const sessionRes = await worker.fetch(sessionReq, customEnv, mockCtx);
+    assert.equal(sessionRes.status, 200);
+    const sessionData = await sessionRes.json();
+    assert.equal(sessionData.valid, true);
+    assert.equal(sessionData.sessionToken, sessionToken);
+  });
+
+  test('POST /api/auth/verify rejects forged or tampered session tokens with 401', async () => {
+    const customEnv = { ...mockEnv, COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
+    const forgedReq = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: 'gmc_sess.eyJzdWIiOiJhZG1pbiIsImV4cCI6OTk5OTk5OTk5OTk5OX0.forgedsignature123' })
+    });
+    const res = await worker.fetch(forgedReq, customEnv, mockCtx);
+    assert.equal(res.status, 401);
+  });
+
+  test('POST /api/ai/analyze succeeds with signed session token in production', async () => {
+    const prodEnv = { ...mockEnv, ENVIRONMENT: 'production', COUNCIL_AUTH_TOKEN: 'gmc-secret-2026' };
+    // Obtain session token
+    const loginReq = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: 'gmc-secret-2026' })
+    });
+    const loginRes = await worker.fetch(loginReq, prodEnv, mockCtx);
+    const { sessionToken } = await loginRes.json();
+
+    // Access AI endpoint using session token
+    const req = new Request('https://worker.dev/api/ai/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionToken}`
+      },
+      body: JSON.stringify({ feedbacks: [] })
+    });
+
+    const res = await worker.fetch(req, prodEnv, mockCtx);
+    assert.equal(res.status, 200);
   });
 
   test('POST /api/auth/verify rejects incorrect COUNCIL_AUTH_TOKEN with 401', async () => {

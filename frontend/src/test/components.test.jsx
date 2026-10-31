@@ -143,6 +143,39 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     });
   });
 
+  it('displays honest local-only status when feedback is saved without cloud delivery', async () => {
+    const setCurrentRoute = vi.fn();
+    const showToast = vi.fn();
+    const onSubmitFeedback = vi.fn().mockResolvedValue({
+      success: true,
+      delivered: false,
+      id: 'GMC-FB-9988',
+      trackingId: 'GMC-FB-9988',
+      containsPII: false
+    });
+
+    render(
+      <FeedbackPage
+        onSubmitFeedback={onSubmitFeedback}
+        setCurrentRoute={setCurrentRoute}
+        showToast={showToast}
+      />
+    );
+
+    const textarea = screen.getByPlaceholderText(/Describe your concern with specific context/);
+    fireEvent.change(textarea, { target: { value: 'Water dispenser maintenance needed in hostel block B.' } });
+
+    const submitBtn = screen.getByText('Submit Anonymous Grievance');
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(onSubmitFeedback).toHaveBeenCalled();
+      expect(screen.getByText('Stored in Local Browser')).toBeInTheDocument();
+      expect(screen.getByText('Saved in Browser Only (Cloud Database Disconnected)')).toBeInTheDocument();
+      expect(screen.getByText('GMC-FB-9988')).toBeInTheDocument();
+    });
+  });
+
   it('renders Temporary Live Chat with cookie session, active relay, and Myself sticker', async () => {
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();

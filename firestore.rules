@@ -144,14 +144,15 @@ service cloud.firestore {
     }
 
     // Validates live chat message documents
-    function isValidMessage(data) {
-      return data.keys().hasOnly(['content', 'text', 'sender', 'timestamp', 'createdAt']) &&
+    function isValidMessage(data, chatId) {
+      return data.keys().hasOnly(['sessionId', 'content', 'text', 'sender', 'timestamp', 'createdAt']) &&
              data.keys().hasAll(['sender']) &&
              (
                ('content' in data && data.content is string && data.content.size() > 0 && data.content.size() <= 2000) ||
                ('text' in data && data.text is string && data.text.size() > 0 && data.text.size() <= 2000)
              ) &&
-             data.sender in ['student', 'admin'] &&
+             data.sender in ['student', 'admin', 'council'] &&
+             (!('sessionId' in data) || data.sessionId == chatId) &&
              (!('timestamp' in data) || (data.timestamp is string && data.timestamp.size() <= 50)) &&
              (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50));
     }
@@ -239,10 +240,10 @@ service cloud.firestore {
                     areImmutableFieldsUnchanged(['sessionId', 'createdAt']);
       allow delete: if isAdmin();
 
-      // Message Subcollection: read restricted to council admins to protect student privacy
+      // Message Subcollection: council admins or session participants can read messages
       match /messages/{messageId} {
-        allow read: if isAdmin();
-        allow create: if isValidMessage(request.resource.data) &&
+        allow read: if isAdmin() || (resource.data.sessionId == chatId);
+        allow create: if isValidMessage(request.resource.data, chatId) &&
                       (request.resource.data.sender == 'student' || isAdmin());
         // Updates and deletes are disallowed to preserve chat integrity
       }
@@ -265,11 +266,13 @@ service cloud.firestore {
     match /polls/{pollId} {
       allow read: if true;
       allow create, delete: if isAdmin();
-      // Admins can update all poll fields; Students can update options tally on active polls
+      // Admins can update all poll fields; Students can cast exactly one vote incrementing totalVotes by 1 on active polls
       allow update: if (isAdmin() && isValidPoll(request.resource.data)) ||
                        (isPollActive(pollId) &&
-                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options']) &&
-                        areImmutableFieldsUnchanged(['id', 'question', 'isActive', 'createdAt', 'createdBy']));
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes']) &&
+                        request.resource.data.totalVotes == resource.data.totalVotes + 1 &&
+                        request.resource.data.options.size() == resource.data.options.size() &&
+                        areImmutableFieldsUnchanged(['id', 'question', 'category', 'status', 'closingDate', 'createdAt', 'createdBy']));
 
       // Votes Subcollection: restricted to active polls; individual ballot reads restricted to admins
       match /votes/{voteId} {

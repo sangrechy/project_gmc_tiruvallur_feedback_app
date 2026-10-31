@@ -269,18 +269,21 @@ export const apiService = {
       if (res.ok && data.valid) {
         return {
           valid: true,
-          token: cleanToken,
+          sessionToken: data.sessionToken || cleanToken,
+          expiresAt: data.expiresAt,
+          role: data.role || "Council Executive",
           user: {
             email: "executive.council@gmcthiruvallur.ac.in",
             name: data.role || "Council Executive",
             role: data.role || "Council Executive",
-            token: cleanToken
+            sessionToken: data.sessionToken || cleanToken,
+            expiresAt: data.expiresAt
           }
         };
       } else {
         return {
           valid: false,
-          error: data.error || "Invalid Council Master Token / Passcode"
+          error: data.error || "Invalid Council Master Passcode or Session Token"
         };
       }
     } catch (err) {

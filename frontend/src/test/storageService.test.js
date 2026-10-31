@@ -28,6 +28,17 @@ describe('Storage Service Blackbox & Unit Verification', () => {
       expect(item.aiAnalysis.category).toBe('Academics');
     });
 
+    it('honestly reports delivered=false when cloud database is not connected', async () => {
+      const res = await storageService.submitFeedback({
+        category: 'Hostel',
+        content: 'Extra hot water supply required during morning hours.',
+        containsPII: false
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.delivered).toBe(false); // Honest delivery status: false when cloud Firestore is not connected
+    });
+
     it('strictly isolates and flags feedback declaring PII, suppressing AI processing', async () => {
       const res = await storageService.submitFeedback({
         category: 'Hostel & Mess',
