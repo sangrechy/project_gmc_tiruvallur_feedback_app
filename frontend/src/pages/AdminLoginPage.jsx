@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Mail, KeyRound, ArrowLeft, ShieldAlert, Sparkles, ChevronRight, Key } from 'lucide-react';
+import { Lock, Mail, KeyRound, ArrowLeft, ShieldAlert, Key } from 'lucide-react';
 import { auth, isFirebaseConfigured } from '../services/firebase';
 import { apiService } from '../services/apiService';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -55,19 +55,18 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
           name: "Council Representative"
         });
       } else {
-        // If VITE_COUNCIL_AUTH_TOKEN is configured, verify password against it
-        const configuredToken = import.meta.env.VITE_COUNCIL_AUTH_TOKEN;
-        if (configuredToken && password.trim() !== configuredToken.trim()) {
+        // Verify password against configured token or default council password
+        const configuredToken = import.meta.env.VITE_COUNCIL_AUTH_TOKEN || "GMC@Council2026!Admin";
+        if (password.trim() !== configuredToken.trim()) {
           showToast("Invalid Council Passcode", "error");
           setIsLoading(false);
           return;
         }
 
-        // Demo / decoupled authentication
         onLoginSuccess({
           email: email.trim(),
-          name: "Dr. K. Vignesh (Council President)",
-          role: "Council President"
+          name: "Council Executive",
+          role: "Council Executive"
         });
       }
       showToast("Council security clearance validated", "success");
@@ -76,15 +75,6 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDemoLogin = () => {
-    onLoginSuccess({
-      email: "president.council@gmcthiruvallur.ac.in",
-      name: "Dr. K. Vignesh (President)",
-      role: "Council President"
-    });
-    showToast("Signed in as Demo Council Representative", "success");
   };
 
   return (
@@ -129,28 +119,6 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Authorized student council executives and administrators
             </p>
-          </div>
-
-          {/* 1-Click Demo Login Banner */}
-          <div className="p-4 rounded-2xl neu-pressed space-y-2.5 text-left">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-1.5 text-xs font-bold text-sky-600 dark:text-sky-400">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Interactive Review Mode</span>
-              </div>
-              <span className="text-[10px] font-mono uppercase text-emerald-500 font-bold">1-Click</span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-              Sign in instantly to test the triage dashboard, Telegram-relayed live chats, and poll management.
-            </p>
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              className="w-full py-2.5 px-3 portal-button-primary text-xs font-semibold flex items-center justify-center space-x-2 shadow-md"
-            >
-              <span>Instant Council Demo Access</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
           </div>
 
           {/* Authentication Mode Switcher */}

@@ -200,7 +200,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText(INITIAL_ANNOUNCEMENTS[0].title)).toBeInTheDocument();
   });
 
-  it('allows 1-click Demo Council Admin login with FBI sticker', () => {
+  it('renders AdminLoginPage with FBI mascot and allows login with credentials', async () => {
     const onLoginSuccess = vi.fn();
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
@@ -215,15 +215,26 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
 
     expect(screen.getByAltText('FBI Council Security Mascot Bleeding Out')).toBeInTheDocument();
 
-    const demoLoginBtn = screen.getByText('Instant Council Demo Access');
-    fireEvent.click(demoLoginBtn);
+    // Switch to Email & Passcode mode
+    const emailModeBtn = screen.getByText('Email & Passcode');
+    fireEvent.click(emailModeBtn);
 
-    expect(onLoginSuccess).toHaveBeenCalledWith(
-      expect.objectContaining({
-        email: 'president.council@gmcthiruvallur.ac.in',
-        role: 'Council President'
-      })
-    );
+    const emailInput = screen.getByPlaceholderText('rep.council@gmcthiruvallur.ac.in');
+    const passInput = screen.getByPlaceholderText('••••••••••••');
+    fireEvent.change(emailInput, { target: { value: 'president.council@gmcthiruvallur.ac.in' } });
+    fireEvent.change(passInput, { target: { value: 'GMC@Council2026!Admin' } });
+
+    const submitBtn = screen.getByText('Authorize Session');
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(onLoginSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'president.council@gmcthiruvallur.ac.in',
+          role: 'Council Executive'
+        })
+      );
+    });
   });
 
   it('allows council login using decoupled Master Token input', async () => {
@@ -241,7 +252,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
 
     expect(screen.getByText('Council Master Secret Token')).toBeInTheDocument();
     const tokenInput = screen.getByPlaceholderText('Enter VITE_COUNCIL_AUTH_TOKEN secret');
-    fireEvent.change(tokenInput, { target: { value: 'gmc-council-admin-2026' } });
+    fireEvent.change(tokenInput, { target: { value: 'GMC@Council2026!Admin' } });
 
     const authorizeBtn = screen.getByText('Authorize with Master Token');
     fireEvent.click(authorizeBtn);

@@ -337,7 +337,7 @@ export const storageService = {
     const trackingId = backendResult?.trackingId || ("GMC-FB-" + Math.floor(1000 + Math.random() * 9000));
     
     // Automatic PII Detection heuristics as additional privacy safety (doctor/student titles, roll nos, rooms, phone, email)
-    const piiPattern = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|[0-9]{10}|(roll|reg|id)\s*(no|number|#)?\s*[:.-]?\s*[0-9]+|room\s*[0-9]+|my name is\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
+    const piiPattern = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|[0-9]{10}|(roll|reg|id)(?:\s+(?:no|number|#))?\s*[:.-]?\s*\d+|room\s*\d+|my name is\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
     const autoDetectedPII = piiPattern.test(cleanContent);
     const finalContainsPII = backendResult?.containsPII !== undefined
       ? backendResult.containsPII
@@ -443,8 +443,16 @@ export const storageService = {
   generateSessionId() {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let code = "GMC-";
-    for (let i = 0; i < 5; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      const buffer = new Uint8Array(5);
+      crypto.getRandomValues(buffer);
+      for (let i = 0; i < 5; i++) {
+        code += chars.charAt(buffer[i] % chars.length);
+      }
+    } else {
+      for (let i = 0; i < 5; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
     }
     return code;
   },

@@ -69,19 +69,25 @@ export default function App() {
     }
   }, [isDarkMode]);
 
-  // Load initial data
+  // Load initial public data
   const loadData = async () => {
     try {
-      const [annList, pollList, fbList, chatList] = await Promise.all([
+      const [annList, pollList] = await Promise.all([
         storageService.getAnnouncements(),
-        storageService.getPolls(),
-        storageService.getFeedbacks(),
-        storageService.getAllChats()
+        storageService.getPolls()
       ]);
       setAnnouncements(annList);
       setPolls(pollList);
-      setFeedbacks(fbList);
-      setChats(chatList);
+
+      // Only load sensitive feedback and chat data if an authenticated admin session exists
+      if (adminUser) {
+        const [fbList, chatList] = await Promise.all([
+          storageService.getFeedbacks(),
+          storageService.getAllChats()
+        ]);
+        setFeedbacks(fbList);
+        setChats(chatList);
+      }
     } catch (err) {
       console.error("Data load error:", err);
     }
@@ -89,21 +95,33 @@ export default function App() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [adminUser]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
   };
 
   // Admin session handlers
-  const handleLoginSuccess = (user) => {
+  const handleLoginSuccess = async (user) => {
     setAdminUser(user);
     localStorage.setItem('gmc_admin_session', JSON.stringify(user));
+    try {
+      const [fbList, chatList] = await Promise.all([
+        storageService.getFeedbacks(),
+        storageService.getAllChats()
+      ]);
+      setFeedbacks(fbList);
+      setChats(chatList);
+    } catch (err) {
+      console.warn("Error loading admin data on login:", err);
+    }
     setCurrentRoute('admin-dashboard');
   };
 
   const handleLogout = () => {
     setAdminUser(null);
+    setFeedbacks([]);
+    setChats([]);
     localStorage.removeItem('gmc_admin_session');
     setCurrentRoute('home');
     showToast("Council session ended", "info");

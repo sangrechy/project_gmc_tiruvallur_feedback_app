@@ -87,7 +87,8 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        ('email' in request.auth.token &&
+        (request.auth.token.email_verified == true &&
+         'email' in request.auth.token &&
          request.auth.token.email != null &&
          exists(/databases/$(database)/documents/admins/$(request.auth.token.email)))
       );
@@ -212,7 +213,9 @@ service cloud.firestore {
     // ===============================================================
     match /feedback/{feedbackId} {
       allow create: if isValidFeedbackData(request.resource.data) &&
-                    (!('councilNotes' in request.resource.data) || isAdmin());
+                    (!('councilNotes' in request.resource.data) || isAdmin()) &&
+                    (!('status' in request.resource.data) || request.resource.data.status == 'Received') &&
+                    (!('aiAnalysis' in request.resource.data) || isAdmin());
       allow read, delete: if isAdmin();
       allow update: if isAdmin() &&
                     isValidFeedbackData(request.resource.data) &&
@@ -224,7 +227,9 @@ service cloud.firestore {
     // Students and admins interact via temporary 24-hr session IDs
     // ===============================================================
     match /chats/{chatId} {
-      allow read: if true;
+      // Individual session lookup allowed; mass listing restricted to council admins
+      allow get: if true;
+      allow list: if isAdmin();
       allow create: if isValidChat(request.resource.data);
       allow update: if (isAdmin() ||
                         request.resource.data.status == 'ended' ||
@@ -272,11 +277,19 @@ service cloud.firestore {
     }
 
     // ===============================================================
-    // 5. Authorized Council Admins Collection
+    // 5. Events Collection (Public read, Admin manage)
+    // ===============================================================
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // 6. Authorized Council Admins Collection
     // RBAC bootstrap and identity verification
     // ===============================================================
     match /admins/{adminId} {
-      allow read: if isAuthenticated();
+      allow read: if isAdmin();
       allow write: if isAdmin();
     }
   }

@@ -18,6 +18,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   const [isSending, setIsSending] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
   const messagesEndRef = useRef(null);
+  const activeSessionIdRef = useRef(null);
 
   // Initialize or resume chat session using 24-hr Browser Cookies
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
     async function loadChat() {
       const s = await storageService.getOrCreateChatSession(activeSessionId);
       setSession(s);
+      activeSessionIdRef.current = s.sessionId;
       
       // Store session in cookie (24-hour TTL)
       cookieService.setChatCookie(s.sessionId);
@@ -42,10 +44,11 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
 
     loadChat();
 
-    // Listen for incoming council reply events
+    // Listen for incoming council reply events without stale closures
     const handleChatUpdate = (e) => {
-      if (e.detail?.sessionId === activeSessionId) {
-        storageService.getOrCreateChatSession(activeSessionId).then(setSession);
+      const currentId = activeSessionIdRef.current;
+      if (currentId && e.detail?.sessionId === currentId) {
+        storageService.getOrCreateChatSession(currentId).then(setSession);
       }
     };
     window.addEventListener('gmc-chat-updated', handleChatUpdate);
@@ -109,6 +112,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
     }
 
     setSession(newS);
+    activeSessionIdRef.current = newS.sessionId;
     showToast("New temporary chat channel initialized", "success");
   };
 

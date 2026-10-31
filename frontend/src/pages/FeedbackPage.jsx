@@ -120,7 +120,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
                 <span className="text-[10px] uppercase font-bold text-sky-500">Anonymous Token</span>
               </div>
               <div className="p-2.5 rounded-xl bg-slate-900/40 text-sky-400 font-mono text-center tracking-widest break-all select-all font-bold">
-                {submissionResult.id}
+                {submissionResult.trackingId || submissionResult.id}
               </div>
             </div>
 

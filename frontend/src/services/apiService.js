@@ -267,35 +267,23 @@ export const apiService = {
       }
     }
 
-    // 2. Client-side decoupled check against VITE_COUNCIL_AUTH_TOKEN
-    const clientSecret = import.meta.env.VITE_COUNCIL_AUTH_TOKEN;
-    if (clientSecret && clientSecret.trim()) {
-      if (cleanToken === clientSecret.trim()) {
-        return {
-          valid: true,
-          user: {
-            email: "executive.council@gmcthiruvallur.ac.in",
-            name: "Council Executive Representative",
-            role: "Council Executive"
-          }
-        };
-      } else {
-        return {
-          valid: false,
-          error: "Invalid Council Master Token / Passcode"
-        };
-      }
+    // 2. Client-side check against VITE_COUNCIL_AUTH_TOKEN or default password
+    const clientSecret = import.meta.env.VITE_COUNCIL_AUTH_TOKEN || "GMC@Council2026!Admin";
+    if (cleanToken === clientSecret.trim()) {
+      return {
+        valid: true,
+        user: {
+          email: "executive.council@gmcthiruvallur.ac.in",
+          name: "Council Executive Representative",
+          role: "Council Executive"
+        }
+      };
+    } else {
+      return {
+        valid: false,
+        error: "Invalid Council Master Token / Passcode"
+      };
     }
-
-    // 3. Fallback / Demo mode when neither Worker nor VITE_COUNCIL_AUTH_TOKEN is set
-    return {
-      valid: true,
-      user: {
-        email: "president.council@gmcthiruvallur.ac.in",
-        name: "Dr. K. Vignesh (Council President)",
-        role: "Council President"
-      }
-    };
   }
 };
 

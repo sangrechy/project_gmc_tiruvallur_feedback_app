@@ -209,18 +209,26 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(data.valid, true);
   });
 
-  test('POST /api/auth/verify falls back to demo clearance when token unset in env', async () => {
-    const req = new Request('https://worker.dev/api/auth/verify', {
+  test('POST /api/auth/verify falls back to secure default token when unset in env', async () => {
+    // When unset, default token GMC@Council2026!Admin is required
+    const reqCorrect = new Request('https://worker.dev/api/auth/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 'any-token' })
+      body: JSON.stringify({ token: 'GMC@Council2026!Admin' })
     });
+    const resCorrect = await worker.fetch(reqCorrect, mockEnv, mockCtx);
+    assert.equal(resCorrect.status, 200);
+    const dataCorrect = await resCorrect.json();
+    assert.equal(dataCorrect.valid, true);
 
-    const res = await worker.fetch(req, mockEnv, mockCtx);
-    assert.equal(res.status, 200);
-    const data = await res.json();
-    assert.equal(data.valid, true);
-    assert.match(data.role, /Demo Mode/);
+    // Arbitrary token is rejected with 401 (no open demo bypass)
+    const reqWrong = new Request('https://worker.dev/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: 'any-random-token' })
+    });
+    const resWrong = await worker.fetch(reqWrong, mockEnv, mockCtx);
+    assert.equal(resWrong.status, 401);
   });
 
   test('Worker responses include hardened security headers (HSTS, nosniff, DENY)', async () => {

@@ -46,11 +46,25 @@ export default function AdminReports({ feedbacks, showToast }) {
   const exportCSV = () => {
     if (!feedbacks || feedbacks.length === 0) return;
     const headers = "ID,TrackingID,Category,Status,ContainsPII,Sentiment,Urgency,Content\n";
+    const sanitizeCSVCell = (val) => {
+      if (val === null || val === undefined) return '""';
+      let s = String(val);
+      if (/^[=+\-@\t\r]/.test(s)) {
+        s = "'" + s;
+      }
+      return `"${s.replace(/"/g, '""')}"`;
+    };
+
     const rows = feedbacks.map(f => {
-      const cleanContent = `"${(f.content || '').replace(/"/g, '""')}"`;
-      const sent = f.aiAnalysis?.sentiment || "N/A";
-      const urg = f.aiAnalysis?.urgency || "N/A";
-      return `${f.id},${f.trackingId},${f.category},${f.status},${f.containsPII},${sent},${urg},${cleanContent}`;
+      const cleanId = sanitizeCSVCell(f.id);
+      const cleanTrack = sanitizeCSVCell(f.trackingId);
+      const cleanCat = sanitizeCSVCell(f.category);
+      const cleanStatus = sanitizeCSVCell(f.status);
+      const cleanPII = sanitizeCSVCell(Boolean(f.containsPII));
+      const sent = sanitizeCSVCell(f.aiAnalysis?.sentiment || "N/A");
+      const urg = sanitizeCSVCell(f.aiAnalysis?.urgency || "N/A");
+      const cleanContent = sanitizeCSVCell(f.content || "");
+      return `${cleanId},${cleanTrack},${cleanCat},${cleanStatus},${cleanPII},${sent},${urg},${cleanContent}`;
     }).join("\n");
 
     const blob = new Blob([headers + rows], { type: 'text/csv' });

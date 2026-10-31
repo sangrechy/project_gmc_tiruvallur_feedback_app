@@ -11,7 +11,7 @@
 # ==============================================================================
 # Set any secure passphrase or token of your choice.
 # When set, only council members providing this token can verify access to admin APIs.
-COUNCIL_AUTH_TOKEN="gmc-council-admin-2026-secret"
+COUNCIL_AUTH_TOKEN="GMC@Council2026!Admin"
 
 # ==============================================================================
 # 2. Free AI Intelligence Engine (Zero Cost)

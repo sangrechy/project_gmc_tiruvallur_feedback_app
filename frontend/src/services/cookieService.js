@@ -9,7 +9,8 @@ export const cookieService = {
    */
   setChatCookie(sessionId) {
     if (typeof document === 'undefined') return;
-    document.cookie = `${COOKIE_NAME}=${encodeURIComponent(sessionId)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    document.cookie = `${COOKIE_NAME}=${encodeURIComponent(sessionId)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Strict${isSecure ? '; Secure' : ''}`;
   },
 
   /**
@@ -32,6 +33,7 @@ export const cookieService = {
    */
   clearChatCookie() {
     if (typeof document === 'undefined') return;
-    document.cookie = `${COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    document.cookie = `${COOKIE_NAME}=; path=/; max-age=0; SameSite=Strict${isSecure ? '; Secure' : ''}`;
   }
 };
