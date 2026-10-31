@@ -6,7 +6,8 @@ import {
   Megaphone, 
   Activity, 
   LogOut, 
-  ArrowLeft 
+  ArrowLeft,
+  Sparkles
 } from 'lucide-react';
 
 export default function AdminLayout({ 
@@ -19,10 +20,11 @@ export default function AdminLayout({
   activeChatsCount,
   children 
 }) {
-  // Exactly 5 Simple, Crystal-Clear Menus
+  // Simple, Crystal-Clear Council Navigation
   const menuItems = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
     { id: 'feedback', label: 'Feedback Review', icon: MessageSquare, badge: unreadCount },
+    { id: 'reports', label: 'AI Analysis', icon: Sparkles },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'chat', label: 'Live Chat', icon: MessageCircle, badge: activeChatsCount },
     { id: 'status', label: 'App Status', icon: Activity },

@@ -79,10 +79,10 @@ export default function AdminReports({ feedbacks, showToast }) {
           <button
             onClick={generateReport}
             disabled={isGenerating}
-            className="portal-button-primary text-xs font-mono font-bold flex items-center space-x-1"
+            className="portal-button-primary text-xs font-mono font-bold flex items-center space-x-1.5 active:scale-95"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
-            <span>{isGenerating ? "ANALYZING..." : "[REFRESH AI REPORT]"}</span>
+            <span>{isGenerating ? "Analyzing..." : "Refresh AI Report"}</span>
           </button>
 
           <button

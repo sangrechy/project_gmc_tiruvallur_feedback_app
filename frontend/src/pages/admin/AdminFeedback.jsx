@@ -255,11 +255,19 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, showT
                       )}
                     </button>
 
-                    {item.containsPII && (
+                    {item.containsPII ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">
                         Auto-Sanitized
                       </span>
-                    )}
+                    ) : item.aiAnalysis ? (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                        item.aiAnalysis.urgency === 'High'
+                          ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                          : 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'
+                      }`}>
+                        AI: {item.aiAnalysis.urgency} Urgency • {item.aiAnalysis.sentiment}
+                      </span>
+                    ) : null}
                   </div>
 
                   {/* Status Indicator */}
