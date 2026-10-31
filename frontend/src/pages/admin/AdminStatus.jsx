@@ -59,13 +59,10 @@ export default function AdminStatus({ showToast }) {
     <div className="max-w-3xl mx-auto space-y-6 animate-fadeIn font-sans py-4">
       
       {/* Title */}
-      <div className="text-center space-y-1">
+      <div className="text-center">
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
           App Status & Subsystem Health
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Simple system health check for student council members
-        </p>
       </div>
 
       {/* ONE Simple Clean Card */}

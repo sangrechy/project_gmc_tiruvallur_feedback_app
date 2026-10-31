@@ -68,9 +68,6 @@ export default function AdminDashboard({
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight font-sans">
             Council Executive Overview
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Real-time student welfare metrics and triage operations
-          </p>
         </div>
 
         <div className="w-14 h-14 neu-circle p-1.5 flex items-center justify-center flex-shrink-0 sticker-float-r" title="Council Officer Mascot">

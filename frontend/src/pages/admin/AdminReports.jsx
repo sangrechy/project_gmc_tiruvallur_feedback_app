@@ -68,11 +68,8 @@ export default function AdminReports({ feedbacks, showToast }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-mono uppercase tracking-tight">
-            AI REPORTS & ANALYTICS
+            AI Analytics &amp; Summary
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Automated sentiment clustering, recurring issues, and executive insights
-          </p>
         </div>
 
         <div className="flex items-center space-x-2">

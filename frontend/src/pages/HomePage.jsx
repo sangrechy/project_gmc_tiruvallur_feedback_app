@@ -70,14 +70,9 @@ export default function HomePage({
             <span>Student Council • GMC Thiruvallur</span>
           </div>
 
-          <h1 className="text-2xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
-            Direct, Democratic &amp; Confidential<br className="hidden sm:inline" />
-            <span className="text-sky-600 dark:text-sky-400 font-sans">Campus Voice.</span>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
+            Talk to <span className="text-sky-600 dark:text-sky-400 font-sans">Student Council</span>
           </h1>
-
-          <p className="mt-4 sm:mt-5 text-sm sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed">
-            Your voice. Your campus. Your council.
-          </p>
 
           {/* Clean Primary Action Buttons */}
           <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
@@ -125,12 +120,9 @@ export default function HomePage({
                 <div className="flex items-center space-x-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-sky-500 status-pulse-dot" />
                   <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
-                    Latest Council Announcements
+                    Latest Announcements
                   </h2>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Clinical postings, hostel notices, and campus updates
-                </p>
               </div>
 
               <div className="flex items-center space-x-3">
@@ -187,11 +179,8 @@ export default function HomePage({
         <section>
           <div className="mb-6">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
-              Campus Portals &amp; Quick Access
+              Quick Access
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Instant channels for student welfare, dialogue, and community decisions
-            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -306,16 +295,11 @@ export default function HomePage({
             {/* Active Poll Card */}
             <div className="portal-card p-4 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
               <div className="mb-6 pb-4 border-b border-slate-200/60 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Vote className="w-4 h-4 text-sky-500" />
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
-                      Active Student Council Poll
-                    </h2>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Your collective decisions directly influence college administration policies
-                  </p>
+                <div className="flex items-center space-x-2">
+                  <Vote className="w-4 h-4 text-sky-500" />
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
+                    Student Council Poll
+                  </h2>
                 </div>
                 
                 <span className="px-3 py-1 rounded-full text-xs font-mono font-semibold neu-pill">
@@ -404,9 +388,6 @@ export default function HomePage({
               <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
                 Upcoming Academic &amp; Cultural Events
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Join conferences, sports meets, and college functions
-              </p>
             </div>
             
             <button

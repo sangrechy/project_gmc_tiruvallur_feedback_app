@@ -81,9 +81,9 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText(/Direct, Democratic/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /Talk to Student Council/i })).toBeInTheDocument();
     expect(screen.getByText('Submit Anonymous Feedback')).toBeInTheDocument();
-    expect(screen.getByText('Talk to Student Council')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Talk to Student Council/i })).toBeInTheDocument();
     expect(screen.getByText('Anonymous Feedback')).toBeInTheDocument();
     expect(screen.getByText('Temporary Live Chat')).toBeInTheDocument();
     expect(screen.getByText('Collegiate Polls')).toBeInTheDocument();
@@ -345,7 +345,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('AI REPORTS & ANALYTICS')).toBeInTheDocument();
+      expect(screen.getByText(/AI Analytics & Summary/i)).toBeInTheDocument();
       expect(screen.getByText(/EXECUTIVE AI SUMMARY/)).toBeInTheDocument();
       expect(screen.getByText('Sentiment Distribution')).toBeInTheDocument();
       expect(screen.getByText('Category Distribution')).toBeInTheDocument();
