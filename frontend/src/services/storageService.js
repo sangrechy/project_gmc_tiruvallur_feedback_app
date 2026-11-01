@@ -14,8 +14,10 @@ import {
   orderBy,
   where,
   serverTimestamp,
-  runTransaction
+  runTransaction,
+  Timestamp
 } from "firebase/firestore";
+import { signInAnonymously } from "firebase/auth";
 import {
   INITIAL_ANNOUNCEMENTS,
   INITIAL_EVENTS,
@@ -199,7 +201,14 @@ export const storageService = {
     if (isFirebaseConfigured && db) {
       try {
         const snap = await getDocs(collection(db, "polls"));
-        const polls = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const polls = snap.docs.map(d => {
+          const data = d.data();
+          return {
+            id: d.id,
+            ...data,
+            closingDate: data.closingDate?.toDate ? data.closingDate.toDate().toISOString().split("T")[0] : data.closingDate
+          };
+        });
         return polls.map(p => ({
           ...p,
           userVoted: userVotes[p.id] !== undefined ? userVotes[p.id] : null
@@ -222,6 +231,18 @@ export const storageService = {
     }
 
     if (isFirebaseConfigured && db) {
+      if (auth && !auth.currentUser) {
+        try {
+          await signInAnonymously(auth);
+        } catch (err) {
+          console.warn("Anonymous auth failed for voting:", err);
+        }
+      }
+      const voterUid = auth?.currentUser?.uid;
+      if (!voterUid) {
+        throw new Error("Authentication required to cast ballot in poll.");
+      }
+
       const pollRef = doc(db, "polls", pollId);
       await runTransaction(db, async (transaction) => {
         const pollSnap = await transaction.get(pollRef);
@@ -232,8 +253,23 @@ export const storageService = {
         if (pollData.status !== "active") {
           throw new Error("This poll is closed and no longer accepting votes.");
         }
+        if (pollData.closingDate) {
+          const deadline = pollData.closingDate?.toMillis
+            ? pollData.closingDate.toMillis()
+            : new Date(pollData.closingDate.includes("T") ? pollData.closingDate : `${pollData.closingDate}T23:59:59Z`).getTime();
+          if (Date.now() > deadline) {
+            throw new Error("This poll has passed its closing deadline and is no longer accepting votes.");
+          }
+        }
         if (!pollData.options || !pollData.options[optionIndex]) {
           throw new Error("Invalid poll option selected.");
+        }
+
+        // 1. Verify voter has not already cast ballot
+        const voteDocRef = doc(db, "polls", pollId, "votes", voterUid);
+        const existingVoteSnap = await transaction.get(voteDocRef);
+        if (existingVoteSnap.exists()) {
+          throw new Error("You have already voted in this poll!");
         }
 
         const updatedOptions = pollData.options.map((opt, idx) => {
@@ -244,14 +280,13 @@ export const storageService = {
           return { text: opt.text, votes: currentCount };
         });
 
-        // 1. Atomically record individual ballot doc in votes subcollection
-        const voteDocRef = doc(collection(pollRef, "votes"));
+        // 2. Atomically record individual ballot doc bound to voter UID
         transaction.set(voteDocRef, {
           selectedOption: optionIndex,
           timestamp: serverTimestamp()
         });
 
-        // 2. Atomically update poll options and increment totalVotes by 1 in same commit
+        // 3. Atomically update poll options and increment totalVotes by 1 in same commit
         transaction.update(pollRef, {
           options: updatedOptions,
           totalVotes: (Number(pollData.totalVotes) || 0) + 1
@@ -259,16 +294,26 @@ export const storageService = {
       });
     }
 
+    const polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
+    const targetPoll = polls.find(p => p.id === pollId);
+    if (!targetPoll) throw new Error("Poll not found");
+    if (targetPoll.status !== "active") throw new Error("This poll is closed and no longer accepting votes.");
+    if (targetPoll.closingDate) {
+      const deadline = new Date(targetPoll.closingDate.includes("T") ? targetPoll.closingDate : `${targetPoll.closingDate}T23:59:59Z`).getTime();
+      if (Date.now() > deadline) {
+        throw new Error("This poll has passed its closing deadline and is no longer accepting votes.");
+      }
+    }
+    if (!targetPoll.options || !targetPoll.options[optionIndex]) {
+      throw new Error("Invalid poll option selected.");
+    }
+
     userVotes[pollId] = optionIndex;
     localStorage.setItem(KEYS.USER_VOTES, JSON.stringify(userVotes));
 
-    const polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
-    const targetPoll = polls.find(p => p.id === pollId);
-    if (targetPoll && targetPoll.options[optionIndex]) {
-      targetPoll.options[optionIndex].votes += 1;
-      targetPoll.totalVotes = (targetPoll.totalVotes || 0) + 1;
-      localStorage.setItem(KEYS.POLLS, JSON.stringify(polls));
-    }
+    targetPoll.options[optionIndex].votes += 1;
+    targetPoll.totalVotes = (targetPoll.totalVotes || 0) + 1;
+    localStorage.setItem(KEYS.POLLS, JSON.stringify(polls));
 
     return true;
   },
@@ -293,6 +338,10 @@ export const storageService = {
       throw new Error("A valid poll question and at least 2 options are required.");
     }
 
+    const closingTimestamp = pollData.closingDate
+      ? Timestamp.fromDate(new Date(pollData.closingDate.includes("T") ? pollData.closingDate : `${pollData.closingDate}T23:59:59Z`))
+      : null;
+
     const newPoll = {
       ...pollData,
       question: cleanQuestion,
@@ -300,20 +349,29 @@ export const storageService = {
       options: cleanOptions,
       totalVotes: 0,
       status: "active",
+      ...(closingTimestamp ? { closingDate: closingTimestamp } : {}),
       createdAt: new Date().toISOString()
     };
 
     if (isFirebaseConfigured && db) {
       try {
         const docRef = await addDoc(collection(db, "polls"), newPoll);
-        return { id: docRef.id, ...newPoll };
+        return {
+          id: docRef.id,
+          ...newPoll,
+          closingDate: pollData.closingDate || null
+        };
       } catch (err) {
         console.warn("Firestore error adding poll:", err);
       }
     }
 
     const polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
-    const created = { id: `poll-${Date.now()}`, ...newPoll };
+    const created = {
+      id: `poll-${Date.now()}`,
+      ...newPoll,
+      closingDate: pollData.closingDate || null
+    };
     polls.unshift(created);
     localStorage.setItem(KEYS.POLLS, JSON.stringify(polls));
     return created;
@@ -345,20 +403,26 @@ export const storageService = {
 
     // If backend worker is available, dispatch to serverless API
     let backendResult = null;
-    try {
-      backendResult = await apiService.submitFeedback({
-        category: cleanCategory,
-        content: cleanContent,
-        containsPII
-      });
-    } catch (err) {
-      console.warn("Backend feedback submission skipped/failed:", err);
+    if (apiService.isConfigured) {
+      try {
+        backendResult = await apiService.submitFeedback({
+          category: cleanCategory,
+          content: cleanContent,
+          containsPII
+        });
+      } catch (err) {
+        // Enforce server-side rate limits and validation; do not bypass to Firestore
+        if (err.message && (err.message.includes("rate limit") || err.message.includes("rejected") || err.message.includes("exceeds") || err.message.includes("empty") || err.message.includes("too short"))) {
+          throw err;
+        }
+        console.warn("Backend feedback submission skipped/failed:", err);
+      }
     }
 
     const trackingId = backendResult?.trackingId || ("GMC-FB-" + Math.floor(1000 + Math.random() * 9000));
     
-    // Automatic PII Detection heuristics as additional privacy safety (doctor/student titles, roll nos, rooms, phone, email)
-    const piiPattern = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|[0-9]{10}|(roll|reg|id)(?:\s+(?:no|number|#))?\s*[:.-]?\s*\d+|room\s*\d+|my name is\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
+    // Automatic PII Detection heuristics as additional privacy safety (doctor/student titles, phone numbers, roll nos, rooms, emails)
+    const piiPattern = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|(?:\+91[\-\s]?)?[6-9]\d{9}|[0-9]{10,12}|(?:roll|reg(?:istration)?|student\s*id)\s*(?:(?:no|number|#)?\s*(?:is|[:.-])?)\s*\d+|(?:hostel\s+)?room\s*(?:no\.?)?\s*\d+|my name is\s+[a-z]+|i am\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
     const autoDetectedPII = piiPattern.test(cleanContent);
     const finalContainsPII = backendResult?.containsPII !== undefined
       ? backendResult.containsPII
@@ -401,6 +465,13 @@ export const storageService = {
     // Delivery is ONLY considered true if the grievance was durably written to Cloud Firestore
     if (isFirebaseConfigured && db) {
       try {
+        if (auth && !auth.currentUser) {
+          try {
+            await signInAnonymously(auth);
+          } catch (authErr) {
+            console.warn("Anonymous auth failed for feedback:", authErr);
+          }
+        }
         // Strip client-side aiAnalysis before writing to Firestore:
         // Firestore security rules strictly reserve aiAnalysis to council admins
         const { aiAnalysis: _omit, ...cloudDoc } = feedbackDoc;
@@ -498,6 +569,13 @@ export const storageService = {
       ? requestedSessionId.trim().slice(0, 50)
       : this.generateSessionId();
 
+    if (isFirebaseConfigured && auth && !auth.currentUser) {
+      try {
+        await signInAnonymously(auth);
+      } catch (err) {
+        console.warn("Anonymous auth failed for chat session:", err);
+      }
+    }
     const currentUserUid = auth?.currentUser?.uid || null;
 
     // Check if session exists in memory/local first
@@ -543,7 +621,7 @@ export const storageService = {
           localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
           return syncedSession;
         } else {
-          // Create new chat document in Firestore keyed by sessionId
+          // Create new chat document in Firestore keyed by sessionId with mandatory ownerUid
           await setDoc(chatRef, {
             sessionId,
             status: "active",
@@ -625,7 +703,11 @@ export const storageService = {
           lastActivity: serverTimestamp()
         }, { merge: true });
       } catch (err) {
-        console.warn("Firestore chat message write warning:", err);
+        // Rollback local addition if cloud write failed so "Sent" truthfully means saved
+        session.messages.pop();
+        localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
+        console.error("Firestore chat message write failed:", err);
+        throw new Error("Failed to deliver message to cloud server: " + (err.message || "network error"));
       }
     }
 
@@ -645,12 +727,13 @@ export const storageService = {
     if (session) {
       session.status = "ended";
       session.lastActivity = new Date().toISOString();
-      session.messages.push({
+      // Purge conversation message content locally to uphold student privacy promises
+      session.messages = [{
         id: `msg-${Date.now()}-end`,
         sender: "council",
-        text: "This chat session has been ended. All session contents will be safely purged according to council data retention guidelines.",
+        text: "This chat session has been ended. All session contents have been safely purged according to council data retention guidelines.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
+      }];
       localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
     }
 
@@ -666,7 +749,8 @@ export const storageService = {
         const deleteOps = messagesSnap.docs.map(m => deleteDoc(m.ref));
         await Promise.all(deleteOps);
       } catch (err) {
-        console.warn("Firestore endChatSession warning:", err);
+        console.error("Firestore endChatSession error:", err);
+        throw new Error("Failed to purge session messages from cloud: " + err.message);
       }
     }
     return true;
@@ -696,15 +780,24 @@ export const storageService = {
           };
         });
         const cloudChats = await Promise.all(chatPromises);
-        if (cloudChats.length > 0) {
-          localStorage.setItem(KEYS.CHATS, JSON.stringify(cloudChats));
-          return cloudChats;
+        // Exclude chats older than 24h to fulfill 24-hr privacy lifecycle
+        const activeOrRecentChats = cloudChats.filter(c => {
+          const ageHours = (Date.now() - new Date(c.createdAt).getTime()) / (1000 * 60 * 60);
+          return ageHours <= 24;
+        });
+        if (activeOrRecentChats.length > 0) {
+          localStorage.setItem(KEYS.CHATS, JSON.stringify(activeOrRecentChats));
+          return activeOrRecentChats;
         }
       } catch (err) {
         console.warn("Firestore getAllChats fallback to local:", err);
       }
     }
-    return JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
+    const localChats = JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
+    return localChats.filter(c => {
+      const ageHours = (Date.now() - new Date(c.createdAt).getTime()) / (1000 * 60 * 60);
+      return ageHours <= 24;
+    });
   },
 
   // ==================== COUNCIL ADMINS ====================

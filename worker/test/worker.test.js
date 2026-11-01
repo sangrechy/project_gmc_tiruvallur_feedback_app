@@ -363,4 +363,89 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
     assert.equal(blockedRes.status, 429);
     assert.ok(blockedRes.headers.get('retry-after'));
   });
+
+  test('Production CORS restricts access to configured ALLOWED_ORIGINS and blocks untrusted origins', async () => {
+    const prodEnv = {
+      ...mockEnv,
+      ENVIRONMENT: 'production',
+      ALLOWED_ORIGINS: 'https://gmc-thiruvallur-portal.pages.dev,http://localhost:5173'
+    };
+
+    // Allowed origin
+    const allowedReq = new Request('https://worker.dev/api/feedback', {
+      method: 'OPTIONS',
+      headers: { 'Origin': 'https://gmc-thiruvallur-portal.pages.dev' }
+    });
+    const allowedRes = await worker.fetch(allowedReq, prodEnv, mockCtx);
+    assert.equal(allowedRes.headers.get('Access-Control-Allow-Origin'), 'https://gmc-thiruvallur-portal.pages.dev');
+    assert.equal(allowedRes.headers.get('Vary'), 'Origin');
+
+    // Untrusted origin
+    const untrustedReq = new Request('https://worker.dev/api/feedback', {
+      method: 'OPTIONS',
+      headers: { 'Origin': 'https://evil-attacker.example.com' }
+    });
+    const untrustedRes = await worker.fetch(untrustedReq, prodEnv, mockCtx);
+    assert.equal(untrustedRes.headers.get('Access-Control-Allow-Origin'), null);
+  });
+
+  test('POST /api/feedback flags PII for phone with country code and registration numbers', async () => {
+    const p1 = { category: 'Hostel', content: 'Contact me at +91 9876543210 for queries.', containsPII: false };
+    const r1 = await worker.fetch(new Request('https://worker.dev/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p1) }), mockEnv, mockCtx);
+    const d1 = await r1.json();
+    assert.equal(d1.containsPII, true);
+
+    const p2 = { category: 'Academics', content: 'Student reg no 2023-MBBS-45 submitting appeal.', containsPII: false };
+    const r2 = await worker.fetch(new Request('https://worker.dev/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p2) }), mockEnv, mockCtx);
+    const d2 = await r2.json();
+    assert.equal(d2.containsPII, true);
+  });
+
+  test('POST /api/ai/analyze excludes PII submissions and applies redaction defense-in-depth', async () => {
+    let capturedPrompt = '';
+    const prevFetch = globalThis.fetch;
+    globalThis.fetch = async (url, options) => {
+      if (typeof url === 'string' && url.includes('api.groq.com')) {
+        capturedPrompt = options.body;
+        return new Response(JSON.stringify({
+          choices: [{ message: { content: JSON.stringify({ executiveSummary: "Clean summary", recurringThemes: [], recommendations: [] }) } }]
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return prevFetch(url, options);
+    };
+
+    try {
+      const aiEnv = { ...mockEnv, ENVIRONMENT: 'test', GROQ_API_KEY: 'mock-groq-key' };
+      const payload = {
+        feedbacks: [
+          {
+            category: 'Hostel',
+            content: 'Direct PII submission contact Dr. Ramesh room 102 phone 9876543210',
+            containsPII: false
+          },
+          {
+            category: 'Academics',
+            content: 'Library air conditioner in reading wing needs regular servicing.',
+            containsPII: false
+          }
+        ]
+      };
+      const res = await worker.fetch(new Request('https://worker.dev/api/ai/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }), aiEnv, mockCtx);
+
+      assert.equal(res.status, 200);
+      const data = await res.json();
+      assert.equal(data.totalAnalyzed, 1);
+      assert.equal(data.excludedPIICount, 1);
+      // Ensure PII submission was strictly excluded and never dispatched to Groq
+      assert.ok(!capturedPrompt.includes('Ramesh'));
+      assert.ok(!capturedPrompt.includes('9876543210'));
+      assert.ok(capturedPrompt.includes('Library air conditioner'));
+    } finally {
+      globalThis.fetch = prevFetch;
+    }
+  });
 });

@@ -14,6 +14,7 @@ not_found_handling = "single-page-application"
 ENVIRONMENT = "production"
 COLLEGE_NAME = "GMC Thiruvallur"
 PORTAL_URL = "https://gmc-thiruvallur-portal.pages.dev"
+ALLOWED_ORIGINS = "https://gmc-thiruvallur-portal.pages.dev,https://project-gmc-tiruvallur-feedback-app.pages.dev,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 
 # Cloudflare Workers Free Tier optimization
 [observability]

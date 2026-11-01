@@ -118,12 +118,16 @@ describe('Storage Service Blackbox & Unit Verification', () => {
       expect(allChats.some(c => c.sessionId === session.sessionId)).toBe(true);
     });
 
-    it('safely terminates session on endChatSession and blocks further messages', async () => {
+    it('safely terminates session on endChatSession, purges message content, and blocks further messages', async () => {
       const session = await storageService.getOrCreateChatSession();
+      await storageService.sendChatMessage(session.sessionId, 'student', 'Private confidential question');
       await storageService.endChatSession(session.sessionId);
 
       const reloaded = await storageService.getOrCreateChatSession(session.sessionId);
       expect(reloaded.status).toBe('ended');
+      // Messages are purged, retaining only the privacy termination notice
+      expect(reloaded.messages.length).toBe(1);
+      expect(reloaded.messages[0].text).toMatch(/purged/i);
 
       // Attempting to send message to ended session throws error
       await expect(
@@ -147,6 +151,24 @@ describe('Storage Service Blackbox & Unit Verification', () => {
 
       // Duplicate vote throws error
       await expect(storageService.votePoll(target.id, 1)).rejects.toThrow(/already voted/);
+    });
+
+    it('rejects votes when a poll is closed or has passed its deadline', async () => {
+      // Test 1: Closed poll
+      const closedPoll = await storageService.addPoll({
+        question: 'Closed voting test?',
+        options: [{ text: 'Choice A', votes: 0 }, { text: 'Choice B', votes: 0 }]
+      });
+      await storageService.togglePollStatus(closedPoll.id, 'closed');
+      await expect(storageService.votePoll(closedPoll.id, 0)).rejects.toThrow(/closed/i);
+
+      // Test 2: Expired deadline
+      const expiredPoll = await storageService.addPoll({
+        question: 'Past deadline poll?',
+        options: [{ text: 'Choice A', votes: 0 }, { text: 'Choice B', votes: 0 }],
+        closingDate: '2020-01-01'
+      });
+      await expect(storageService.votePoll(expiredPoll.id, 0)).rejects.toThrow(/closing deadline/i);
     });
 
     it('allows council to create and toggle poll status', async () => {

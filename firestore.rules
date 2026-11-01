@@ -9,20 +9,20 @@ rules_version = '2';
 // Fields:
 //   - trackingId: string (optional, 1-50 chars, immutable) - e.g. "GMC-FB-9402"
 //   - category: string (required, 1-100 chars, immutable) - Department or category
-//   - content: string (required, 1-5000 chars, immutable) - Student grievance description
+//   - content: string (required, 5-4000 chars, immutable) - Student grievance description
 //   - containsPII: bool (optional) - True if identifying info declared or auto-detected
 //   - status: string (optional, 1-50 chars) - "Received" | "Reviewing" | "Resolved"
 //   - createdAt: string (optional, 1-50 chars, immutable) - ISO 8601 date string
 //   - serverTimestamp: timestamp (optional) - Server-side write timestamp
-//   - aiAnalysis: map or null (optional) - AI classification metadata
-//   - councilNotes: string (optional, <= 2000 chars) - Council internal notes (admin only)
+//   - aiAnalysis: map or null (optional) - AI classification metadata (council admin only)
+//   - councilNotes: string (optional, <= 2000 chars) - Council internal notes (council admin only)
 //
 // Collection: chats
 // Document ID: sessionId string (enforced sessionId == chatId)
 // Fields:
 //   - sessionId: string (required, 1-50 chars, immutable) - Ephemeral session identifier
 //   - status: string (required, 'active' | 'ended' | 'expired') - Session lifecycle status
-//   - ownerUid: string or null (optional, <= 128 chars, immutable) - Authenticated student UID if signed in
+//   - ownerUid: string (required, 1-128 chars, immutable) - Authenticated student UID
 //   - createdAt: timestamp or string (optional, immutable) - Session initiation timestamp
 //   - lastActivity: timestamp or string (optional) - Last ping/message timestamp
 //   - endedAt: timestamp or string (optional) - Session closure timestamp
@@ -42,18 +42,18 @@ rules_version = '2';
 // Document ID: auto-generated or custom string ID
 // Fields:
 //   - id: string (optional, 1-100 chars, immutable) - Poll identifier
-//   - question: string (required, 1-500 chars) - Poll question prompt
-//   - category: string (optional, 1-100 chars) - Category label
+//   - question: string (required, 1-500 chars, immutable on vote) - Poll question prompt
+//   - category: string (optional, 1-100 chars, immutable on vote) - Category label
 //   - options: list (required, 2-20 items) - Array of { text: string, votes: int }
 //   - totalVotes: int (optional, >= 0) - Aggregate vote counter
-//   - status: string (required, 'active' | 'closed' | 'ended' | 'archived') - Voting status
-//   - closingDate: string (optional, 1-50 chars) - Poll deadline
-//   - createdBy: string (optional, 1-100 chars) - Author
-//   - createdAt: string or timestamp (optional) - Creation timestamp
+//   - status: string (required, 'active' | 'closed' | 'ended' | 'archived', immutable on vote)
+//   - closingDate: timestamp or string (optional, <= 50 chars if string, immutable on vote) - Deadline
+//   - createdBy: string (optional, 1-100 chars, immutable on vote) - Author
+//   - createdAt: string or timestamp (optional, immutable on vote) - Creation timestamp
 //   - userVoted: any (optional) - Client cache flag
 //
 // Subcollection: polls/{pollId}/votes
-// Document ID: auto-generated or student vote ID
+// Document ID: voter UID (enforced voteId == request.auth.uid to guarantee uniqueness)
 // Fields:
 //   - selectedOption: int or string (required) - Selected option index or key
 //   - timestamp: timestamp (optional) - Vote timestamp
@@ -126,15 +126,16 @@ service cloud.firestore {
     // Domain Validators
     // ===============================================================
 
-    // Validates feedback schema on create and update
+    // Validates feedback schema on create and update (5 to 4000 chars content bound)
     function isValidFeedbackData(data) {
       return data.keys().hasOnly([
                'trackingId', 'category', 'content', 'containsPII',
                'status', 'createdAt', 'serverTimestamp', 'aiAnalysis', 'councilNotes'
              ]) &&
+             data.keys().hasAll(['category', 'content']) &&
              data.content is string &&
-             data.content.size() > 0 &&
-             data.content.size() <= 5000 &&
+             data.content.size() >= 5 &&
+             data.content.size() <= 4000 &&
              data.category is string &&
              data.category.size() > 0 &&
              data.category.size() <= 100 &&
@@ -147,18 +148,20 @@ service cloud.firestore {
              (!('councilNotes' in data) || (data.councilNotes is string && data.councilNotes.size() <= 2000));
     }
 
-    // Validates live chat session documents
+    // Validates live chat session documents - requires ownerUid for strict user isolation
     function isValidChat(data) {
       return data.keys().hasOnly(['sessionId', 'status', 'createdAt', 'lastActivity', 'ownerUid', 'endedAt', 'messages']) &&
-             data.keys().hasAll(['sessionId', 'status']) &&
+             data.keys().hasAll(['sessionId', 'status', 'ownerUid']) &&
              data.sessionId is string &&
              data.sessionId.size() > 0 &&
              data.sessionId.size() <= 50 &&
+             data.ownerUid is string &&
+             data.ownerUid.size() > 0 &&
+             data.ownerUid.size() <= 128 &&
              data.status in ['active', 'ended', 'expired'] &&
              (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50)) &&
              (!('lastActivity' in data) || data.lastActivity is timestamp || (data.lastActivity is string && data.lastActivity.size() <= 50)) &&
              (!('endedAt' in data) || data.endedAt is timestamp || (data.endedAt is string && data.endedAt.size() <= 50)) &&
-             (!('ownerUid' in data) || data.ownerUid == null || (data.ownerUid is string && data.ownerUid.size() <= 128)) &&
              (!('messages' in data) || (data.messages is list && data.messages.size() <= 500));
     }
 
@@ -199,7 +202,7 @@ service cloud.firestore {
              (!('id' in data) || (data.id is string && data.id.size() <= 100)) &&
              (!('createdBy' in data) || (data.createdBy is string && data.createdBy.size() <= 100)) &&
              (!('totalVotes' in data) || (data.totalVotes is int && data.totalVotes >= 0)) &&
-             (!('closingDate' in data) || (data.closingDate is string && data.closingDate.size() <= 50)) &&
+             (!('closingDate' in data) || data.closingDate == null || data.closingDate is timestamp || (data.closingDate is string && data.closingDate.size() <= 50)) &&
              (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50));
     }
 
@@ -228,10 +231,44 @@ service cloud.firestore {
              (currentOptions.size() <= 19 || (nextOptions[19].text == currentOptions[19].text && nextOptions[19].votes is int && nextOptions[19].votes >= currentOptions[19].votes));
     }
 
-    // Checks if the parent poll is currently active for voting
+    // Computes the total sum of votes across all poll options (up to max 20 options)
+    function sumOptionVotes(options) {
+      return (options.size() > 0 ? options[0].votes : 0) +
+             (options.size() > 1 ? options[1].votes : 0) +
+             (options.size() > 2 ? options[2].votes : 0) +
+             (options.size() > 3 ? options[3].votes : 0) +
+             (options.size() > 4 ? options[4].votes : 0) +
+             (options.size() > 5 ? options[5].votes : 0) +
+             (options.size() > 6 ? options[6].votes : 0) +
+             (options.size() > 7 ? options[7].votes : 0) +
+             (options.size() > 8 ? options[8].votes : 0) +
+             (options.size() > 9 ? options[9].votes : 0) +
+             (options.size() > 10 ? options[10].votes : 0) +
+             (options.size() > 11 ? options[11].votes : 0) +
+             (options.size() > 12 ? options[12].votes : 0) +
+             (options.size() > 13 ? options[13].votes : 0) +
+             (options.size() > 14 ? options[14].votes : 0) +
+             (options.size() > 15 ? options[15].votes : 0) +
+             (options.size() > 16 ? options[16].votes : 0) +
+             (options.size() > 17 ? options[17].votes : 0) +
+             (options.size() > 18 ? options[18].votes : 0) +
+             (options.size() > 19 ? options[19].votes : 0);
+    }
+
+    // Checks if the parent poll is currently active for voting and deadline has not passed
     function isPollActive(pollId) {
+      let poll = get(/databases/$(database)/documents/polls/$(pollId)).data;
       return exists(/databases/$(database)/documents/polls/$(pollId)) &&
-             get(/databases/$(database)/documents/polls/$(pollId)).data.status == 'active';
+             poll.status == 'active' &&
+             (
+               !('closingDate' in poll) ||
+               poll.closingDate == null ||
+               (poll.closingDate is timestamp && request.time <= poll.closingDate) ||
+               (poll.closingDate is string && (
+                 string(request.time) <= poll.closingDate ||
+                 string(request.time).split('T')[0] <= poll.closingDate
+               ))
+             );
     }
 
     // Validates individual vote documents
@@ -265,12 +302,13 @@ service cloud.firestore {
 
     // ===============================================================
     // 1. Feedback Collection
-    // Students can submit anonymously; only authorized Council Admins can read, update, or delete
+    // Authenticated grievance submissions; Council Admins manage and triage
     // ===============================================================
     match /feedback/{feedbackId} {
-      allow create: if isValidFeedbackData(request.resource.data) &&
+      allow create: if isAuthenticated() &&
+                    isValidFeedbackData(request.resource.data) &&
+                    (!('status' in request.resource.data) || request.resource.data.status == 'Received' || isAdmin()) &&
                     (!('councilNotes' in request.resource.data) || isAdmin()) &&
-                    (!('status' in request.resource.data) || request.resource.data.status == 'Received') &&
                     (!('aiAnalysis' in request.resource.data) || isAdmin());
       allow read, delete: if isAdmin();
       allow update: if isAdmin() &&
@@ -280,49 +318,42 @@ service cloud.firestore {
 
     // ===============================================================
     // 2. Ephemeral Live Chat Collection
-    // Students and admins interact via temporary 24-hr session IDs
-    // Enforces session ID document keying, 24-hr session lifetime, and optional ownerUid scoping
+    // Authenticated students and admins interact via temporary 24-hr sessions
+    // Requires ownerUid on all sessions, preventing unauthenticated access or session takeover
     // ===============================================================
     match /chats/{chatId} {
       allow get: if isAdmin() ||
-                    !('ownerUid' in resource.data) ||
-                    resource.data.ownerUid == null ||
                     (isAuthenticated() && resource.data.ownerUid == request.auth.uid);
       allow list: if isAdmin();
       allow create: if isValidChat(request.resource.data) &&
-                       request.resource.data.sessionId == chatId &&
-                       (isAdmin() ||
-                        !('ownerUid' in request.resource.data) ||
-                        request.resource.data.ownerUid == null ||
-                        (isAuthenticated() && request.resource.data.ownerUid == request.auth.uid));
-      allow update: if (isAdmin() ||
-                        (isAuthenticated() && resource.data.ownerUid == request.auth.uid) ||
-                        !('ownerUid' in resource.data) ||
-                        resource.data.ownerUid == null) &&
-                    isValidChat(request.resource.data) &&
-                    areImmutableFieldsUnchanged(['sessionId', 'createdAt', 'ownerUid']);
+                    request.resource.data.sessionId == chatId &&
+                    (isAdmin() || (isAuthenticated() && request.resource.data.ownerUid == request.auth.uid));
+      allow update: if isAdmin() || (
+                      isAuthenticated() &&
+                      resource.data.ownerUid == request.auth.uid &&
+                      resource.data.status == 'active' &&
+                      request.resource.data.status in ['active', 'ended'] &&
+                      isValidChat(request.resource.data) &&
+                      areImmutableFieldsUnchanged(['sessionId', 'createdAt', 'ownerUid'])
+                    );
       allow delete: if isAdmin() ||
-                       (isAuthenticated() && resource.data.ownerUid == request.auth.uid);
+                    (isAuthenticated() && resource.data.ownerUid == request.auth.uid);
 
-      // Message Subcollection: council admins or session participants can read and send messages within 24h
+      // Message Subcollection: council admins or verified session owner can read and send messages within 24h
       match /messages/{messageId} {
         allow read: if isAdmin() || (
-          isChatSessionActive(chatId) && (
-            !('ownerUid' in get(/databases/$(database)/documents/chats/$(chatId)).data) ||
-            get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == null ||
-            (isAuthenticated() && get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid)
-          )
+          isChatSessionActive(chatId) &&
+          isAuthenticated() &&
+          get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid
         );
         allow create: if isValidMessage(request.resource.data, chatId) &&
-                         isChatSessionActive(chatId) && (
-                           isAdmin() || (
-                             request.resource.data.sender == 'student' && (
-                               !('ownerUid' in get(/databases/$(database)/documents/chats/$(chatId)).data) ||
-                               get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == null ||
-                               (isAuthenticated() && get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid)
-                             )
-                           )
-                         );
+                      isChatSessionActive(chatId) && (
+                        isAdmin() || (
+                          isAuthenticated() &&
+                          request.resource.data.sender == 'student' &&
+                          get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid
+                        )
+                      );
         allow update: if false; // Messages are immutable once posted
         allow delete: if isAdmin() || (
           isAuthenticated() &&
@@ -343,23 +374,33 @@ service cloud.firestore {
 
     // ===============================================================
     // 4. Polls Collection & Subcollection Votes
-    // Only Council Admins manage polls; Students vote on active polls
+    // Only Council Admins manage polls; Authenticated Students vote on active polls
+    // Enforces single-vote per student UID, mathematical tally increment proofs, and immutability
     // ===============================================================
     match /polls/{pollId} {
       allow read: if true;
       allow create, delete: if isAdmin();
-      // Admins can update all poll fields; Students can cast exactly one vote incrementing totalVotes by 1 on active polls with options integrity enforced
+      // Admins can update all poll fields; Authenticated students can cast exactly one vote incrementing totalVotes by 1 on active polls
       allow update: if (isAdmin() && isValidPoll(request.resource.data)) ||
-                       (isPollActive(pollId) &&
-                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes']) &&
-                        request.resource.data.totalVotes == resource.data.totalVotes + 1 &&
-                        arePollOptionsVoteValid(resource.data.options, request.resource.data.options) &&
-                        areImmutableFieldsUnchanged(['id', 'question', 'category', 'status', 'closingDate', 'createdAt', 'createdBy']));
+                       (
+                         isAuthenticated() &&
+                         isPollActive(pollId) &&
+                         !exists(/databases/$(database)/documents/polls/$(pollId)/votes/$(request.auth.uid)) &&
+                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes']) &&
+                         request.resource.data.totalVotes == resource.data.totalVotes + 1 &&
+                         arePollOptionsVoteValid(resource.data.options, request.resource.data.options) &&
+                         sumOptionVotes(request.resource.data.options) == sumOptionVotes(resource.data.options) + 1 &&
+                         sumOptionVotes(request.resource.data.options) == request.resource.data.totalVotes &&
+                         areImmutableFieldsUnchanged(['id', 'question', 'category', 'status', 'closingDate', 'createdAt', 'createdBy'])
+                       );
 
       // Votes Subcollection: restricted to active polls; individual ballot reads restricted to admins
       match /votes/{voteId} {
         allow read: if isAdmin();
-        allow create: if isPollActive(pollId) && isValidVote(request.resource.data);
+        allow create: if isAuthenticated() &&
+                         isPollActive(pollId) &&
+                         voteId == request.auth.uid &&
+                         isValidVote(request.resource.data);
         allow update: if false; // Votes are final once cast
         allow delete: if isAdmin();
       }

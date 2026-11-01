@@ -205,6 +205,7 @@ export const apiService = {
   },
 
   async submitFeedback({ category, content, containsPII }) {
+    if (!this.isConfigured) return null;
     const targetUrl = `${API_BASE}/api/feedback`;
     try {
       const res = await fetch(targetUrl, {
@@ -215,10 +216,17 @@ export const apiService = {
       if (res.ok) {
         return await res.json();
       }
+      // Explicit server-side rejections must not be bypassed
+      const errData = await res.json().catch(() => ({}));
+      const errMsg = errData.error || `Server rejected feedback submission (${res.status})`;
+      throw new Error(errMsg);
     } catch (err) {
-      console.warn("Worker /api/feedback call failed, falling back to local storage:", err);
+      if (err.message && (err.message.includes("rate limit") || err.message.includes("exceeds") || err.message.includes("empty") || err.message.includes("too short"))) {
+        throw err;
+      }
+      console.warn("Worker /api/feedback network error, falling back to local storage:", err);
+      return null;
     }
-    return null;
   },
 
   async sendChatMessage(sessionId, sender, text) {
