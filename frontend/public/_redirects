@@ -1,3 +1,0 @@
-# Cloudflare Pages SPA Deep Linking
-# Routes all non-static requests to /index.html with HTTP 200
-/*    /index.html   200

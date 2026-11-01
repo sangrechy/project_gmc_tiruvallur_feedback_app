@@ -1,4 +1,4 @@
-name = "gmc-thiruvallur-portal"
+name = "project-gmc-tiruvallur-feedback-app"
 main = "worker/src/index.js"
 compatibility_date = "2024-04-03"
 
