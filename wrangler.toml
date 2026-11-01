@@ -1,0 +1,20 @@
+name = "gmc-thiruvallur-portal"
+main = "worker/src/index.js"
+compatibility_date = "2024-04-03"
+
+# Static Assets Configuration (Serves the compiled Vite SPA frontend from ./dist)
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+
+# Environment Variables & Configuration
+# Sensitive secrets (COUNCIL_AUTH_TOKEN, TELEGRAM_BOT_TOKEN, GROQ_API_KEY, GEMINI_API_KEY)
+# must be configured via `wrangler secret put <KEY>` or Cloudflare Dashboard
+[vars]
+ENVIRONMENT = "production"
+COLLEGE_NAME = "GMC Thiruvallur"
+PORTAL_URL = "https://gmc-thiruvallur-portal.pages.dev"
+
+# Cloudflare Workers Free Tier optimization
+[observability]
+enabled = true

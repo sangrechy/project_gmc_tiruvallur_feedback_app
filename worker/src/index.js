@@ -691,6 +691,11 @@ export default {
         return jsonResponse(aiReport, 200, env, request);
       }
 
+      // 8. Static Assets Fallback (Cloudflare Workers with Static Assets)
+      if (env.ASSETS && typeof env.ASSETS.fetch === "function") {
+        return env.ASSETS.fetch(request);
+      }
+
       return jsonResponse({ error: "Endpoint not found" }, 404, env, request);
     } catch (err) {
       console.error("Worker Execution Error:", err);
