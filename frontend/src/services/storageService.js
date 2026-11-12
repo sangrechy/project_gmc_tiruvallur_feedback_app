@@ -510,10 +510,11 @@ export const storageService = {
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
       } catch (err) {
         if (err.code === "permission-denied") {
-          console.warn("Firestore feedback read permission-denied: Council email login required for Cloud Firestore clearance. Falling back to local store.", err);
-        } else {
-          console.warn("Firestore getFeedbacks fallback:", err);
+          console.error("Firestore feedback read permission-denied: Council clearance required.");
+          return [];
         }
+        console.warn("Firestore getFeedbacks error:", err);
+        return [];
       }
     }
     return JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
@@ -550,13 +551,13 @@ export const storageService = {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let code = "GMC-";
     if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-      const buffer = new Uint8Array(5);
+      const buffer = new Uint8Array(10);
       crypto.getRandomValues(buffer);
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         code += chars.charAt(buffer[i] % chars.length);
       }
     } else {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
     }
@@ -703,8 +704,8 @@ export const storageService = {
           lastActivity: serverTimestamp()
         }, { merge: true });
       } catch (err) {
-        // Rollback local addition if cloud write failed so "Sent" truthfully means saved
-        session.messages.pop();
+        // Rollback local addition if cloud write failed so "Sent" truthfully means saved (MED-07: filter by id)
+        session.messages = session.messages.filter(m => m.id !== newMsg.id);
         localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
         console.error("Firestore chat message write failed:", err);
         throw new Error("Failed to deliver message to cloud server: " + (err.message || "network error"));
@@ -789,8 +790,14 @@ export const storageService = {
           localStorage.setItem(KEYS.CHATS, JSON.stringify(activeOrRecentChats));
           return activeOrRecentChats;
         }
+        return [];
       } catch (err) {
-        console.warn("Firestore getAllChats fallback to local:", err);
+        if (err.code === "permission-denied") {
+          console.error("Firestore getAllChats permission-denied: Council clearance required.");
+          return [];
+        }
+        console.warn("Firestore getAllChats error:", err);
+        return [];
       }
     }
     const localChats = JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");

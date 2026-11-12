@@ -52,6 +52,9 @@ export default function App() {
     const saved = localStorage.getItem('gmc_admin_session');
     return saved ? JSON.parse(saved) : null;
   });
+  const [isAuthVerifying, setIsAuthVerifying] = useState(() => {
+    return Boolean(localStorage.getItem('gmc_admin_session'));
+  });
 
   // Core Data State
   const [announcements, setAnnouncements] = useState([]);
@@ -103,11 +106,15 @@ export default function App() {
   useEffect(() => {
     const validateExistingSession = async () => {
       const saved = localStorage.getItem('gmc_admin_session');
-      if (!saved) return;
+      if (!saved) {
+        setIsAuthVerifying(false);
+        return;
+      }
       try {
         const parsed = JSON.parse(saved);
         if (parsed?.expiresAt && Date.now() > parsed.expiresAt) {
           handleLogout();
+          setIsAuthVerifying(false);
           return;
         }
         const tokenToVerify = parsed?.sessionToken || parsed?.token;
@@ -120,6 +127,8 @@ export default function App() {
       } catch (err) {
         console.warn("Session validation error:", err);
         handleLogout();
+      } finally {
+        setIsAuthVerifying(false);
       }
     };
     validateExistingSession();
@@ -131,6 +140,7 @@ export default function App() {
 
   // Admin session handlers
   const handleLoginSuccess = async (user) => {
+    setIsAuthVerifying(false);
     // Sanitize user object to ensure raw password is NEVER persisted in browser storage
     const safeUser = {
       email: user.email || "executive.council@gmcthiruvallur.ac.in",
@@ -157,6 +167,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    setIsAuthVerifying(false);
     setAdminUser(null);
     setFeedbacks([]);
     setChats([]);
@@ -230,82 +241,94 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[#e6edf8] dark:bg-[#0c1427] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       {/* Render Main App or Admin Console */}
-      {currentRoute === 'admin-dashboard' && adminUser ? (
-        <Suspense fallback={<AdminLoadingFallback />}>
-          <AdminLayout
-            currentSection={adminSection}
-            setCurrentSection={setAdminSection}
-            onLogout={handleLogout}
-            setCurrentRoute={setCurrentRoute}
-            adminUser={adminUser}
-            unreadCount={unreadFeedbackCount}
-            activeChatsCount={activeChatsCount}
-          >
-            {adminSection === 'dashboard' && (
-              <AdminDashboard
-                feedbacks={feedbacks}
-                chats={chats}
-                polls={polls}
-                announcements={announcements}
-                setCurrentSection={setAdminSection}
-                onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
-                showToast={showToast}
-              />
-            )}
+      {currentRoute === 'admin-dashboard' ? (
+        isAuthVerifying ? (
+          <AdminLoadingFallback />
+        ) : adminUser ? (
+          <Suspense fallback={<AdminLoadingFallback />}>
+            <AdminLayout
+              currentSection={adminSection}
+              setCurrentSection={setAdminSection}
+              onLogout={handleLogout}
+              setCurrentRoute={setCurrentRoute}
+              adminUser={adminUser}
+              unreadCount={unreadFeedbackCount}
+              activeChatsCount={activeChatsCount}
+            >
+              {adminSection === 'dashboard' && (
+                <AdminDashboard
+                  feedbacks={feedbacks}
+                  chats={chats}
+                  polls={polls}
+                  announcements={announcements}
+                  setCurrentSection={setAdminSection}
+                  onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
+                  showToast={showToast}
+                />
+              )}
 
-            {adminSection === 'status' && (
-              <AdminStatus showToast={showToast} />
-            )}
+              {adminSection === 'status' && (
+                <AdminStatus showToast={showToast} />
+              )}
 
-            {adminSection === 'feedback' && (
-              <AdminFeedback
-                feedbacks={feedbacks}
-                onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
-                showToast={showToast}
-              />
-            )}
+              {adminSection === 'feedback' && (
+                <AdminFeedback
+                  feedbacks={feedbacks}
+                  onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
+                  showToast={showToast}
+                />
+              )}
 
-            {adminSection === 'chat' && (
-              <AdminChat
-                chats={chats}
-                onRefreshChats={handleRefreshChats}
-                showToast={showToast}
-              />
-            )}
+              {adminSection === 'chat' && (
+                <AdminChat
+                  chats={chats}
+                  onRefreshChats={handleRefreshChats}
+                  showToast={showToast}
+                />
+              )}
 
-            {adminSection === 'announcements' && (
-              <AdminAnnouncements
-                announcements={announcements}
-                onAddAnnouncement={handleAddAnnouncement}
-                onDeleteAnnouncement={handleDeleteAnnouncement}
-                onUpdateAnnouncement={handleUpdateAnnouncement}
-                showToast={showToast}
-              />
-            )}
+              {adminSection === 'announcements' && (
+                <AdminAnnouncements
+                  announcements={announcements}
+                  onAddAnnouncement={handleAddAnnouncement}
+                  onDeleteAnnouncement={handleDeleteAnnouncement}
+                  onUpdateAnnouncement={handleUpdateAnnouncement}
+                  showToast={showToast}
+                />
+              )}
 
-            {adminSection === 'polls' && (
-              <AdminPolls
-                polls={polls}
-                onAddPoll={handleAddPoll}
-                onTogglePollStatus={handleTogglePollStatus}
-                showToast={showToast}
-              />
-            )}
+              {adminSection === 'polls' && (
+                <AdminPolls
+                  polls={polls}
+                  onAddPoll={handleAddPoll}
+                  onTogglePollStatus={handleTogglePollStatus}
+                  showToast={showToast}
+                />
+              )}
 
-            {adminSection === 'reports' && (
-              <AdminReports
-                feedbacks={feedbacks}
-                showToast={showToast}
-              />
-            )}
+              {adminSection === 'reports' && (
+                <AdminReports
+                  feedbacks={feedbacks}
+                  showToast={showToast}
+                />
+              )}
 
-            {adminSection === 'management' && (
-              <AdminManagement
-                showToast={showToast}
-              />
-            )}
-          </AdminLayout>
-        </Suspense>
+              {adminSection === 'management' && (
+                <AdminManagement
+                  showToast={showToast}
+                />
+              )}
+            </AdminLayout>
+          </Suspense>
+        ) : (
+          <Suspense fallback={<AdminLoadingFallback />}>
+            <AdminLoginPage
+              onLoginSuccess={handleLoginSuccess}
+              setCurrentRoute={setCurrentRoute}
+              showToast={showToast}
+            />
+          </Suspense>
+        )
       ) : (
         <>
           <Header

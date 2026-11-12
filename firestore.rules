@@ -23,7 +23,7 @@ rules_version = '2';
 //   - sessionId: string (required, 1-50 chars, immutable) - Ephemeral session identifier
 //   - status: string (required, 'active' | 'ended' | 'expired') - Session lifecycle status
 //   - ownerUid: string (required, 1-128 chars, immutable) - Authenticated student UID
-//   - createdAt: timestamp or string (optional, immutable) - Session initiation timestamp
+//   - createdAt: timestamp (required, immutable) - Session initiation timestamp (server timestamp)
 //   - lastActivity: timestamp or string (optional) - Last ping/message timestamp
 //   - endedAt: timestamp or string (optional) - Session closure timestamp
 //   - messages: list (optional, <= 500 items) - Ephemeral message cache
@@ -85,7 +85,7 @@ rules_version = '2';
 //   - name: string (optional) - Executive name
 //   - email: string (optional) - Institutional email
 //   - role: string (optional) - Council role
-//   - status: string (optional) - "Active"
+//   - status: string (required, 'Active' | 'Revoked' | 'Inactive') - Council member authorization status
 //
 // ===============================================================
 
@@ -102,11 +102,13 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status == 'Active') ||
         (request.auth.token.email_verified == true &&
          'email' in request.auth.token &&
          request.auth.token.email != null &&
-         exists(/databases/$(database)/documents/admins/$(request.auth.token.email)))
+         exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.status == 'Active')
       );
     }
 
@@ -151,7 +153,7 @@ service cloud.firestore {
     // Validates live chat session documents - requires ownerUid for strict user isolation
     function isValidChat(data) {
       return data.keys().hasOnly(['sessionId', 'status', 'createdAt', 'lastActivity', 'ownerUid', 'endedAt', 'messages']) &&
-             data.keys().hasAll(['sessionId', 'status', 'ownerUid']) &&
+             data.keys().hasAll(['sessionId', 'status', 'ownerUid', 'createdAt']) &&
              data.sessionId is string &&
              data.sessionId.size() > 0 &&
              data.sessionId.size() <= 50 &&
@@ -159,7 +161,7 @@ service cloud.firestore {
              data.ownerUid.size() > 0 &&
              data.ownerUid.size() <= 128 &&
              data.status in ['active', 'ended', 'expired'] &&
-             (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+             data.createdAt is timestamp &&
              (!('lastActivity' in data) || data.lastActivity is timestamp || (data.lastActivity is string && data.lastActivity.size() <= 50)) &&
              (!('endedAt' in data) || data.endedAt is timestamp || (data.endedAt is string && data.endedAt.size() <= 50)) &&
              (!('messages' in data) || (data.messages is list && data.messages.size() <= 500));
@@ -170,7 +172,9 @@ service cloud.firestore {
       let chat = get(/databases/$(database)/documents/chats/$(chatId)).data;
       return exists(/databases/$(database)/documents/chats/$(chatId)) &&
              chat.status == 'active' &&
-             (!('createdAt' in chat) || !(chat.createdAt is timestamp) || request.time < chat.createdAt + duration.value(24, 'h'));
+             'createdAt' in chat &&
+             chat.createdAt is timestamp &&
+             request.time < chat.createdAt + duration.value(24, 'h');
     }
 
     // Validates live chat message documents
@@ -307,13 +311,14 @@ service cloud.firestore {
     match /feedback/{feedbackId} {
       allow create: if isAuthenticated() &&
                     isValidFeedbackData(request.resource.data) &&
+                    (!('serverTimestamp' in request.resource.data) || request.resource.data.serverTimestamp == request.time) &&
                     (!('status' in request.resource.data) || request.resource.data.status == 'Received' || isAdmin()) &&
                     (!('councilNotes' in request.resource.data) || isAdmin()) &&
                     (!('aiAnalysis' in request.resource.data) || isAdmin());
       allow read, delete: if isAdmin();
       allow update: if isAdmin() &&
                     isValidFeedbackData(request.resource.data) &&
-                    areImmutableFieldsUnchanged(['trackingId', 'createdAt']);
+                    areImmutableFieldsUnchanged(['trackingId', 'createdAt', 'content', 'category']);
     }
 
     // ===============================================================
@@ -327,6 +332,7 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create: if isValidChat(request.resource.data) &&
                     request.resource.data.sessionId == chatId &&
+                    request.resource.data.createdAt == request.time &&
                     (isAdmin() || (isAuthenticated() && request.resource.data.ownerUid == request.auth.uid));
       allow update: if isAdmin() || (
                       isAuthenticated() &&
@@ -386,6 +392,7 @@ service cloud.firestore {
                          isAuthenticated() &&
                          isPollActive(pollId) &&
                          !exists(/databases/$(database)/documents/polls/$(pollId)/votes/$(request.auth.uid)) &&
+                         existsAfter(/databases/$(database)/documents/polls/$(pollId)/votes/$(request.auth.uid)) &&
                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes']) &&
                          request.resource.data.totalVotes == resource.data.totalVotes + 1 &&
                          arePollOptionsVoteValid(resource.data.options, request.resource.data.options) &&

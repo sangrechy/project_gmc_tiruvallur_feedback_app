@@ -53,19 +53,61 @@ function checkRateLimit(ip, endpoint, maxRequests, windowMs) {
 }
 
 /**
- * Extract caller IP from standard Cloudflare headers
+ * Extract caller IP from standard Cloudflare headers (prevent X-Forwarded-For spoofing)
  */
 function getClientIp(request) {
   return (
     request.headers.get("cf-connecting-ip") ||
     request.headers.get("x-real-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "127.0.0.1"
   );
 }
 
 /**
- * Verify payload length to protect against buffer exhaustion DoS
+ * Safely parse JSON body with streaming byte counter to prevent chunked payload bombs (CRIT-04)
+ */
+async function readJsonBodySafe(request, maxBytes = 262144) {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && parseInt(contentLength, 10) > maxBytes) {
+    const err = new Error("Payload exceeds allowed limit");
+    err.code = "PAYLOAD_TOO_LARGE";
+    throw err;
+  }
+
+  if (!request.body) return {};
+
+  const reader = request.body.getReader();
+  let totalBytes = 0;
+  const chunks = [];
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    totalBytes += value.length;
+    if (totalBytes > maxBytes) {
+      try { await reader.cancel(); } catch {}
+      const err = new Error("Payload exceeds allowed limit");
+      err.code = "PAYLOAD_TOO_LARGE";
+      throw err;
+    }
+    chunks.push(value);
+  }
+
+  if (totalBytes === 0) return {};
+
+  const combined = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  const text = new TextDecoder().decode(combined);
+  return JSON.parse(text);
+}
+
+/**
+ * Legacy payload length check (compatibility)
  */
 function checkPayloadSize(request, maxBytes) {
   const contentLength = request.headers.get("content-length");
@@ -76,7 +118,7 @@ function checkPayloadSize(request, maxBytes) {
 }
 
 /**
- * Sanitize text input: strip null bytes, script tags, javascript: URIs, escape HTML brackets
+ * Sanitize text input: strip null bytes, script tags, javascript: URIs, escape HTML entities
  */
 function sanitizeInput(str, maxLength = 5000) {
   if (typeof str !== "string") return "";
@@ -85,7 +127,11 @@ function sanitizeInput(str, maxLength = 5000) {
     .replace(/\0/g, "")
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
     .replace(/javascript:/gi, "")
-    .replace(/[<>]/g, (c) => (c === "<" ? "&lt;" : "&gt;"))
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
     .trim();
 }
 
@@ -144,14 +190,28 @@ function base64UrlDecodeToBytes(str) {
 }
 
 /**
+ * Derive a dedicated 256-bit HMAC signing key from master passcode (HIGH-06)
+ * Eliminates offline dictionary/brute-force attacks against the raw master passcode
+ */
+async function deriveSigningKey(secretKey) {
+  const enc = new TextEncoder();
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    enc.encode(`GMC_PORTAL_SESSION_KEY_DERIVATION_V1:${secretKey}`)
+  );
+  return new Uint8Array(hash);
+}
+
+/**
  * Generate a cryptographically signed, short-lived session token (HMAC-SHA256)
  * Prevents raw master passcodes from ever being stored in browser localStorage
  */
 async function createSessionToken(payload, secretKey) {
   const enc = new TextEncoder();
+  const derivedKeyBytes = await deriveSigningKey(secretKey);
   const key = await crypto.subtle.importKey(
     "raw",
-    enc.encode(secretKey),
+    derivedKeyBytes,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"]
@@ -180,9 +240,10 @@ async function verifySessionToken(token, secretKey) {
 
   try {
     const enc = new TextEncoder();
+    const derivedKeyBytes = await deriveSigningKey(secretKey);
     const key = await crypto.subtle.importKey(
       "raw",
-      enc.encode(secretKey),
+      derivedKeyBytes,
       { name: "HMAC", hash: "SHA-256" },
       false,
       ["verify"]
@@ -245,15 +306,29 @@ function escapeTelegramMarkdown(str) {
  */
 function getCorsHeaders(env = {}, request = null) {
   const origin = request?.headers?.get("Origin") || "";
-  const allowed = env?.ALLOWED_ORIGINS
-    ? env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-    : (env?.ENVIRONMENT === "test" ? ["*"] : [
-        env?.PORTAL_URL || "https://gmc-thiruvallur-portal.pages.dev",
-        "https://project-gmc-tiruvallur-feedback-app.pages.dev",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173"
-      ]);
+  const isProd = env?.ENVIRONMENT === "production";
+  let allowed;
+
+  if (env?.ALLOWED_ORIGINS) {
+    allowed = env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
+  } else if (env?.ENVIRONMENT === "test") {
+    allowed = ["*"];
+  } else if (isProd) {
+    // Strictly trusted production origins (HIGH-05: no localhost in production)
+    allowed = [
+      env?.PORTAL_URL || "https://gmc-thiruvallur-portal.pages.dev",
+      "https://project-gmc-tiruvallur-feedback-app.pages.dev"
+    ];
+  } else {
+    // Development local origins
+    allowed = [
+      env?.PORTAL_URL || "https://gmc-thiruvallur-portal.pages.dev",
+      "https://project-gmc-tiruvallur-feedback-app.pages.dev",
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173"
+    ];
+  }
   const isAllowed = allowed.includes("*") || (origin && allowed.includes(origin));
 
   const headers = {
@@ -352,17 +427,15 @@ export default {
           }
         }
 
-        // Enforce max payload size (16KB)
-        if (!checkPayloadSize(request, 16384)) {
-          return jsonResponse({ error: "Payload too large" }, 413, env, request);
-        }
-
         let providedToken = "";
         try {
-          const body = await request.json();
+          const body = await readJsonBodySafe(request, 16384);
           providedToken = typeof body?.token === "string" ? body.token : "";
-        } catch {
-          // If body is empty, fallback to header inspection
+        } catch (err) {
+          if (err?.code === "PAYLOAD_TOO_LARGE") {
+            return jsonResponse({ error: "Payload too large" }, 413, env, request);
+          }
+          // If body is empty or invalid JSON, fallback to header inspection
         }
 
         if (!providedToken) {
@@ -487,18 +560,22 @@ export default {
           }
         }
 
-        // Enforce max payload size (64KB)
-        if (!checkPayloadSize(request, 65536)) {
-          return jsonResponse({ error: "Payload exceeds 64KB maximum size" }, 413, env, request);
+        let body;
+        try {
+          body = await readJsonBodySafe(request, 65536);
+        } catch (err) {
+          if (err?.code === "PAYLOAD_TOO_LARGE") {
+            return jsonResponse({ error: "Payload exceeds 64KB maximum size" }, 413, env, request);
+          }
+          return jsonResponse({ error: "Invalid JSON payload" }, 400, env, request);
         }
 
-        const body = await request.json();
         const rawCategory = body?.category || "General Council Inquiry";
         const rawContent = body?.content || "";
         const declaredPII = Boolean(body?.containsPII);
 
-        // Sanitize input text and enforce bounds
-        const category = sanitizeInput(rawCategory, 100);
+        // Sanitize input text, redact category PII, and enforce bounds
+        const category = redactPiiText(sanitizeInput(rawCategory, 100));
         const content = sanitizeInput(rawContent, 4000);
 
         if (!content || content.length < 5) {
@@ -557,12 +634,16 @@ export default {
           }
         }
 
-        // Max payload size (32KB)
-        if (!checkPayloadSize(request, 32768)) {
-          return jsonResponse({ error: "Payload exceeds 32KB limit" }, 413, env, request);
+        let body;
+        try {
+          body = await readJsonBodySafe(request, 32768);
+        } catch (err) {
+          if (err?.code === "PAYLOAD_TOO_LARGE") {
+            return jsonResponse({ error: "Payload exceeds 32KB limit" }, 413, env, request);
+          }
+          return jsonResponse({ error: "Invalid JSON payload" }, 400, env, request);
         }
 
-        const body = await request.json();
         const sessionId = sanitizeInput(body?.sessionId || "", 50);
         let sender = "student";
         if (body?.sender === "admin" || body?.sender === "council") {
@@ -578,10 +659,10 @@ export default {
           return jsonResponse({ error: "Invalid chat payload" }, 400, env, request);
         }
 
-        // If student sent message, notify Telegram Council Bot
+        // If student sent message, notify Telegram Council Bot (CRIT-02: redact student PII before notification)
         if (sender === "student" && env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_ADMIN_CHAT_ID) {
           const safeSessionId = escapeTelegramMarkdown(sessionId);
-          const safeText = escapeTelegramMarkdown(text);
+          const safeText = escapeTelegramMarkdown(redactPiiText(text));
           const chatMsg =
             `💬 *Student Live Chat Message*\n` +
             `🆔 *Session:* \`${safeSessionId}\`\n\n` +
@@ -605,7 +686,12 @@ export default {
 
       // 6. Telegram Webhook Handler (with secret token verification)
       if (path === "/api/telegram/webhook" && request.method === "POST") {
-        // If TELEGRAM_WEBHOOK_SECRET is configured, verify X-Telegram-Bot-Api-Secret-Token
+        // Fail closed in production if webhook secret is not set (CRIT-03)
+        if (!isTestEnv && !env.TELEGRAM_WEBHOOK_SECRET) {
+          return jsonResponse({ error: "Telegram webhook secret is not configured" }, 503, env, request);
+        }
+
+        // Verify X-Telegram-Bot-Api-Secret-Token
         if (env.TELEGRAM_WEBHOOK_SECRET) {
           const secretToken = request.headers.get("X-Telegram-Bot-Api-Secret-Token") || "";
           const isSecretValid = await timingSafeEqualStrings(secretToken, env.TELEGRAM_WEBHOOK_SECRET);
@@ -614,7 +700,13 @@ export default {
           }
         }
 
-        const update = await request.json();
+        let update;
+        try {
+          update = await readJsonBodySafe(request, 65536);
+        } catch {
+          return jsonResponse({ error: "Invalid webhook payload" }, 400, env, request);
+        }
+
         if (update.message && update.message.text) {
           const chatId = update.message.chat.id;
           const text = update.message.text.trim();
@@ -660,12 +752,15 @@ export default {
           }
         }
 
-        // Max payload size (256KB)
-        if (!checkPayloadSize(request, 262144)) {
-          return jsonResponse({ error: "Payload exceeds 256KB limit" }, 413, env, request);
+        let body;
+        try {
+          body = await readJsonBodySafe(request, 262144);
+        } catch (err) {
+          if (err?.code === "PAYLOAD_TOO_LARGE") {
+            return jsonResponse({ error: "Payload exceeds 256KB limit" }, 413, env, request);
+          }
+          return jsonResponse({ error: "Invalid JSON payload" }, 400, env, request);
         }
-
-        const body = await request.json();
         const rawFeedbacks = Array.isArray(body?.feedbacks) ? body.feedbacks : [];
 
         // STRICT PRIVACY: Filter out any feedback declaring or detecting PII (server-side regex enforcement)
@@ -766,22 +861,25 @@ async function sendTelegramMessage(botToken, chatId, text) {
     clearTimeout(timeoutId);
     return res.ok;
   } catch (err) {
-    console.error("Failed to send Telegram message:", err);
+    // Redact botToken from any logged error strings (MED-08)
+    const errMsg = botToken ? String(err?.message || err).replace(botToken, "[REDACTED_BOT_TOKEN]") : String(err?.message || err);
+    console.error("Failed to send Telegram message:", errMsg);
     return false;
   }
 }
 
 /**
  * Redact identifying tokens (phone numbers, emails, roll numbers, names, rooms)
- * to ensure that no student PII is transmitted to external AI endpoints
+ * to ensure that no student PII is transmitted to external AI endpoints or notification channels
  */
 function redactPiiText(text) {
   if (typeof text !== "string") return "";
   return text
     .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gi, "[EMAIL]")
-    .replace(/(?:\+91[\-\s]?)?[6-9]\d{9}|\b\d{10,12}\b/g, "[PHONE/ID]")
+    .replace(/(?:\+91[\-\s]?)?[6-9]\d{4}[\s\-]?\d{5}|\b\d{10,12}\b/g, "[PHONE/ID]")
     .replace(/\b(?:roll|reg(?:istration)?|student\s*id)\s*(?:(?:no|number|#)?\s*(?:is|[:.-])?)\s*\d+/gi, "[STUDENT-ID]")
     .replace(/\b((?:dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+)\b/gi, "[PERSON]")
+    .replace(/\b(?:my name is|i am)\s+[a-z]+/gi, "[PERSON-CLAIM]")
     .replace(/\b(?:hostel\s+)?room\s*(?:no\.?)?\s*\d+/gi, "[ROOM]");
 }
 

@@ -101,7 +101,7 @@ export const INITIAL_POLLS = [
       { text: "Inter-Batch Sports Tournament", votes: 116 }
     ],
     totalVotes: 356,
-    closingDate: "2026-11-10",
+    closingDate: "2026-12-31",
     status: "active",
     userVoted: null
   },
@@ -114,7 +114,7 @@ export const INITIAL_POLLS = [
       { text: "Full night during study holidays", votes: 164 }
     ],
     totalVotes: 464,
-    closingDate: "2026-11-05",
+    closingDate: "2026-12-31",
     status: "active",
     userVoted: null
   },

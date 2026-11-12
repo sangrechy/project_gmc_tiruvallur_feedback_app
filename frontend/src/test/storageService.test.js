@@ -91,7 +91,7 @@ describe('Storage Service Blackbox & Unit Verification', () => {
   describe('Temporary Live Chat Pipeline', () => {
     it('creates an ephemeral session with format GMC-XXXXX and initial greeting', async () => {
       const session = await storageService.getOrCreateChatSession();
-      expect(session.sessionId).toMatch(/^GMC-[A-Z0-9]{5}$/);
+      expect(session.sessionId).toMatch(/^GMC-[A-Z0-9]{8,16}$/);
       expect(session.id).toBe(session.sessionId); // Ensured document key matches sessionId
       expect(session.status).toBe('active');
       expect(session.messages.length).toBeGreaterThanOrEqual(1);
