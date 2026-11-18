@@ -16,6 +16,3 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Cache mascot stickers for 30 days with stale-while-revalidate
-/stickers/*
-  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400

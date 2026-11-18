@@ -85,21 +85,8 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
 
       {submissionResult ? (
         /* Confirmation Screen with Bleeding Thumbs Sticker */
-        <div className="relative mt-12">
-          
-          {/* THUMBS STICKER: Bleeding out of the top edge */}
-          <div 
-            className="sticker-bleed sticker-float-r -top-16 sm:-top-20 left-1/2 -translate-x-1/2 w-32 sm:w-40 pointer-events-auto"
-            title="Feedback Submission Success"
-          >
-            <img 
-              src="/stickers/thumbs.png" 
-              alt="Thumbs Up Success Mascot" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-
-          <div className="portal-card p-8 sm:p-12 text-center pt-16 sm:pt-20 space-y-6 overflow-visible">
+        <div className="relative">
+          <div className="portal-card p-8 sm:p-12 text-center space-y-6">
             <div>
               <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 border ${
                 submissionResult.delivered
@@ -164,23 +151,10 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
           </div>
         </div>
       ) : (
-        /* Feedback Submission Form with Bleeding Doctor (doc.png) Sticker */
-        <div className="relative mt-12">
-          
-          {/* DOCTOR STICKER: Bleeding prominently out of top-right corner */}
-          <div 
-            className="sticker-bleed sticker-float-r -top-14 sm:-top-20 right-1 sm:-right-8 w-24 sm:w-36 md:w-44 pointer-events-auto"
-            title="GMC Clinical Council Doctor Mascot"
-          >
-            <img 
-              src="/stickers/doc.png" 
-              alt="GMC Doctor Mascot Bleeding Out" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-
-          {/* Form Card (overflow-visible to let Doctor bleed out) */}
-          <div className="portal-card p-4 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
+        /* Feedback Submission Form */
+        <div className="relative">
+          {/* Form Card */}
+          <div className="portal-card p-4 sm:p-10 relative">
             
             {/* Header info */}
             <div className="mb-8 pb-6 border-b border-slate-200/60 dark:border-slate-800">

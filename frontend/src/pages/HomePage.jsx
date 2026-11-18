@@ -47,19 +47,6 @@ export default function HomePage({
       <section className="relative pt-8 sm:pt-16 pb-6 sm:pb-8 px-3 sm:px-4 overflow-visible">
         <div className="max-w-4xl mx-auto text-center relative z-10">
           
-          {/* Hero Mascot with Vinyl Contour */}
-          <div className="flex justify-center mb-6">
-            <div className="relative group cursor-pointer" onClick={() => setCurrentRoute('feedback')}>
-              <div className="w-28 h-28 sm:w-36 sm:h-36 relative">
-                <img 
-                  src="/stickers/look_there.webp" 
-                  alt="Student Council Welcome Mascot" 
-                  className="w-full h-full object-contain filter drop-shadow(0 0 1.5px rgba(255,255,255,0.95)) drop-shadow(0 0 5px rgba(56,189,248,0.5)) drop-shadow(0 12px 24px rgba(0,0,0,0.5)) hover:scale-110 transition-transform duration-300 sticker-float-r"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Student Council Badge */}
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full neu-pill text-xs font-semibold mb-5">
             <ShieldCheck className="w-4 h-4 text-sky-500" />
@@ -96,21 +83,8 @@ export default function HomePage({
         
         {/* ================= LATEST ANNOUNCEMENTS WITH PROTRUDING GAURD ================= */}
         <section className="relative mt-8">
-          
-          {/* GUARD STICKER: Bleeding out of the top-left edge */}
-          <div 
-            className="sticker-bleed sticker-float-l -top-11 sm:-top-16 left-1 sm:-left-6 w-20 sm:w-32 md:w-36 pointer-events-auto"
-            title="Council Campus Security Guard"
-          >
-            <img 
-              src="/stickers/gaurd.webp" 
-              alt="Guard Mascot Bleeding Out" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-
           {/* Announcements Card Container */}
-          <div className="portal-card p-4 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
+          <div className="portal-card p-4 sm:p-8 relative">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 border-b border-slate-200/60 dark:border-white/10 gap-3">
               <div>
                 <div className="flex items-center space-x-2">
@@ -174,21 +148,8 @@ export default function HomePage({
         {/* ================= ACTIVE POLLS WIDGET WITH PROTRUDING REFERING STICKER ================= */}
         {featuredPoll && (
           <section className="relative mt-8 sm:mt-12">
-            
-            {/* REFERRING STICKER: Bleeding out of the top-right corner */}
-            <div 
-              className="sticker-bleed sticker-float-r -top-10 sm:-top-16 right-1 sm:-right-6 w-20 h-20 sm:w-32 sm:h-32 md:w-36 md:h-36 pointer-events-auto"
-              title="Student Opinion & Polling Mascot"
-            >
-              <img 
-                src="/stickers/refering.webp" 
-                alt="Thinking Polling Mascot Bleeding Out" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-
             {/* Active Poll Card */}
-            <div className="portal-card p-4 sm:p-9 relative overflow-visible pt-10 sm:pt-10">
+            <div className="portal-card p-4 sm:p-8 relative">
               <div className="mb-6 pb-4 border-b border-slate-200/60 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center space-x-2">
                   <Vote className="w-4 h-4 text-sky-500" />

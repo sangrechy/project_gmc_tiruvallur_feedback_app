@@ -64,7 +64,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(setCurrentRoute).toHaveBeenCalledWith('feedback');
   });
 
-  it('renders HomePage hero with modern CTAs, quick access cards, and latest announcements with stickers', () => {
+  it('renders HomePage hero with modern CTAs, quick access cards, and latest announcements', () => {
     const setCurrentRoute = vi.fn();
     const onVotePoll = vi.fn();
     const showToast = vi.fn();
@@ -86,11 +86,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('Temporary Live Chat')).toBeInTheDocument();
     expect(screen.getByText('Collegiate Polls')).toBeInTheDocument();
 
-    // Verify presence of stickers
-    expect(screen.getByAltText('Student Council Welcome Mascot')).toBeInTheDocument();
-    expect(screen.getByAltText('Guard Mascot Bleeding Out')).toBeInTheDocument();
-    expect(screen.getByAltText('Thinking Polling Mascot Bleeding Out')).toBeInTheDocument();
-
     // CTA routing
     fireEvent.click(screen.getByText('Submit Anonymous Feedback'));
     expect(setCurrentRoute).toHaveBeenCalledWith('feedback');
@@ -99,7 +94,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(setCurrentRoute).toHaveBeenCalledWith('chat');
   });
 
-  it('allows student to submit anonymous feedback and view confirmation token with Doctor and Thumbs stickers', async () => {
+  it('allows student to submit anonymous feedback and view confirmation token', async () => {
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
     const onSubmitFeedback = vi.fn().mockResolvedValue({
@@ -121,7 +116,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('Anonymous Feedback Portal')).toBeInTheDocument();
     expect(screen.getByText('Grievance Category')).toBeInTheDocument();
     expect(screen.getByText('Detailed Message')).toBeInTheDocument();
-    expect(screen.getByAltText('GMC Doctor Mascot Bleeding Out')).toBeInTheDocument();
 
     expect(screen.getByText('Contains specific info to be avoided by AI')).toBeInTheDocument();
 
@@ -139,7 +133,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       expect(onSubmitFeedback).toHaveBeenCalled();
       expect(screen.getByText('Feedback Dispatched Successfully')).toBeInTheDocument();
       expect(screen.getByText('GMC-FB-7711')).toBeInTheDocument();
-      expect(screen.getByAltText('Thumbs Up Success Mascot')).toBeInTheDocument();
     });
   });
 
@@ -176,7 +169,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     });
   });
 
-  it('renders Temporary Live Chat with cookie session, active relay, and Myself sticker', async () => {
+  it('renders Temporary Live Chat with cookie session and active relay', async () => {
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
 
@@ -193,11 +186,10 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       expect(screen.getByText('CONNECTED')).toBeInTheDocument();
       expect(screen.getByText(/Session auto-expires after 24 hours/)).toBeInTheDocument();
       expect(screen.getByText('End Live Session')).toBeInTheDocument();
-      expect(screen.getByAltText('Council Chat Representative Mascot Bleeding Out')).toBeInTheDocument();
     });
   });
 
-  it('renders PollsPage with options, voting buttons, and Referring sticker', () => {
+  it('renders PollsPage with options and voting buttons', () => {
     const onVotePoll = vi.fn();
     const showToast = vi.fn();
 
@@ -211,10 +203,9 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
 
     expect(screen.getByText('Council Polls')).toBeInTheDocument();
     expect(screen.getByText(INITIAL_POLLS[0].question)).toBeInTheDocument();
-    expect(screen.getByAltText('Thinking Mascot Bleeding Out')).toBeInTheDocument();
   });
 
-  it('renders AnnouncementsPage and filters by category with Guard and Syringe stickers', () => {
+  it('renders AnnouncementsPage and filters by category', () => {
     const setCurrentRoute = vi.fn();
 
     render(
@@ -228,14 +219,13 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByRole('button', { name: 'ALL' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'IMPORTANT' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ACADEMIC' })).toBeInTheDocument();
-    expect(screen.getByAltText('Guard Mascot Bleeding Out')).toBeInTheDocument();
 
     // Click IMPORTANT filter button
     fireEvent.click(screen.getByRole('button', { name: 'IMPORTANT' }));
     expect(screen.getByText(INITIAL_ANNOUNCEMENTS[0].title)).toBeInTheDocument();
   });
 
-  it('renders AdminLoginPage with FBI mascot and allows login with credentials', async () => {
+  it('renders AdminLoginPage and allows login with credentials', async () => {
     vi.spyOn(apiService, 'verifyCouncilToken').mockResolvedValueOnce({
       valid: true,
       token: 'test-secret',
@@ -258,8 +248,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
         showToast={showToast}
       />
     );
-
-    expect(screen.getByAltText('FBI Council Security Mascot Bleeding Out')).toBeInTheDocument();
 
     // Switch to Email & Passcode mode
     const emailModeBtn = screen.getByText('Email & Passcode');

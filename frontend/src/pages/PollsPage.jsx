@@ -53,23 +53,10 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
         </div>
       </div>
 
-      {/* Header with Bleeding Referring Sticker */}
-      <div className="relative mt-8 sm:mt-12">
-        
-        {/* REFERRING STICKER: Bleeding out of top-right edge */}
-        <div 
-          className="sticker-bleed sticker-float-r -top-10 sm:-top-18 right-1 sm:-right-8 w-20 h-20 sm:w-32 sm:h-32 md:w-36 md:h-36 pointer-events-auto"
-          title="Student Opinion & Polling Mascot"
-        >
-          <img 
-            src="/stickers/refering.webp" 
-            alt="Thinking Mascot Bleeding Out" 
-            className="w-full h-full object-contain"
-          />
-        </div>
-
-        {/* Card (overflow-visible) */}
-        <div className="portal-card p-4 sm:p-10 relative overflow-visible pt-10 sm:pt-10">
+      {/* Header */}
+      <div className="relative">
+        {/* Card */}
+        <div className="portal-card p-4 sm:p-8 relative">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-3 border border-sky-500/20">
             <Vote className="w-3.5 h-3.5" />
             <span>Collegiate Student Democracy</span>

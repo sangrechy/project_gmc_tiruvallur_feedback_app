@@ -32,23 +32,10 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
         </div>
       </div>
 
-      {/* Announcements Header Card with Bleeding Guard (Syringe removed) */}
-      <div className="relative mt-8 sm:mt-12">
-        
-        {/* GUARD STICKER: Bleeding out of top-left edge */}
-        <div 
-          className="sticker-bleed sticker-float-l -top-11 sm:-top-16 left-1 sm:-left-6 w-20 sm:w-32 md:w-36 pointer-events-auto"
-          title="Council Campus Security Guard"
-        >
-          <img 
-            src="/stickers/gaurd.webp" 
-            alt="Guard Mascot Bleeding Out" 
-            className="w-full h-full object-contain"
-          />
-        </div>
-
-        {/* Header Card (overflow-visible) */}
-        <div className="portal-card p-4 sm:p-10 text-center relative overflow-visible pt-10 sm:pt-10">
+      {/* Announcements Header Card */}
+      <div className="relative">
+        {/* Header Card */}
+        <div className="portal-card p-4 sm:p-8 text-center relative">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full neu-pill text-[11px] font-semibold mb-3">
             <Megaphone className="w-3.5 h-3.5" />
             <span>Council Notice Board</span>

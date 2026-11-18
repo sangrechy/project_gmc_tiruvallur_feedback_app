@@ -155,23 +155,10 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
         </div>
       </div>
 
-      {/* Main Chat Container with Bleeding Myself Mascot */}
-      <div className="relative mt-12">
-        
-        {/* MYSELF STICKER: Bleeding out of the top-right corner */}
-        <div 
-          className="sticker-bleed sticker-float-r -top-10 sm:-top-18 right-1 sm:-right-8 w-20 h-20 sm:w-32 sm:h-32 md:w-36 md:h-36 pointer-events-auto"
-          title="Student Council Live Chat Representative"
-        >
-          <img 
-            src="/stickers/myself.webp" 
-            alt="Council Chat Representative Mascot Bleeding Out" 
-            className="w-full h-full object-contain"
-          />
-        </div>
-
-        {/* Card (overflow-visible to let mascot bleed out) */}
-        <div className="portal-card p-4 sm:p-8 space-y-6 relative overflow-visible pt-10 sm:pt-10">
+      {/* Main Chat Container */}
+      <div className="relative">
+        {/* Card */}
+        <div className="portal-card p-4 sm:p-8 space-y-6 relative">
           
           {/* Header Banner */}
           <div className="border-b border-slate-200/60 dark:border-slate-800 pb-5">

@@ -60,21 +60,11 @@ export default function AdminDashboard({
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fadeIn">
-      {/* Overview Header with Mascot */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200/60 dark:border-slate-800">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
-            Council Executive Overview
-          </h1>
-        </div>
-
-        <div className="w-14 h-14 neu-circle p-1.5 flex items-center justify-center flex-shrink-0 sticker-float-r" title="Council Officer Mascot">
-          <img 
-            src="/stickers/musono.webp" 
-            alt="Council Officer Mascot" 
-            className="w-full h-full object-contain filter drop-shadow(0 2px 6px rgba(0,0,0,0.3))"
-          />
-        </div>
+      {/* Overview Header */}
+      <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+          Council Executive Overview
+        </h1>
       </div>
 
       {/* 4 Metric Boxes with Neumorphic styling */}

@@ -7,7 +7,8 @@ import {
   Activity, 
   LogOut, 
   ArrowLeft,
-  Sparkles
+  Sparkles,
+  Shield
 } from 'lucide-react';
 
 export default function AdminLayout({ 
@@ -42,12 +43,8 @@ export default function AdminLayout({
             onClick={() => setCurrentSection('dashboard')}
             className="flex items-center space-x-2.5 cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-              <img 
-                src="/stickers/fbi.webp" 
-                alt="Council Portal" 
-                className="w-full h-full object-contain"
-              />
+            <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-800/40 flex items-center justify-center flex-shrink-0">
+              <Shield className="w-4 h-4 text-sky-500" />
             </div>
             <div>
               <span className="font-bold text-sm text-slate-900 dark:text-slate-100 block leading-tight">

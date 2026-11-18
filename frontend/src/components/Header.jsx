@@ -78,22 +78,8 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
           {/* Right Controls: Compact Mobile-Friendly Theme Switch + Council Login */}
           <div className="flex items-center space-x-2 sm:space-x-3.5 flex-shrink-0">
             
-            {/* THEME TOGGLE (portfolio_2026 pattern, scaled cleanly for mobile) */}
+            {/* THEME TOGGLE */}
             <div className="theme-toggle-container">
-              <div 
-                className="theme-jane-preview hidden sm:flex"
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                title={isDarkMode ? "Switch to Light Theme" : "Switch to Dark Theme"}
-                aria-hidden="true"
-              >
-                <img 
-                  src={isDarkMode ? "/stickers/theme_dark.png" : "/stickers/theme_light.png"} 
-                  alt="Theme Mascot Preview" 
-                  id="theme-jane"
-                  className="w-full h-full object-contain select-none"
-                />
-              </div>
-
               <button 
                 id="theme-toggle-btn" 
                 className="theme-pill-btn" 
@@ -109,7 +95,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
               </button>
             </div>
 
-            {/* Council Admin Access with FBI Sticker */}
+            {/* Council Admin Access */}
             <button
               onClick={() => handleNavClick(isAdminLoggedIn ? 'admin-dashboard' : 'admin-login')}
               aria-label="Council Administration Portal"
@@ -119,13 +105,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
                   : 'text-slate-700 dark:text-slate-200 hover:text-sky-500'
               }`}
             >
-              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md overflow-hidden flex-shrink-0 filter drop-shadow(0 2px 4px rgba(0,0,0,0.3)) group-hover:scale-110 transition-transform">
-                <img 
-                  src="/stickers/fbi.webp" 
-                  alt="FBI Council Security Clearance Mascot" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <ShieldAlert className="w-4 h-4 text-sky-500 flex-shrink-0 group-hover:scale-110 transition-transform" />
               <span className="hidden md:inline font-mono font-bold tracking-tight">
                 {isAdminLoggedIn ? "Council Dashboard" : "Council Auth"}
               </span>
@@ -175,13 +155,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
             className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-xs font-semibold tracking-wide transition-all min-h-[46px] border border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-400 mt-2"
           >
             <div className="flex items-center space-x-3">
-              <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0">
-                <img 
-                  src="/stickers/fbi.webp" 
-                  alt="FBI Council Security" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <ShieldAlert className="w-4 h-4 text-sky-500 flex-shrink-0" />
               <span className="text-sm font-bold">{isAdminLoggedIn ? "Council Dashboard" : "Council Auth"}</span>
             </div>
             <ChevronRight className="w-4 h-4 opacity-50" />
