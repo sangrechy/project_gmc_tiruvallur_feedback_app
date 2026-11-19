@@ -604,6 +604,22 @@ export default {
           ctx.waitUntil(sendTelegramMessage(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_ADMIN_CHAT_ID, alertMsg));
         }
 
+        // Gmail Council Alert (OAuth2 REST API)
+        if (env.GMAIL_CLIENT_ID && env.GMAIL_CLIENT_SECRET && env.GMAIL_REFRESH_TOKEN) {
+          const emailSubject = `[GMC Feedback] New Submission: ${category} (${trackingId})`;
+          const emailBody =
+            `GMC Thiruvallur Student Council Notification\n\n` +
+            `A new student grievance has been registered on the portal.\n\n` +
+            `• Category: ${category}\n` +
+            `• Tracking ID: ${trackingId}\n` +
+            `• PII Status: ${finalContainsPII ? "Flagged (Personal Information Excluded)" : "Clean"}\n` +
+            `• Timestamp: ${new Date().toLocaleString()}\n\n` +
+            `Access the Council Admin Dashboard to triage and take action:\n` +
+            `${env.PORTAL_URL || "https://gmc-tiruvallur-feedback-app.studentcouncil26gmchtrl.workers.dev"}/admin/login`;
+
+          ctx.waitUntil(sendGmailAlert(env, emailSubject, emailBody).catch((err) => console.error("Gmail alert error:", err)));
+        }
+
         return jsonResponse(
           {
             success: true,
@@ -866,6 +882,82 @@ async function sendTelegramMessage(botToken, chatId, text) {
     const errMsg = botToken ? String(err?.message || err).replace(botToken, "[REDACTED_BOT_TOKEN]") : String(err?.message || err);
     console.error("Failed to send Telegram message:", errMsg);
     return false;
+  }
+}
+
+/**
+ * Obtain a short-lived Gmail OAuth2 access token using the stored refresh token
+ */
+async function getGmailAccessToken(clientId, clientSecret, refreshToken) {
+  const params = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    refresh_token: refreshToken,
+    grant_type: "refresh_token",
+  });
+
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Failed to refresh Gmail token (${res.status}): ${errText}`);
+  }
+
+  const data = await res.json();
+  return data.access_token;
+}
+
+/**
+ * Dispatch an email notification using Google Gmail REST API v1
+ */
+async function sendGmailAlert(env, subject, bodyText) {
+  const recipient = env.COUNCIL_RECIPIENT_EMAIL || env.GMAIL_SENDER_EMAIL;
+  if (!recipient) return;
+
+  const accessToken = await getGmailAccessToken(
+    env.GMAIL_CLIENT_ID,
+    env.GMAIL_CLIENT_SECRET,
+    env.GMAIL_REFRESH_TOKEN
+  );
+
+  const sender = env.GMAIL_SENDER_EMAIL || "me";
+  const rawEmail = [
+    `From: ${sender}`,
+    `To: ${recipient}`,
+    `Subject: ${subject}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: text/plain; charset=utf-8`,
+    ``,
+    bodyText,
+  ].join("\r\n");
+
+  // Base64URL encode the raw RFC 2822 message
+  const utf8Bytes = new TextEncoder().encode(rawEmail);
+  let binary = "";
+  for (let i = 0; i < utf8Bytes.length; i++) {
+    binary += String.fromCharCode(utf8Bytes[i]);
+  }
+  const base64Url = btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+  const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ raw: base64Url }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error(`Gmail API send failed (${res.status}):`, errText);
   }
 }
 
