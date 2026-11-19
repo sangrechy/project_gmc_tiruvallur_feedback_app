@@ -396,7 +396,7 @@ export default {
               groqAI: Boolean(env.GROQ_API_KEY),
               geminiAI: Boolean(env.GEMINI_API_KEY),
               gmail: Boolean(env.GMAIL_CLIENT_ID && env.GMAIL_REFRESH_TOKEN),
-              firebase: Boolean(env.FIREBASE_PROJECT_ID),
+              firebase: Boolean(env.FIREBASE_PROJECT_ID || env.VITE_FIREBASE_PROJECT_ID),
             },
             timestamp: new Date().toISOString(),
           },

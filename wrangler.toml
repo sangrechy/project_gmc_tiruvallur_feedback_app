@@ -15,6 +15,7 @@ ENVIRONMENT = "production"
 COLLEGE_NAME = "GMC Thiruvallur"
 PORTAL_URL = "https://gmc-tiruvallur-feedback-app.studentcouncil26gmchtrl.workers.dev"
 ALLOWED_ORIGINS = "https://gmc-tiruvallur-feedback-app.studentcouncil26gmchtrl.workers.dev,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
+FIREBASE_PROJECT_ID = "gmc-tiruvallur-portal"
 
 # Cloudflare Workers Free Tier optimization
 [observability]
