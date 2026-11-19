@@ -17,9 +17,9 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
+    { id: 'polls', label: 'Polls', icon: Vote },
     { id: 'feedback', label: 'Feedback', icon: MessageSquarePlus },
     { id: 'chat', label: 'Live Chat', icon: MessageCircle },
-    { id: 'polls', label: 'Polls', icon: Vote },
   ];
 
   const handleNavClick = (id) => {

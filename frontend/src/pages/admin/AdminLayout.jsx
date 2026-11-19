@@ -8,7 +8,8 @@ import {
   LogOut, 
   ArrowLeft,
   Sparkles,
-  Shield
+  Shield,
+  Vote
 } from 'lucide-react';
 
 export default function AdminLayout({ 
@@ -27,6 +28,7 @@ export default function AdminLayout({
     { id: 'feedback', label: 'Feedback Review', icon: MessageSquare, badge: unreadCount },
     { id: 'reports', label: 'AI Analysis', icon: Sparkles },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
+    { id: 'polls', label: 'Polls', icon: Vote },
     { id: 'chat', label: 'Live Chat', icon: MessageCircle, badge: activeChatsCount },
     { id: 'status', label: 'App Status', icon: Activity },
   ];
