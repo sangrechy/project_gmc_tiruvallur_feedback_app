@@ -226,6 +226,53 @@ export default function AdminReports({ feedbacks, showToast }) {
               </ul>
             </div>
           </div>
+
+          {/* Submission-Level AI Sentiment & Triage Breakdown */}
+          {reportData.itemAnalysis && reportData.itemAnalysis.length > 0 && (
+            <div className="portal-card p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
+                  Submission-Level AI Sentiment &amp; Triage
+                </h2>
+                <span className="text-[11px] font-mono text-slate-400">
+                  {reportData.itemAnalysis.length} items classified
+                </span>
+              </div>
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {reportData.itemAnalysis.map((item, idx) => {
+                  const sentColor = item.sentiment === 'Positive'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                    : item.sentiment === 'Negative'
+                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+
+                  const urgColor = item.urgency === 'High'
+                    ? 'text-rose-500'
+                    : item.urgency === 'Medium'
+                    ? 'text-amber-500'
+                    : 'text-slate-400';
+
+                  return (
+                    <div key={idx} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${sentColor}`}>
+                            {item.sentiment}
+                          </span>
+                          <span className={`text-[11px] font-mono font-semibold ${urgColor}`}>
+                            • {item.urgency} Urgency
+                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200">
+                          {item.summary}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="portal-card p-12 text-center text-slate-400 font-mono text-xs">

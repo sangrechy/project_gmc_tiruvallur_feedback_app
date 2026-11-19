@@ -178,10 +178,19 @@ export const apiService = {
 
     validFeedbacks.forEach(f => {
       categoryCount[f.category] = (categoryCount[f.category] || 0) + 1;
-      const sent = f.aiAnalysis?.sentiment || "Neutral";
-      const urg = f.aiAnalysis?.urgency || "Medium";
+      let sent = f.aiAnalysis?.sentiment;
+      let urg = f.aiAnalysis?.urgency;
+      if (!sent) {
+        const text = (f.content || "").toLowerCase();
+        const neg = ["broken", "leak", "dirty", "stink", "smell", "cold", "poor", "bad", "issue", "problem", "fail", "not working", "damage", "delay", "shortage", "pain"];
+        const pos = ["good", "thank", "great", "excellent", "improved", "resolved", "helpful", "appreciate", "nice", "clean", "kudos", "satisfied", "better"];
+        const hasNeg = neg.some(w => text.includes(w));
+        const hasPos = pos.some(w => text.includes(w));
+        sent = (hasNeg && !hasPos) ? "Negative" : (hasPos && !hasNeg) ? "Positive" : "Neutral";
+        urg = (hasNeg && !hasPos) ? "High" : (hasPos && !hasNeg) ? "Low" : "Medium";
+      }
       sentimentCount[sent] = (sentimentCount[sent] || 0) + 1;
-      urgencyCount[urg] = (urgencyCount[urg] || 0) + 1;
+      urgencyCount[urg || "Medium"] = (urgencyCount[urg || "Medium"] || 0) + 1;
     });
 
     return {
