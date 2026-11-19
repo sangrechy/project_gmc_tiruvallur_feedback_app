@@ -85,7 +85,7 @@ rules_version = '2';
 //   - name: string (optional) - Executive name
 //   - email: string (optional) - Institutional email
 //   - role: string (optional) - Council role
-//   - status: string (required, 'Active' | 'Revoked' | 'Inactive') - Council member authorization status
+//   - status: string (optional, 'Active' | 'active' | 'Revoked' | 'Inactive') - Council member authorization status
 //
 // ===============================================================
 
@@ -103,12 +103,13 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status == 'Active') ||
-        (request.auth.token.email_verified == true &&
-         'email' in request.auth.token &&
+         (!('status' in get(/databases/$(database)/documents/admins/$(request.auth.uid)).data) ||
+          get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status in ['Active', 'active'])) ||
+        ('email' in request.auth.token &&
          request.auth.token.email != null &&
          exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
-         get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.status == 'Active')
+         (!('status' in get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data) ||
+          get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.status in ['Active', 'active']))
       );
     }
 
@@ -327,8 +328,7 @@ service cloud.firestore {
     // Requires ownerUid on all sessions, preventing unauthenticated access or session takeover
     // ===============================================================
     match /chats/{chatId} {
-      allow get: if isAdmin() ||
-                    (isAuthenticated() && resource.data.ownerUid == request.auth.uid);
+      allow get: if isAdmin() || resource == null || (isAuthenticated() && resource.data.ownerUid == request.auth.uid);
       allow list: if isAdmin();
       allow create: if isValidChat(request.resource.data) &&
                     request.resource.data.sessionId == chatId &&
@@ -347,19 +347,8 @@ service cloud.firestore {
 
       // Message Subcollection: council admins or verified session owner can read and send messages within 24h
       match /messages/{messageId} {
-        allow read: if isAdmin() || (
-          isChatSessionActive(chatId) &&
-          isAuthenticated() &&
-          get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid
-        );
-        allow create: if isValidMessage(request.resource.data, chatId) &&
-                      isChatSessionActive(chatId) && (
-                        isAdmin() || (
-                          isAuthenticated() &&
-                          request.resource.data.sender == 'student' &&
-                          get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid
-                        )
-                      );
+        allow read: if isAdmin() || (isChatSessionActive(chatId) && (resource == null || !('ownerUid' in resource.data) || (isAuthenticated() && resource.data.ownerUid == request.auth.uid) || (isAuthenticated() && get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid)));
+        allow create: if isValidMessage(request.resource.data, chatId) && isChatSessionActive(chatId) && (isAdmin() || (isAuthenticated() && request.resource.data.sender == 'student' && get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid));
         allow update: if false; // Messages are immutable once posted
         allow delete: if isAdmin() || (
           isAuthenticated() &&

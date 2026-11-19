@@ -71,6 +71,21 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
     messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   }, [session?.messages]);
 
+  // Real-time Firestore message subscription
+  useEffect(() => {
+    if (!session?.sessionId) return;
+    const unsubscribe = storageService.subscribeToChat(session.sessionId, (cloudMessages) => {
+      setSession(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          messages: cloudMessages
+        };
+      });
+    });
+    return () => unsubscribe?.();
+  }, [session?.sessionId]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputText.trim() || !session || session.status !== 'active') return;

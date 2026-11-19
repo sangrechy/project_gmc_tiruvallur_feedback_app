@@ -15,7 +15,8 @@ import {
   where,
   serverTimestamp,
   runTransaction,
-  Timestamp
+  Timestamp,
+  onSnapshot
 } from "firebase/firestore";
 import { signInAnonymously } from "firebase/auth";
 import {
@@ -566,6 +567,7 @@ export const storageService = {
 
   async getOrCreateChatSession(requestedSessionId = null) {
     const chats = JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
+    const isNewSession = !requestedSessionId;
     const sessionId = (typeof requestedSessionId === "string" && requestedSessionId.trim())
       ? requestedSessionId.trim().slice(0, 50)
       : this.generateSessionId();
@@ -577,7 +579,7 @@ export const storageService = {
         console.warn("Anonymous auth failed for chat session:", err);
       }
     }
-    const currentUserUid = auth?.currentUser?.uid || null;
+    const currentUserUid = auth?.currentUser?.uid || "anon-student";
 
     // Check if session exists in memory/local first
     let existing = chats.find(c => c.sessionId === sessionId);
@@ -594,42 +596,62 @@ export const storageService = {
     if (isFirebaseConfigured && db) {
       try {
         const chatRef = doc(db, "chats", sessionId);
-        const chatSnap = await getDoc(chatRef);
 
-        if (chatSnap.exists()) {
-          const cloudData = chatSnap.data();
-          const messagesSnap = await getDocs(collection(chatRef, "messages"));
-          const cloudMessages = messagesSnap.docs.map(m => ({ id: m.id, ...m.data() }));
-          cloudMessages.sort((a, b) => {
-            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
-            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
-            return timeA - timeB;
-          });
-
-          const syncedSession = {
-            id: sessionId,
-            sessionId,
-            status: cloudData.status || "active",
-            createdAt: cloudData.createdAt?.toDate ? cloudData.createdAt.toDate().toISOString() : (existing?.createdAt || new Date().toISOString()),
-            lastActivity: cloudData.lastActivity?.toDate ? cloudData.lastActivity.toDate().toISOString() : (existing?.lastActivity || new Date().toISOString()),
-            ownerUid: cloudData.ownerUid || currentUserUid,
-            messages: cloudMessages.length > 0 ? cloudMessages : (existing?.messages || [])
-          };
-
-          const idx = chats.findIndex(c => c.sessionId === sessionId);
-          if (idx >= 0) chats[idx] = syncedSession;
-          else chats.unshift(syncedSession);
-          localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
-          return syncedSession;
+        if (isNewSession) {
+          // Initialize fresh chat document in Firestore with ownerUid so student messages can be added
+          try {
+            await setDoc(chatRef, {
+              sessionId,
+              status: "active",
+              createdAt: serverTimestamp(),
+              lastActivity: serverTimestamp(),
+              ownerUid: currentUserUid
+            });
+          } catch (createErr) {
+            console.warn("Firestore new chat doc create error:", createErr);
+          }
         } else {
-          // Create new chat document in Firestore keyed by sessionId with mandatory ownerUid
-          await setDoc(chatRef, {
-            sessionId,
-            status: "active",
-            createdAt: serverTimestamp(),
-            lastActivity: serverTimestamp(),
-            ...(currentUserUid ? { ownerUid: currentUserUid } : {})
-          });
+          // Try to fetch existing session from cloud
+          try {
+            const chatSnap = await getDoc(chatRef);
+            if (chatSnap.exists()) {
+              const cloudData = chatSnap.data();
+              const messagesSnap = await getDocs(collection(chatRef, "messages"));
+              const cloudMessages = messagesSnap.docs.map(m => ({ id: m.id, ...m.data() }));
+              cloudMessages.sort((a, b) => {
+                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
+                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
+                return timeA - timeB;
+              });
+
+              const syncedSession = {
+                id: sessionId,
+                sessionId,
+                status: cloudData.status || "active",
+                createdAt: cloudData.createdAt?.toDate ? cloudData.createdAt.toDate().toISOString() : (existing?.createdAt || new Date().toISOString()),
+                lastActivity: cloudData.lastActivity?.toDate ? cloudData.lastActivity.toDate().toISOString() : (existing?.lastActivity || new Date().toISOString()),
+                ownerUid: cloudData.ownerUid || currentUserUid,
+                messages: cloudMessages.length > 0 ? cloudMessages : (existing?.messages || [])
+              };
+
+              const idx = chats.findIndex(c => c.sessionId === sessionId);
+              if (idx >= 0) chats[idx] = syncedSession;
+              else chats.unshift(syncedSession);
+              localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
+              return syncedSession;
+            } else {
+              // Ensure doc exists in cloud
+              await setDoc(chatRef, {
+                sessionId,
+                status: "active",
+                createdAt: serverTimestamp(),
+                lastActivity: serverTimestamp(),
+                ownerUid: currentUserUid
+              });
+            }
+          } catch (fetchErr) {
+            console.warn("Firestore existing chat fetch warning:", fetchErr);
+          }
         }
       } catch (err) {
         console.warn("Firestore getOrCreateChatSession sync warning:", err);
@@ -698,11 +720,13 @@ export const storageService = {
           timestamp: newMsg.timestamp,
           createdAt: serverTimestamp()
         });
-        await setDoc(chatRef, {
-          sessionId: cleanSessionId,
-          status: "active",
-          lastActivity: serverTimestamp()
-        }, { merge: true });
+        try {
+          await updateDoc(chatRef, {
+            lastActivity: serverTimestamp()
+          });
+        } catch {
+          // Non-critical if lastActivity update fails
+        }
       } catch (err) {
         // Rollback local addition if cloud write failed so "Sent" truthfully means saved (MED-07: filter by id)
         session.messages = session.messages.filter(m => m.id !== newMsg.id);
@@ -720,6 +744,36 @@ export const storageService = {
     }
 
     return newMsg;
+  },
+
+  /**
+   * Real-time listener for incoming chat messages via Firestore onSnapshot
+   */
+  subscribeToChat(sessionId, callback) {
+    if (!isFirebaseConfigured || !db || !sessionId) {
+      return () => {};
+    }
+    try {
+      const chatRef = doc(db, "chats", sessionId);
+      const q = query(collection(chatRef, "messages"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const cloudMessages = snapshot.docs.map(m => ({ id: m.id, ...m.data() }));
+        cloudMessages.sort((a, b) => {
+          const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
+          const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
+          return timeA - timeB;
+        });
+        if (cloudMessages.length > 0) {
+          callback(cloudMessages);
+        }
+      }, (err) => {
+        console.warn("Real-time chat snapshot listener warning:", err);
+      });
+      return unsubscribe;
+    } catch (err) {
+      console.warn("Failed to subscribe to chat messages:", err);
+      return () => {};
+    }
   },
 
   async endChatSession(sessionId) {

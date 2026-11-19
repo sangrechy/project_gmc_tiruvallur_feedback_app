@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MessageCircle, 
   Send, 
@@ -6,7 +6,8 @@ import {
   CheckCircle2, 
   ArrowLeft,
   X,
-  User
+  User,
+  RefreshCw
 } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 
@@ -17,6 +18,15 @@ export default function AdminChat({ chats, onRefreshChats, showToast }) {
   const [showMobileChatView, setShowMobileChatView] = useState(false);
 
   const selectedSession = chats.find(c => c.id === selectedChatId) || chats[0];
+
+  // Subscribe to real-time incoming messages for the active conversation
+  useEffect(() => {
+    if (!selectedSession?.sessionId) return;
+    const unsubscribe = storageService.subscribeToChat(selectedSession.sessionId, () => {
+      onRefreshChats?.();
+    });
+    return () => unsubscribe?.();
+  }, [selectedSession?.sessionId]);
 
   const handleSelectChat = (id) => {
     setSelectedChatId(id);

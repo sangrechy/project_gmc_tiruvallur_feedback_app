@@ -275,6 +275,7 @@ export default function App() {
                 <AdminFeedback
                   feedbacks={feedbacks}
                   onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
+                  onRefreshFeedback={loadData}
                   showToast={showToast}
                 />
               )}

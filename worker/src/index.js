@@ -394,7 +394,7 @@ export default {
               councilAuth: Boolean(env.COUNCIL_AUTH_TOKEN),
               telegramBot: Boolean(env.TELEGRAM_BOT_TOKEN),
               groqAI: Boolean(env.GROQ_API_KEY),
-              geminiAI: Boolean(env.GEMINI_API_KEY),
+              geminiAI: Boolean(env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || env.GOOGLE_API_KEY),
               gmail: Boolean(env.GMAIL_CLIENT_ID && env.GMAIL_REFRESH_TOKEN),
               firebase: Boolean(env.FIREBASE_PROJECT_ID || env.VITE_FIREBASE_PROJECT_ID),
             },
@@ -779,9 +779,10 @@ export default {
         }
 
         // Try Gemini API if Groq wasn't configured or failed
-        if (!aiReport && env.GEMINI_API_KEY && eligibleFeedbacks.length > 0) {
+        const geminiKey = env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || env.GOOGLE_API_KEY;
+        if (!aiReport && geminiKey && eligibleFeedbacks.length > 0) {
           try {
-            aiReport = await generateGeminiAnalysis(env.GEMINI_API_KEY, eligibleFeedbacks, rawFeedbacks.length);
+            aiReport = await generateGeminiAnalysis(geminiKey, eligibleFeedbacks, rawFeedbacks.length);
           } catch (err) {
             console.warn("Gemini AI failed, falling back:", err);
           }

@@ -362,7 +362,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     });
   });
 
-  it('renders AdminStatus with AI API, Backend, Telegram, Gmail screenshot debug telemetry', async () => {
+  it('renders AdminStatus with AI API, Backend, Telegram, Gmail honest subsystem telemetry', async () => {
     const showToast = vi.fn();
 
     render(<AdminStatus showToast={showToast} />);
@@ -370,12 +370,12 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     expect(screen.getByText('App Status & Subsystem Health')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText('Screenshot Debug Diagnostics')).toBeInTheDocument();
+      expect(screen.getByText('Live Telemetry')).toBeInTheDocument();
       expect(screen.getByText('AI Intelligence Engine')).toBeInTheDocument();
       expect(screen.getByText('Cloudflare Worker Backend')).toBeInTheDocument();
       expect(screen.getByText('Telegram Council Relay')).toBeInTheDocument();
       expect(screen.getByText('Gmail Alert Dispatcher')).toBeInTheDocument();
-      expect(screen.getByText('Database & Storage Tier')).toBeInTheDocument();
+      expect(screen.getByText(/Database Tier/)).toBeInTheDocument();
       expect(screen.getByText('Council Security Shield')).toBeInTheDocument();
     });
 
