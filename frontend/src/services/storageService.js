@@ -10,6 +10,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  writeBatch,
   query,
   orderBy,
   where,
@@ -69,22 +70,56 @@ initLocalStore();
 export const storageService = {
   isLive: isFirebaseConfigured,
 
+  // In-memory cache to reduce redundant Firestore collection read cycles
+  _announcementsCache: null,
+  _announcementsCacheTime: 0,
+  _pollsCache: null,
+  _pollsCacheTime: 0,
+  _feedbacksCache: null,
+  _feedbacksCacheTime: 0,
+
+  invalidateCache(key) {
+    if (!key || key === 'announcements') {
+      this._announcementsCache = null;
+      this._announcementsCacheTime = 0;
+    }
+    if (!key || key === 'polls') {
+      this._pollsCache = null;
+      this._pollsCacheTime = 0;
+    }
+    if (!key || key === 'feedback') {
+      this._feedbacksCache = null;
+      this._feedbacksCacheTime = 0;
+    }
+  },
+
   // ==================== ANNOUNCEMENTS ====================
-  async getAnnouncements() {
+  async getAnnouncements(force = false) {
+    if (!force && this._announcementsCache && Date.now() - this._announcementsCacheTime < 30000) {
+      return this._announcementsCache;
+    }
+
+    let data = null;
     if (isFirebaseConfigured && db) {
       try {
         const q = query(collection(db, "announcements"), orderBy("date", "desc"));
         const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       } catch (err) {
         console.warn("Firestore error, falling back to local:", err);
       }
     }
-    const data = JSON.parse(localStorage.getItem(KEYS.ANNOUNCEMENTS) || "[]");
+    if (!data) {
+      data = JSON.parse(localStorage.getItem(KEYS.ANNOUNCEMENTS) || "[]");
+    }
+
+    this._announcementsCache = data;
+    this._announcementsCacheTime = Date.now();
     return data;
   },
 
   async addAnnouncement(announcement) {
+    this.invalidateCache('announcements');
     const cleanTitle = (announcement.title || "").trim().slice(0, 200);
     const cleanCategory = (announcement.category || "General").trim().slice(0, 100);
     const cleanDesc = (announcement.description || announcement.content || "").trim().slice(0, 5000);
@@ -112,13 +147,14 @@ export const storageService = {
     }
 
     const localList = JSON.parse(localStorage.getItem(KEYS.ANNOUNCEMENTS) || "[]");
-    const created = { id: `ann-${Date.now()}`, ...newItem };
+    const created = { id: `ann-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, ...newItem };
     localList.unshift(created);
     localStorage.setItem(KEYS.ANNOUNCEMENTS, JSON.stringify(localList));
     return created;
   },
 
   async updateAnnouncement(id, updates) {
+    this.invalidateCache('announcements');
     if (isFirebaseConfigured && db) {
       try {
         await updateDoc(doc(db, "announcements", id), updates);
@@ -133,16 +169,31 @@ export const storageService = {
   },
 
   async deleteAnnouncement(id) {
+    return this.deleteMultipleAnnouncements([id]);
+  },
+
+  async deleteMultipleAnnouncements(ids) {
+    if (!Array.isArray(ids) || ids.length === 0) return true;
+    this.invalidateCache('announcements');
+
+    // 1. Remove from LocalStorage
+    const localList = JSON.parse(localStorage.getItem(KEYS.ANNOUNCEMENTS) || "[]");
+    const filtered = localList.filter(a => !ids.includes(a.id));
+    localStorage.setItem(KEYS.ANNOUNCEMENTS, JSON.stringify(filtered));
+
+    // 2. Remove from Cloud Firestore in a single atomic batch (1 HTTP request instead of N)
     if (isFirebaseConfigured && db) {
       try {
-        await deleteDoc(doc(db, "announcements", id));
+        const batch = writeBatch(db);
+        ids.forEach(id => {
+          batch.delete(doc(db, "announcements", id));
+        });
+        await batch.commit();
       } catch (err) {
-        console.warn("Firestore delete error:", err);
+        console.warn("Firestore delete multiple announcements error:", err);
+        throw new Error("Failed to delete announcements from cloud: " + err.message);
       }
     }
-    const localList = JSON.parse(localStorage.getItem(KEYS.ANNOUNCEMENTS) || "[]");
-    const filtered = localList.filter(a => a.id !== id);
-    localStorage.setItem(KEYS.ANNOUNCEMENTS, JSON.stringify(filtered));
     return true;
   },
 
@@ -176,7 +227,7 @@ export const storageService = {
     }
 
     const list = JSON.parse(localStorage.getItem(KEYS.EVENTS) || "[]");
-    const created = { id: `evt-${Date.now()}`, ...newEvent };
+    const created = { id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, ...newEvent };
     list.unshift(created);
     localStorage.setItem(KEYS.EVENTS, JSON.stringify(list));
     return created;
@@ -197,28 +248,35 @@ export const storageService = {
   },
 
   // ==================== POLLS ====================
-  async getPolls() {
+  async getPolls(force = false) {
     const userVotes = JSON.parse(localStorage.getItem(KEYS.USER_VOTES) || "{}");
-    if (isFirebaseConfigured && db) {
-      try {
-        const snap = await getDocs(collection(db, "polls"));
-        const polls = snap.docs.map(d => {
-          const data = d.data();
-          return {
-            id: d.id,
-            ...data,
-            closingDate: data.closingDate?.toDate ? data.closingDate.toDate().toISOString().split("T")[0] : data.closingDate
-          };
-        });
-        return polls.map(p => ({
-          ...p,
-          userVoted: userVotes[p.id] !== undefined ? userVotes[p.id] : null
-        }));
-      } catch (err) {
-        console.warn("Firestore error, falling back to local polls:", err);
+    let polls = null;
+
+    if (!force && this._pollsCache && Date.now() - this._pollsCacheTime < 20000) {
+      polls = this._pollsCache;
+    } else {
+      if (isFirebaseConfigured && db) {
+        try {
+          const snap = await getDocs(collection(db, "polls"));
+          polls = snap.docs.map(d => {
+            const data = d.data();
+            return {
+              id: d.id,
+              ...data,
+              closingDate: data.closingDate?.toDate ? data.closingDate.toDate().toISOString().split("T")[0] : data.closingDate
+            };
+          });
+        } catch (err) {
+          console.warn("Firestore error, falling back to local polls:", err);
+        }
       }
+      if (!polls) {
+        polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
+      }
+      this._pollsCache = polls;
+      this._pollsCacheTime = Date.now();
     }
-    const polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
+
     return polls.map(p => ({
       ...p,
       userVoted: userVotes[p.id] !== undefined ? userVotes[p.id] : null
@@ -315,11 +373,13 @@ export const storageService = {
     targetPoll.options[optionIndex].votes += 1;
     targetPoll.totalVotes = (targetPoll.totalVotes || 0) + 1;
     localStorage.setItem(KEYS.POLLS, JSON.stringify(polls));
+    this.invalidateCache('polls');
 
     return true;
   },
 
   async addPoll(pollData) {
+    this.invalidateCache('polls');
     const cleanQuestion = (pollData.question || "").trim().slice(0, 300);
     const cleanCategory = (pollData.category || "General").trim().slice(0, 100);
     const cleanOptions = (Array.isArray(pollData.options) ? pollData.options : [])
@@ -369,7 +429,7 @@ export const storageService = {
 
     const polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
     const created = {
-      id: `poll-${Date.now()}`,
+      id: `poll-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       ...newPoll,
       closingDate: pollData.closingDate || null
     };
@@ -379,6 +439,7 @@ export const storageService = {
   },
 
   async togglePollStatus(pollId, status) {
+    this.invalidateCache('polls');
     const polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
     const updated = polls.map(p => p.id === pollId ? { ...p, status } : p);
     localStorage.setItem(KEYS.POLLS, JSON.stringify(updated));
@@ -388,6 +449,40 @@ export const storageService = {
         await updateDoc(doc(db, "polls", pollId), { status });
       } catch (err) {
         console.warn("Firestore toggle poll status error:", err);
+      }
+    }
+    return true;
+  },
+
+  async deletePoll(pollId) {
+    return this.deleteMultiplePolls([pollId]);
+  },
+
+  async deleteMultiplePolls(pollIds) {
+    if (!Array.isArray(pollIds) || pollIds.length === 0) return true;
+    this.invalidateCache('polls');
+
+    // 1. Remove from LocalStorage
+    const polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
+    const filtered = polls.filter(p => !pollIds.includes(p.id));
+    localStorage.setItem(KEYS.POLLS, JSON.stringify(filtered));
+
+    const userVotes = JSON.parse(localStorage.getItem(KEYS.USER_VOTES) || "{}");
+    pollIds.forEach(id => delete userVotes[id]);
+    localStorage.setItem(KEYS.USER_VOTES, JSON.stringify(userVotes));
+
+    // 2. Remove from Cloud Firestore in a single atomic batch
+    if (isFirebaseConfigured && db) {
+      try {
+        const batch = writeBatch(db);
+        for (const pollId of pollIds) {
+          const pollRef = doc(db, "polls", pollId);
+          batch.delete(pollRef);
+        }
+        await batch.commit();
+      } catch (err) {
+        console.warn("Firestore delete multiple polls error:", err);
+        throw new Error("Failed to delete polls from cloud: " + err.message);
       }
     }
     return true;
@@ -489,10 +584,11 @@ export const storageService = {
 
     const feedbacks = JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
     if (!feedbackDoc.id) {
-      feedbackDoc.id = `fb-${Date.now()}`;
+      feedbackDoc.id = `fb-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     }
     feedbacks.unshift(feedbackDoc);
     localStorage.setItem(KEYS.FEEDBACK, JSON.stringify(feedbacks));
+    this.invalidateCache('feedback');
 
     return {
       success: true,
@@ -504,24 +600,35 @@ export const storageService = {
     };
   },
 
-  async getFeedbacks() {
+  async getFeedbacks(force = false) {
+    if (!force && this._feedbacksCache && Date.now() - this._feedbacksCacheTime < 20000) {
+      return this._feedbacksCache;
+    }
+
+    let data = null;
     if (isFirebaseConfigured && db) {
       try {
         const snap = await getDocs(collection(db, "feedback"));
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       } catch (err) {
         if (err.code === "permission-denied") {
           console.error("Firestore feedback read permission-denied: Council clearance required.");
           return [];
         }
         console.warn("Firestore getFeedbacks error:", err);
-        return [];
       }
     }
-    return JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
+    if (!data) {
+      data = JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
+    }
+
+    this._feedbacksCache = data;
+    this._feedbacksCacheTime = Date.now();
+    return data;
   },
 
   async updateFeedbackStatus(id, newStatus, councilNotes) {
+    this.invalidateCache('feedback');
     const list = JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
     const updated = list.map(f => {
       if (f.id === id) {
@@ -553,17 +660,19 @@ export const storageService = {
 
   async deleteMultipleFeedbacks(ids) {
     if (!Array.isArray(ids) || ids.length === 0) return true;
+    this.invalidateCache('feedback');
 
     // 1. Remove from LocalStorage
     const list = JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
     const updated = list.filter(f => !ids.includes(f.id));
     localStorage.setItem(KEYS.FEEDBACK, JSON.stringify(updated));
 
-    // 2. Remove from Cloud Firestore
+    // 2. Remove from Cloud Firestore in a single atomic batch commit
     if (isFirebaseConfigured && db) {
       try {
-        const deleteOps = ids.map(id => deleteDoc(doc(db, "feedback", id)));
-        await Promise.all(deleteOps);
+        const batch = writeBatch(db);
+        ids.forEach(id => batch.delete(doc(db, "feedback", id)));
+        await batch.commit();
       } catch (err) {
         console.warn("Firestore delete multiple feedback error:", err);
         throw new Error("Failed to delete from cloud: " + err.message);
@@ -848,16 +957,17 @@ export const storageService = {
     const updated = list.filter(c => !sessionIds.includes(c.id) && !sessionIds.includes(c.sessionId));
     localStorage.setItem(KEYS.CHATS, JSON.stringify(updated));
 
-    // 2. Remove from Cloud Firestore
+    // 2. Remove from Cloud Firestore in a single atomic batch commit
     if (isFirebaseConfigured && db) {
       try {
+        const batch = writeBatch(db);
         for (const sessionId of sessionIds) {
           const chatRef = doc(db, "chats", sessionId);
           const messagesSnap = await getDocs(collection(chatRef, "messages"));
-          const deleteMsgs = messagesSnap.docs.map(m => deleteDoc(m.ref));
-          await Promise.all(deleteMsgs);
-          await deleteDoc(chatRef);
+          messagesSnap.docs.forEach(m => batch.delete(m.ref));
+          batch.delete(chatRef);
         }
+        await batch.commit();
       } catch (err) {
         console.warn("Firestore delete multiple chats error:", err);
         throw new Error("Failed to delete chat sessions from cloud: " + err.message);

@@ -179,60 +179,77 @@ export default function App() {
     showToast("Council session ended", "info");
   };
 
-  // Operation Handlers
+  // Operation Handlers - Optimistic state updates to eliminate redundant Firestore collection re-reads
   const handleVotePoll = async (pollId, optionIndex) => {
+    setPolls(prev => prev.map(p => {
+      if (p.id !== pollId) return p;
+      const currentOptions = Array.isArray(p.options) ? p.options : [];
+      return {
+        ...p,
+        userVoted: optionIndex,
+        totalVotes: (Number(p.totalVotes) || 0) + 1,
+        options: currentOptions.map((opt, i) => i === optionIndex ? { ...opt, votes: (Number(opt.votes) || 0) + 1 } : opt)
+      };
+    }));
     await storageService.votePoll(pollId, optionIndex);
-    const updatedPolls = await storageService.getPolls();
-    setPolls(updatedPolls);
   };
 
   const handleSubmitFeedback = async (feedbackData) => {
     const result = await storageService.submitFeedback(feedbackData);
-    const updated = await storageService.getFeedbacks();
-    setFeedbacks(updated);
+    if (adminUser) {
+      setFeedbacks(prev => [{ ...feedbackData, trackingId: result.trackingId, id: `fb-${Date.now()}`, status: 'Received' }, ...prev]);
+    }
     return result;
   };
 
   const handleAddAnnouncement = async (annData) => {
-    await storageService.addAnnouncement(annData);
-    const updated = await storageService.getAnnouncements();
-    setAnnouncements(updated);
+    const created = await storageService.addAnnouncement(annData);
+    setAnnouncements(prev => [created, ...prev.filter(a => a.id !== created.id)]);
   };
 
   const handleUpdateAnnouncement = async (id, updates) => {
+    setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
     await storageService.updateAnnouncement(id, updates);
-    const updated = await storageService.getAnnouncements();
-    setAnnouncements(updated);
   };
 
   const handleDeleteAnnouncement = async (id) => {
+    setAnnouncements(prev => prev.filter(a => a.id !== id));
     await storageService.deleteAnnouncement(id);
-    const updated = await storageService.getAnnouncements();
-    setAnnouncements(updated);
+  };
+
+  const handleDeleteMultipleAnnouncements = async (ids) => {
+    setAnnouncements(prev => prev.filter(a => !ids.includes(a.id)));
+    await storageService.deleteMultipleAnnouncements(ids);
   };
 
   const handleAddPoll = async (pollData) => {
-    await storageService.addPoll(pollData);
-    const updated = await storageService.getPolls();
-    setPolls(updated);
+    const created = await storageService.addPoll(pollData);
+    setPolls(prev => [created, ...prev.filter(p => p.id !== created.id)]);
   };
 
   const handleTogglePollStatus = async (pollId, status) => {
+    setPolls(prev => prev.map(p => p.id === pollId ? { ...p, status } : p));
     await storageService.togglePollStatus(pollId, status);
-    const updated = await storageService.getPolls();
-    setPolls(updated);
+  };
+
+  const handleDeletePoll = async (id) => {
+    setPolls(prev => prev.filter(p => p.id !== id));
+    await storageService.deletePoll(id);
+  };
+
+  const handleDeleteMultiplePolls = async (ids) => {
+    setPolls(prev => prev.filter(p => !ids.includes(p.id)));
+    await storageService.deleteMultiplePolls(ids);
   };
 
   const handleUpdateFeedbackStatus = async (id, status, notes) => {
+    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status, councilNotes: notes } : f));
     await storageService.updateFeedbackStatus(id, status, notes);
-    const updated = await storageService.getFeedbacks();
-    setFeedbacks(updated);
   };
 
   const handleDeleteMultipleFeedbacks = async (ids) => {
+    setFeedbacks(prev => prev.filter(f => !ids.includes(f.id)));
     await storageService.deleteMultipleFeedbacks(ids);
-    const updated = await storageService.getFeedbacks();
-    setFeedbacks(updated);
   };
 
   const handleRefreshChats = async () => {
@@ -241,9 +258,8 @@ export default function App() {
   };
 
   const handleDeleteMultipleChats = async (sessionIds) => {
+    setChats(prev => prev.filter(c => !sessionIds.includes(c.id) && !sessionIds.includes(c.sessionId)));
     await storageService.deleteMultipleChats(sessionIds);
-    const updated = await storageService.getAllChats();
-    setChats(updated);
   };
 
   // Unread badge count
@@ -307,6 +323,7 @@ export default function App() {
                   announcements={announcements}
                   onAddAnnouncement={handleAddAnnouncement}
                   onDeleteAnnouncement={handleDeleteAnnouncement}
+                  onDeleteMultipleAnnouncements={handleDeleteMultipleAnnouncements}
                   onUpdateAnnouncement={handleUpdateAnnouncement}
                   showToast={showToast}
                 />
@@ -317,6 +334,8 @@ export default function App() {
                   polls={polls}
                   onAddPoll={handleAddPoll}
                   onTogglePollStatus={handleTogglePollStatus}
+                  onDeletePoll={handleDeletePoll}
+                  onDeleteMultiplePolls={handleDeleteMultiplePolls}
                   showToast={showToast}
                 />
               )}

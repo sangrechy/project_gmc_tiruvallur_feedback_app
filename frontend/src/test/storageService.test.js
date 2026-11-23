@@ -221,39 +221,69 @@ describe('Storage Service Blackbox & Unit Verification', () => {
       await expect(storageService.votePoll(expiredPoll.id, 0)).rejects.toThrow(/closing deadline/i);
     });
 
-    it('allows council to create and toggle poll status', async () => {
-      const newPoll = await storageService.addPoll({
+    it('allows council to create, toggle, and batch delete polls', async () => {
+      const p1 = await storageService.addPoll({
         question: 'Preferred clinical symposium topic?',
         options: [{ text: 'Cardiology', votes: 0 }, { text: 'Neurology', votes: 0 }]
       });
+      const p2 = await storageService.addPoll({
+        question: 'Preferred sports week schedule?',
+        options: [{ text: 'December', votes: 0 }, { text: 'January', votes: 0 }]
+      });
 
-      expect(newPoll.id).toBeDefined();
-      expect(newPoll.status).toBe('active');
+      expect(p1.id).toBeDefined();
+      expect(p2.id).toBeDefined();
 
-      await storageService.togglePollStatus(newPoll.id, 'closed');
-      const all = await storageService.getPolls();
-      expect(all.find(p => p.id === newPoll.id).status).toBe('closed');
+      await storageService.togglePollStatus(p1.id, 'closed');
+      let all = await storageService.getPolls(true);
+      expect(all.find(p => p.id === p1.id).status).toBe('closed');
+
+      // Test single delete
+      await storageService.deletePoll(p1.id);
+      all = await storageService.getPolls(true);
+      expect(all.some(p => p.id === p1.id)).toBe(false);
+      expect(all.some(p => p.id === p2.id)).toBe(true);
+
+      // Test multiple delete
+      await storageService.deleteMultiplePolls([p2.id]);
+      all = await storageService.getPolls(true);
+      expect(all.some(p => p.id === p2.id)).toBe(false);
     });
   });
 
   describe('Announcements & Events Management', () => {
-    it('creates, pins, and deletes campus announcements', async () => {
-      const created = await storageService.addAnnouncement({
+    it('creates, pins, and batch deletes campus announcements', async () => {
+      const a1 = await storageService.addAnnouncement({
         title: 'Emergency Dissection Hall Sanitation Notice',
         category: 'IMPORTANT',
         description: 'Sanitation drive scheduled for Friday morning.',
         pinned: true
       });
+      const a2 = await storageService.addAnnouncement({
+        title: 'Clinical Ward Posting Schedule Rev 2',
+        category: 'ACADEMIC',
+        description: 'Updated roster for 3rd year postings.',
+        pinned: false
+      });
 
-      expect(created.id).toBeDefined();
-      expect(created.pinned).toBe(true);
+      expect(a1.id).toBeDefined();
+      expect(a1.pinned).toBe(true);
+      expect(a2.id).toBeDefined();
 
-      const list = await storageService.getAnnouncements();
-      expect(list.some(a => a.id === created.id)).toBe(true);
+      let list = await storageService.getAnnouncements(true);
+      expect(list.some(a => a.id === a1.id)).toBe(true);
+      expect(list.some(a => a.id === a2.id)).toBe(true);
 
-      await storageService.deleteAnnouncement(created.id);
-      const afterDelete = await storageService.getAnnouncements();
-      expect(afterDelete.some(a => a.id === created.id)).toBe(false);
+      // Test single delete
+      await storageService.deleteAnnouncement(a1.id);
+      list = await storageService.getAnnouncements(true);
+      expect(list.some(a => a.id === a1.id)).toBe(false);
+      expect(list.some(a => a.id === a2.id)).toBe(true);
+
+      // Test multiple delete
+      await storageService.deleteMultipleAnnouncements([a2.id]);
+      list = await storageService.getAnnouncements(true);
+      expect(list.some(a => a.id === a2.id)).toBe(false);
     });
 
     it('creates and deletes college events', async () => {

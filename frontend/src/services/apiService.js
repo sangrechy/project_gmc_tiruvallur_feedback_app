@@ -6,8 +6,14 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 export const apiService = {
   isConfigured: Boolean(API_BASE && API_BASE.startsWith("http")),
   apiBase: API_BASE,
+  _statusCache: null,
+  _statusCacheTime: 0,
 
-  async getAppStatus() {
+  async getAppStatus(forceRefresh = false) {
+    if (!forceRefresh && this._statusCache && (Date.now() - this._statusCacheTime < 15000)) {
+      return this._statusCache;
+    }
+
     const timestamp = new Date().toISOString();
     const snapshotId = "GMC-DIAG-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -132,6 +138,8 @@ export const apiService = {
       }
     }
 
+    this._statusCache = statusReport;
+    this._statusCacheTime = Date.now();
     return statusReport;
   },
 
