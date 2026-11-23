@@ -547,6 +547,31 @@ export const storageService = {
     return true;
   },
 
+  async deleteFeedback(id) {
+    return this.deleteMultipleFeedbacks([id]);
+  },
+
+  async deleteMultipleFeedbacks(ids) {
+    if (!Array.isArray(ids) || ids.length === 0) return true;
+
+    // 1. Remove from LocalStorage
+    const list = JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
+    const updated = list.filter(f => !ids.includes(f.id));
+    localStorage.setItem(KEYS.FEEDBACK, JSON.stringify(updated));
+
+    // 2. Remove from Cloud Firestore
+    if (isFirebaseConfigured && db) {
+      try {
+        const deleteOps = ids.map(id => deleteDoc(doc(db, "feedback", id)));
+        await Promise.all(deleteOps);
+      } catch (err) {
+        console.warn("Firestore delete multiple feedback error:", err);
+        throw new Error("Failed to delete from cloud: " + err.message);
+      }
+    }
+    return true;
+  },
+
   // ==================== TEMPORARY LIVE CHAT ====================
   generateSessionId() {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -806,6 +831,36 @@ export const storageService = {
       } catch (err) {
         console.error("Firestore endChatSession error:", err);
         throw new Error("Failed to purge session messages from cloud: " + err.message);
+      }
+    }
+    return true;
+  },
+
+  async deleteChatSession(sessionId) {
+    return this.deleteMultipleChats([sessionId]);
+  },
+
+  async deleteMultipleChats(sessionIds) {
+    if (!Array.isArray(sessionIds) || sessionIds.length === 0) return true;
+
+    // 1. Remove from LocalStorage
+    const list = JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
+    const updated = list.filter(c => !sessionIds.includes(c.id) && !sessionIds.includes(c.sessionId));
+    localStorage.setItem(KEYS.CHATS, JSON.stringify(updated));
+
+    // 2. Remove from Cloud Firestore
+    if (isFirebaseConfigured && db) {
+      try {
+        for (const sessionId of sessionIds) {
+          const chatRef = doc(db, "chats", sessionId);
+          const messagesSnap = await getDocs(collection(chatRef, "messages"));
+          const deleteMsgs = messagesSnap.docs.map(m => deleteDoc(m.ref));
+          await Promise.all(deleteMsgs);
+          await deleteDoc(chatRef);
+        }
+      } catch (err) {
+        console.warn("Firestore delete multiple chats error:", err);
+        throw new Error("Failed to delete chat sessions from cloud: " + err.message);
       }
     }
     return true;

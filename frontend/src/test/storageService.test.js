@@ -86,6 +86,36 @@ describe('Storage Service Blackbox & Unit Verification', () => {
       updated = await storageService.getFeedbacks();
       expect(updated.find(f => f.id === item.id).status).toBe('Resolved');
     });
+
+    it('allows council to delete single and multiple feedback messages', async () => {
+      const fb1 = await storageService.submitFeedback({
+        category: 'Hostel & Mess',
+        content: 'Test delete feedback item 1',
+        containsPII: false
+      });
+      const fb2 = await storageService.submitFeedback({
+        category: 'Transport',
+        content: 'Test delete feedback item 2',
+        containsPII: false
+      });
+
+      const allBefore = await storageService.getFeedbacks();
+      const item1 = allBefore.find(f => f.trackingId === fb1.trackingId);
+      const item2 = allBefore.find(f => f.trackingId === fb2.trackingId);
+      expect(item1).toBeDefined();
+      expect(item2).toBeDefined();
+
+      // Test single delete
+      await storageService.deleteFeedback(item1.id);
+      let afterSingle = await storageService.getFeedbacks();
+      expect(afterSingle.some(f => f.id === item1.id)).toBe(false);
+      expect(afterSingle.some(f => f.id === item2.id)).toBe(true);
+
+      // Test multiple delete
+      await storageService.deleteMultipleFeedbacks([item2.id]);
+      let afterMultiple = await storageService.getFeedbacks();
+      expect(afterMultiple.some(f => f.id === item2.id)).toBe(false);
+    });
   });
 
   describe('Temporary Live Chat Pipeline', () => {
@@ -133,6 +163,26 @@ describe('Storage Service Blackbox & Unit Verification', () => {
       await expect(
         storageService.sendChatMessage(session.sessionId, 'student', 'Is anyone there?')
       ).rejects.toThrow(/ended/);
+    });
+
+    it('allows council to delete single and multiple chat sessions', async () => {
+      const s1 = await storageService.getOrCreateChatSession();
+      const s2 = await storageService.getOrCreateChatSession();
+
+      const allBefore = await storageService.getAllChats();
+      expect(allBefore.some(c => c.sessionId === s1.sessionId)).toBe(true);
+      expect(allBefore.some(c => c.sessionId === s2.sessionId)).toBe(true);
+
+      // Single delete
+      await storageService.deleteChatSession(s1.sessionId);
+      let afterSingle = await storageService.getAllChats();
+      expect(afterSingle.some(c => c.sessionId === s1.sessionId)).toBe(false);
+      expect(afterSingle.some(c => c.sessionId === s2.sessionId)).toBe(true);
+
+      // Multiple delete
+      await storageService.deleteMultipleChats([s2.sessionId]);
+      let afterMultiple = await storageService.getAllChats();
+      expect(afterMultiple.some(c => c.sessionId === s2.sessionId)).toBe(false);
     });
   });
 

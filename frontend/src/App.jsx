@@ -229,7 +229,19 @@ export default function App() {
     setFeedbacks(updated);
   };
 
+  const handleDeleteMultipleFeedbacks = async (ids) => {
+    await storageService.deleteMultipleFeedbacks(ids);
+    const updated = await storageService.getFeedbacks();
+    setFeedbacks(updated);
+  };
+
   const handleRefreshChats = async () => {
+    const updated = await storageService.getAllChats();
+    setChats(updated);
+  };
+
+  const handleDeleteMultipleChats = async (sessionIds) => {
+    await storageService.deleteMultipleChats(sessionIds);
     const updated = await storageService.getAllChats();
     setChats(updated);
   };
@@ -275,6 +287,7 @@ export default function App() {
                 <AdminFeedback
                   feedbacks={feedbacks}
                   onUpdateFeedbackStatus={handleUpdateFeedbackStatus}
+                  onDeleteMultipleFeedbacks={handleDeleteMultipleFeedbacks}
                   onRefreshFeedback={loadData}
                   showToast={showToast}
                 />
@@ -284,6 +297,7 @@ export default function App() {
                 <AdminChat
                   chats={chats}
                   onRefreshChats={handleRefreshChats}
+                  onDeleteMultipleChats={handleDeleteMultipleChats}
                   showToast={showToast}
                 />
               )}

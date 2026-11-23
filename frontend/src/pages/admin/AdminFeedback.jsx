@@ -11,10 +11,17 @@ import {
   Filter,
   Sparkles,
   ChevronDown,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from 'lucide-react';
 
-export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, onRefreshFeedback, showToast }) {
+export default function AdminFeedback({ 
+  feedbacks, 
+  onUpdateFeedbackStatus, 
+  onDeleteMultipleFeedbacks,
+  onRefreshFeedback, 
+  showToast 
+}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
@@ -22,6 +29,9 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, onRef
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmDeleteIds, setConfirmDeleteIds] = useState(null);
 
   const categories = [
     'ALL', 
@@ -94,6 +104,43 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, onRef
     setCopiedId(id);
     showToast("Tracking ID copied", "info");
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllFiltered = () => {
+    const allFilteredIds = filtered.map(f => f.id);
+    const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(prev => prev.filter(id => !allFilteredIds.includes(id)));
+    } else {
+      setSelectedIds(prev => Array.from(new Set([...prev, ...allFilteredIds])));
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds([]);
+  };
+
+  const handleExecuteDelete = async () => {
+    if (!confirmDeleteIds || confirmDeleteIds.length === 0) return;
+    setIsDeleting(true);
+    try {
+      if (onDeleteMultipleFeedbacks) {
+        await onDeleteMultipleFeedbacks(confirmDeleteIds);
+      }
+      showToast(`${confirmDeleteIds.length} feedback message${confirmDeleteIds.length > 1 ? 's' : ''} deleted`, "success");
+      setSelectedIds(prev => prev.filter(id => !confirmDeleteIds.includes(id)));
+      setConfirmDeleteIds(null);
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const getCategoryBadgeClass = (category) => {
@@ -211,6 +258,60 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, onRef
         </div>
       </div>
 
+      {/* Multi-Select Bulk Action Floating/Sticky Bar */}
+      {selectedIds.length > 0 && (
+        <div className="sticky top-20 z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+          <div className="flex items-center space-x-3">
+            <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs font-mono">
+              {selectedIds.length}
+            </span>
+            <span className="text-xs sm:text-sm font-semibold">
+              {selectedIds.length} message{selectedIds.length > 1 ? 's' : ''} selected
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleClearSelection}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+            >
+              Deselect All
+            </button>
+            <button
+              onClick={() => setConfirmDeleteIds([...selectedIds])}
+              disabled={isDeleting}
+              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center space-x-1.5 transition-all shadow-sm active:scale-95"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Selected ({selectedIds.length})</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Select All Row */}
+      {filtered.length > 0 && (
+        <div className="flex items-center justify-between px-1 text-xs text-slate-500">
+          <label className="flex items-center space-x-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={filtered.length > 0 && filtered.every(f => selectedIds.includes(f.id))}
+              onChange={handleSelectAllFiltered}
+              className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
+            />
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              Select All Messages ({filtered.length})
+            </span>
+          </label>
+
+          {selectedIds.length > 0 && (
+            <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400 font-bold">
+              {selectedIds.length} of {feedbacks.length} selected
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Direct-Reading Message Stream (Card Feed) */}
       <div className="space-y-4">
         {filtered.length === 0 ? (
@@ -248,6 +349,15 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, onRef
                 {/* Card Top: Category, Tracking ID, Status Badge */}
                 <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-200/50 dark:border-slate-800/80 text-xs">
                   <div className="flex flex-wrap items-center gap-2">
+                    {/* Select Checkbox */}
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(item.id)}
+                      onChange={() => handleToggleSelect(item.id)}
+                      className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer mr-0.5"
+                      title="Select message"
+                    />
+
                     {/* Category */}
                     <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getCategoryBadgeClass(item.category)}`}>
                       {item.category}
@@ -397,19 +507,30 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, onRef
                     )}
                   </div>
 
-                  {/* Add Note Button */}
-                  {!isEditingThisNote && (
+                  <div className="flex items-center space-x-2">
+                    {/* Add Note Button */}
+                    {!isEditingThisNote && (
+                      <button
+                        onClick={() => {
+                          setEditingNoteId(item.id);
+                          setNoteText(item.councilNotes || '');
+                        }}
+                        className="text-xs font-semibold text-slate-500 hover:text-sky-500 transition-colors flex items-center space-x-1"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>{item.councilNotes ? 'Edit Note' : '+ Add Note'}</span>
+                      </button>
+                    )}
+
+                    {/* Single Delete Button */}
                     <button
-                      onClick={() => {
-                        setEditingNoteId(item.id);
-                        setNoteText(item.councilNotes || '');
-                      }}
-                      className="text-xs font-semibold text-slate-500 hover:text-sky-500 transition-colors flex items-center space-x-1"
+                      onClick={() => setConfirmDeleteIds([item.id])}
+                      className="text-xs font-semibold text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40"
+                      title="Delete grievance"
                     >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>{item.councilNotes ? 'Edit Note' : '+ Add Note'}</span>
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                  )}
+                  </div>
                 </div>
 
               </div>
@@ -417,6 +538,46 @@ export default function AdminFeedback({ feedbacks, onUpdateFeedbackStatus, onRef
           })
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmDeleteIds && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-scaleUp">
+            <div className="flex items-center space-x-3 text-red-500 mb-4">
+              <div className="p-3 bg-red-100 dark:bg-red-950/50 rounded-2xl">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                  Delete {confirmDeleteIds.length > 1 ? `${confirmDeleteIds.length} Messages` : 'Message'}?
+                </h3>
+                <p className="text-xs text-slate-500">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+              Are you sure you want to permanently delete {confirmDeleteIds.length > 1 ? `these ${confirmDeleteIds.length} feedback messages` : 'this feedback message'} from the Council records and cloud database?
+            </p>
+
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={() => setConfirmDeleteIds(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExecuteDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : `Delete ${confirmDeleteIds.length > 1 ? `(${confirmDeleteIds.length})` : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

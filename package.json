@@ -29,6 +29,9 @@
   ],
   "author": "GMC Thiruvallur Student Council",
   "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "devDependencies": {
     "concurrently": "^9.1.2"
   }
