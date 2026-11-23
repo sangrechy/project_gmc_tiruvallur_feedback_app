@@ -75,11 +75,14 @@ export default function App() {
   }, [isDarkMode]);
 
   // Load initial public data
-  const loadData = async () => {
+  const loadData = async (force = false) => {
     try {
+      if (force) {
+        storageService.invalidateCache();
+      }
       const [annList, pollList] = await Promise.all([
-        storageService.getAnnouncements(),
-        storageService.getPolls()
+        storageService.getAnnouncements(force),
+        storageService.getPolls(force)
       ]);
       setAnnouncements(annList);
       setPolls(pollList);
@@ -87,7 +90,7 @@ export default function App() {
       // Only load sensitive feedback and chat data if an authenticated admin session exists
       if (adminUser) {
         const [fbList, chatList] = await Promise.all([
-          storageService.getFeedbacks(),
+          storageService.getFeedbacks(force),
           storageService.getAllChats()
         ]);
         setFeedbacks(fbList);
@@ -95,6 +98,16 @@ export default function App() {
       }
     } catch (err) {
       console.error("Data load error:", err);
+      throw err;
+    }
+  };
+
+  const handleCouncilRefresh = async () => {
+    try {
+      await loadData(true);
+      showToast("Council feeds refreshed from cloud", "success");
+    } catch (err) {
+      showToast("Refresh failed: " + err.message, "error");
     }
   };
 
@@ -282,6 +295,7 @@ export default function App() {
               adminUser={adminUser}
               unreadCount={unreadFeedbackCount}
               activeChatsCount={activeChatsCount}
+              onRefresh={handleCouncilRefresh}
             >
               {adminSection === 'dashboard' && (
                 <AdminDashboard

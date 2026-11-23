@@ -8,7 +8,8 @@ import {
   X,
   User,
   RefreshCw,
-  Trash2
+  Trash2,
+  Shield
 } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 
@@ -304,21 +305,38 @@ export default function AdminChat({
               </div>
 
               {/* Messages Bubble Area */}
-              <div className="h-80 sm:h-96 overflow-y-auto p-4 rounded-xl bg-slate-100/50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-3">
+              <div className="h-80 sm:h-96 overflow-y-auto p-3.5 sm:p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-4">
                 {selectedSession.messages?.map((msg) => {
                   const isCouncil = msg.sender === 'council';
                   return (
                     <div
                       key={msg.id}
-                      className={`flex flex-col ${isCouncil ? 'items-end' : 'items-start'}`}
+                      className={`flex flex-col ${isCouncil ? 'items-end' : 'items-start'} space-y-1`}
                     >
-                      <span className="text-[10px] text-slate-400 mb-0.5 px-1 font-medium">
-                        {isCouncil ? "You (Council)" : "Student"} • {msg.timestamp}
-                      </span>
+                      <div className={`flex items-center space-x-1.5 text-[11px] font-mono font-bold px-1 ${
+                        isCouncil ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'
+                      }`}>
+                        {isCouncil ? (
+                          <>
+                            <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
+                              <Shield className="w-2.5 h-2.5" />
+                            </span>
+                            <span className="uppercase tracking-wider">You (Council)</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                              <User className="w-2.5 h-2.5" />
+                            </span>
+                            <span className="uppercase tracking-wider">Student (Anonymous)</span>
+                          </>
+                        )}
+                        <span className="text-[10px] text-slate-400 font-normal">• {msg.timestamp}</span>
+                      </div>
                       <div
-                        className={`max-w-[85%] p-3 rounded-2xl text-xs sm:text-sm font-normal leading-relaxed ${
+                        className={`max-w-[88%] sm:max-w-[80%] p-3.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${
                           isCouncil
-                            ? 'bg-sky-600 text-white rounded-tr-none shadow-sm'
+                            ? 'bg-sky-600 text-white rounded-tr-none border border-sky-500 shadow-sky-600/20'
                             : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-none shadow-sm'
                         }`}
                       >
@@ -338,14 +356,14 @@ export default function AdminChat({
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Type your reply to the student..."
                     disabled={isSending}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    className="min-w-0 flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder-slate-400"
                   />
                   <button
                     type="submit"
                     disabled={!replyText.trim() || isSending}
-                    className="portal-button-primary px-4 py-2.5 text-xs font-bold flex items-center space-x-1.5"
+                    className="portal-button-primary px-3 sm:px-4 py-2.5 text-xs font-bold flex items-center justify-center space-x-1.5 flex-shrink-0 active:scale-95 transition-transform"
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="hidden sm:inline">Send</span>
                   </button>
                 </form>

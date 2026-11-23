@@ -7,7 +7,8 @@ import {
   ShieldCheck,
   ArrowLeft,
   Cookie,
-  RotateCcw
+  RotateCcw,
+  User
 } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { cookieService } from '../services/cookieService';
@@ -232,16 +233,33 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
               return (
                 <div
                   key={msg.id}
-                  className={`flex flex-col ${isCouncil ? 'items-start' : 'items-end'}`}
+                  className={`flex flex-col ${isCouncil ? 'items-start' : 'items-end'} space-y-1`}
                 >
-                  <div className="text-[10px] font-mono font-bold mb-1 px-1 text-slate-400">
-                    {isCouncil ? "Council Representative" : "You"} • {msg.timestamp}
+                  <div className={`flex items-center space-x-1.5 text-[11px] font-mono font-bold px-1 ${
+                    isCouncil ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'
+                  }`}>
+                    {isCouncil ? (
+                      <>
+                        <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
+                          <ShieldCheck className="w-2.5 h-2.5" />
+                        </span>
+                        <span className="uppercase tracking-wider">Council Representative</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                          <User className="w-2.5 h-2.5" />
+                        </span>
+                        <span className="uppercase tracking-wider">You (Student)</span>
+                      </>
+                    )}
+                    <span className="text-[10px] text-slate-400 font-normal">• {msg.timestamp}</span>
                   </div>
                   <div
-                    className={`max-w-[85%] sm:max-w-[75%] p-3.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed ${
+                    className={`max-w-[88%] sm:max-w-[78%] p-3.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${
                       isCouncil
-                        ? 'portal-card text-slate-800 dark:text-slate-100 rounded-tl-sm shadow-sm border border-slate-300/40 dark:border-slate-800'
-                        : 'portal-button-primary text-white dark:text-slate-950 rounded-tr-sm shadow-md'
+                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border-2 border-sky-500/30 dark:border-sky-500/40 shadow-sm'
+                        : 'bg-sky-600 text-white rounded-tr-none border border-sky-500 shadow-md shadow-sky-600/20'
                     }`}
                   >
                     {msg.text}
@@ -262,16 +280,16 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Type your message to the council representative..."
                   disabled={isSending}
-                  className="flex-1 px-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
+                  className="min-w-0 flex-1 px-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
                 />
                 <button
                   type="submit"
                   disabled={!inputText.trim() || isSending}
                   title="Send Message"
-                  className="portal-button-primary px-4 sm:px-5 py-3.5 font-bold text-xs disabled:opacity-50 flex items-center space-x-1.5 active:scale-95 shadow-md flex-shrink-0"
+                  className="portal-button-primary px-4 sm:px-5 py-3.5 font-bold text-xs disabled:opacity-50 flex items-center justify-center space-x-1.5 active:scale-95 shadow-md flex-shrink-0"
                 >
                   <span className="hidden sm:inline">Send</span>
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4 flex-shrink-0" />
                 </button>
               </div>
 

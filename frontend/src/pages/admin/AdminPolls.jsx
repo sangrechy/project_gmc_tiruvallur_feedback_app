@@ -223,7 +223,7 @@ export default function AdminPolls({
                     </span>
                   </div>
 
-                  <div className="flex items-center space-x-3">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-xs font-mono font-bold text-slate-500">
                       {poll.totalVotes} Total Votes
                     </span>
@@ -247,7 +247,7 @@ export default function AdminPolls({
                   </div>
                 </div>
 
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white break-words">
                   {poll.question}
                 </h2>
 
@@ -256,9 +256,9 @@ export default function AdminPolls({
                     const pct = poll.totalVotes > 0 ? Math.round((opt.votes / poll.totalVotes) * 100) : 0;
                     return (
                       <div key={i} className="space-y-1">
-                        <div className="flex justify-between text-xs font-mono text-slate-700 dark:text-slate-300">
-                          <span>{opt.text}</span>
-                          <span>{pct}% ({opt.votes} votes)</span>
+                        <div className="flex items-center justify-between text-xs font-mono text-slate-700 dark:text-slate-300 gap-2">
+                          <span className="min-w-0 break-words flex-1 pr-1">{opt.text}</span>
+                          <span className="flex-shrink-0 font-bold">{pct}% ({opt.votes} votes)</span>
                         </div>
                         <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                           <div
@@ -278,15 +278,15 @@ export default function AdminPolls({
 
       {/* Create Poll Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
-          <div className="portal-card max-w-lg w-full p-6 sm:p-8 space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+          <div className="portal-card max-w-lg w-full max-h-[88vh] overflow-y-auto p-5 sm:p-7 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono uppercase">
                 Create Student Poll
               </h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-xs font-mono text-slate-400 hover:text-slate-600"
+                className="text-xs font-mono text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded"
               >
                 [CLOSE X]
               </button>
@@ -310,34 +310,37 @@ export default function AdminPolls({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-mono font-bold uppercase text-slate-700 dark:text-slate-300">
-                    Voting Options (min 2, max 6)
+                    Voting Options ({options.length}/6)
                   </label>
-                  <button
-                    type="button"
-                    onClick={handleAddOptionField}
-                    className="text-xs font-mono font-bold text-emerald-600 hover:underline"
-                  >
-                    + Add Option
-                  </button>
+                  {options.length < 6 && (
+                    <button
+                      type="button"
+                      onClick={handleAddOptionField}
+                      className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 hover:underline p-0.5"
+                    >
+                      + Add Option
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   {options.map((opt, idx) => (
                     <div key={idx} className="flex items-center space-x-2">
-                      <span className="text-xs font-mono text-slate-400 w-5 text-right">{idx + 1}.</span>
+                      <span className="text-xs font-mono text-slate-400 w-5 text-right flex-shrink-0">{idx + 1}.</span>
                       <input
                         type="text"
                         value={opt}
                         onChange={(e) => handleOptionChange(idx, e.target.value)}
                         placeholder={`Option ${idx + 1}`}
-                        className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:ring-2 focus:ring-emerald-500"
+                        className="min-w-0 flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:ring-2 focus:ring-emerald-500"
                         required
                       />
                       {options.length > 2 && (
                         <button
                           type="button"
                           onClick={() => handleRemoveOptionField(idx)}
-                          className="p-1 text-slate-400 hover:text-red-500"
+                          className="p-1.5 text-slate-400 hover:text-red-500 flex-shrink-0 rounded-lg hover:bg-red-500/10 transition-colors"
+                          title="Remove option"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
