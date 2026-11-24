@@ -10,9 +10,7 @@ import {
   Sparkles,
   Shield,
   Vote,
-  RefreshCw,
-  Menu,
-  X
+  RefreshCw
 } from 'lucide-react';
 
 export default function AdminLayout({ 
@@ -27,14 +25,13 @@ export default function AdminLayout({
   children 
 }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
-  // Simple, Crystal-Clear Council Navigation for Desktop
+  // Complete Council Navigation for Desktop Tab Bar
   const menuItems = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
+    { id: 'announcements', label: 'Notices', icon: Megaphone },
     { id: 'feedback', label: 'Feedback Review', icon: MessageSquare, badge: unreadCount },
     { id: 'reports', label: 'AI Analysis', icon: Sparkles },
-    { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'polls', label: 'Polls', icon: Vote },
     { id: 'chat', label: 'Live Chat', icon: MessageCircle, badge: activeChatsCount },
     { id: 'status', label: 'App Status', icon: Activity },
@@ -54,11 +51,8 @@ export default function AdminLayout({
 
   const handleSectionSelect = (sectionId) => {
     setCurrentSection(sectionId);
-    setShowMoreMenu(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const isMoreActive = ['reports', 'status'].includes(currentSection);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#07090e] flex flex-col font-sans transition-colors duration-300">
@@ -85,7 +79,7 @@ export default function AdminLayout({
             </div>
           </div>
 
-          {/* Top Actions: Refresh, Public Site & Logout */}
+          {/* Top Actions: Refresh, Status, Public Site & Logout */}
           <div className="flex items-center space-x-1.5 sm:space-x-3">
             {/* Dedicated Council Refresh Button */}
             <button
@@ -97,6 +91,20 @@ export default function AdminLayout({
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-sky-500' : ''}`} />
               <span className="hidden sm:inline">{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+            </button>
+
+            {/* Quick App Status Link */}
+            <button
+              onClick={() => handleSectionSelect('status')}
+              className={`px-2.5 sm:px-3 py-1.5 neu-button rounded-xl text-xs font-semibold transition-colors flex items-center space-x-1.5 ${
+                currentSection === 'status'
+                  ? 'border-sky-500 text-sky-500 bg-sky-500/10'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-sky-500'
+              }`}
+              title="App Status & Cloud Diagnostics"
+            >
+              <Activity className="w-3.5 h-3.5 text-sky-500" />
+              <span className="hidden sm:inline">Status</span>
             </button>
 
             <button
@@ -154,17 +162,17 @@ export default function AdminLayout({
         {children}
       </main>
 
-      {/* 📱 Council Mobile Bottom Navigation Bar (Matching Home Notice Menu layout, Feedback Review at center) */}
+      {/* 📱 Council Mobile Bottom Navigation Bar (AI Analysis directly in Main Menu, Feedback Review at center) */}
       <nav
         aria-label="Council Mobile Navigation"
         className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#f8fafc]/95 dark:bg-[#07090e]/95 backdrop-blur-2xl border-t border-slate-200/80 dark:border-white/10 pb-safe transition-colors shadow-2xl select-none"
       >
-        <div className="grid grid-cols-5 h-16 items-center px-1.5 max-w-md mx-auto relative">
+        <div className="grid grid-cols-6 h-16 items-center px-1 max-w-lg mx-auto relative">
           
           {/* 1. Home / Dashboard */}
           <button
             onClick={() => handleSectionSelect('dashboard')}
-            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-1 transition-all active:scale-90 ${
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-0.5 transition-all active:scale-90 ${
               currentSection === 'dashboard'
                 ? 'text-sky-600 dark:text-sky-400 font-bold'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -176,13 +184,13 @@ export default function AdminLayout({
                 <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
-            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium">Home</span>
+            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">Home</span>
           </button>
 
           {/* 2. Notices / Announcements */}
           <button
             onClick={() => handleSectionSelect('announcements')}
-            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-1 transition-all active:scale-90 ${
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-0.5 transition-all active:scale-90 ${
               currentSection === 'announcements'
                 ? 'text-sky-600 dark:text-sky-400 font-bold'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -194,21 +202,21 @@ export default function AdminLayout({
                 <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
-            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium">Notices</span>
+            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">Notices</span>
           </button>
 
           {/* 3. Center Highlight: Feedback Review with Unread Badge */}
           <button
             onClick={() => handleSectionSelect('feedback')}
-            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-1 transition-all active:scale-90 relative ${
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-0.5 transition-all active:scale-90 relative ${
               currentSection === 'feedback'
                 ? 'text-sky-600 dark:text-sky-400 font-bold'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            <div className={`relative p-2.5 rounded-2xl transition-all ${
+            <div className={`relative p-2 rounded-2xl transition-all ${
               currentSection === 'feedback'
-                ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/40 -translate-y-2 scale-110'
+                ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/40 -translate-y-2 scale-105'
                 : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 -translate-y-1'
             }`}>
               <MessageSquare className="w-5 h-5" />
@@ -218,15 +226,33 @@ export default function AdminLayout({
                 </span>
               )}
             </div>
-            <span className={`text-[10px] tracking-tight mt-0.5 leading-none ${currentSection === 'feedback' ? 'font-black text-sky-500' : 'font-medium'}`}>
+            <span className={`text-[10px] tracking-tight mt-0.5 leading-none ${currentSection === 'feedback' ? 'font-black text-sky-500' : 'font-medium'} truncate`}>
               Review
             </span>
           </button>
 
-          {/* 4. Polls */}
+          {/* 4. AI Analysis directly in Main Menu */}
+          <button
+            onClick={() => handleSectionSelect('reports')}
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-0.5 transition-all active:scale-90 ${
+              currentSection === 'reports'
+                ? 'text-sky-600 dark:text-sky-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+          >
+            <div className="relative">
+              <Sparkles className={`w-5 h-5 transition-transform duration-200 ${currentSection === 'reports' ? 'scale-110 text-sky-500 dark:text-sky-400' : ''}`} />
+              {currentSection === 'reports' && (
+                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
+              )}
+            </div>
+            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">AI</span>
+          </button>
+
+          {/* 5. Polls */}
           <button
             onClick={() => handleSectionSelect('polls')}
-            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-1 transition-all active:scale-90 ${
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-0.5 transition-all active:scale-90 ${
               currentSection === 'polls'
                 ? 'text-sky-600 dark:text-sky-400 font-bold'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -238,13 +264,13 @@ export default function AdminLayout({
                 <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
-            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium">Polls</span>
+            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">Polls</span>
           </button>
 
-          {/* 5. Live Chat / More Actions */}
+          {/* 6. Live Chat */}
           <button
             onClick={() => handleSectionSelect('chat')}
-            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-1 transition-all active:scale-90 relative ${
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-0.5 transition-all active:scale-90 relative ${
               currentSection === 'chat'
                 ? 'text-sky-600 dark:text-sky-400 font-bold'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -261,34 +287,7 @@ export default function AdminLayout({
                 <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
-            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium">Chat</span>
-          </button>
-        </div>
-
-        {/* Mobile Sub-Bar / Quick Switcher for AI Analysis and App Status */}
-        <div className="flex items-center justify-center space-x-3 py-1 px-2 border-t border-slate-200/50 dark:border-white/5 bg-slate-100/60 dark:bg-slate-900/60 text-[10px] font-mono">
-          <button
-            onClick={() => handleSectionSelect('reports')}
-            className={`px-2.5 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${
-              currentSection === 'reports'
-                ? 'bg-sky-500 text-white font-bold'
-                : 'text-slate-500 hover:text-sky-500'
-            }`}
-          >
-            <Sparkles className="w-3 h-3" />
-            <span>AI Reports</span>
-          </button>
-          <span className="text-slate-300 dark:text-slate-700">•</span>
-          <button
-            onClick={() => handleSectionSelect('status')}
-            className={`px-2.5 py-0.5 rounded-full flex items-center space-x-1 transition-colors ${
-              currentSection === 'status'
-                ? 'bg-sky-500 text-white font-bold'
-                : 'text-slate-500 hover:text-sky-500'
-            }`}
-          >
-            <Activity className="w-3 h-3" />
-            <span>App Status</span>
+            <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">Chat</span>
           </button>
         </div>
       </nav>

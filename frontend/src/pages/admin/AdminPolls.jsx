@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Vote, Plus, Trash2, CheckCircle2, Lock, Unlock, BarChart2 } from 'lucide-react';
+import { Vote, Plus, Trash2, CheckCircle2, Lock, Unlock, BarChart2, X } from 'lucide-react';
 
 export default function AdminPolls({ 
   polls, 
@@ -278,17 +278,19 @@ export default function AdminPolls({
 
       {/* Create Poll Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-          <div className="portal-card max-w-lg w-full max-h-[88vh] overflow-y-auto p-5 sm:p-7 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+          <div className="portal-card max-w-lg w-full max-h-[85vh] overflow-y-auto p-5 sm:p-7 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono uppercase">
                 Create Student Poll
               </h3>
               <button
+                type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="text-xs font-mono text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded"
+                className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Close dialog"
               >
-                [CLOSE X]
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -302,44 +304,41 @@ export default function AdminPolls({
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder="e.g. Which event would you prefer for Council Week?"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-2">
                   <label className="text-xs font-mono font-bold uppercase text-slate-700 dark:text-slate-300">
                     Voting Options ({options.length}/6)
                   </label>
-                  {options.length < 6 && (
-                    <button
-                      type="button"
-                      onClick={handleAddOptionField}
-                      className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 hover:underline p-0.5"
-                    >
-                      + Add Option
-                    </button>
-                  )}
+                  <span className="text-[11px] font-mono text-slate-400">Min 2, Max 6</span>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {options.map((opt, idx) => (
-                    <div key={idx} className="flex items-center space-x-2">
-                      <span className="text-xs font-mono text-slate-400 w-5 text-right flex-shrink-0">{idx + 1}.</span>
+                    <div 
+                      key={idx} 
+                      className="flex items-center rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-3 py-1 focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500 transition-all shadow-sm"
+                    >
+                      <span className="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        {idx + 1}
+                      </span>
                       <input
                         type="text"
                         value={opt}
                         onChange={(e) => handleOptionChange(idx, e.target.value)}
-                        placeholder={`Option ${idx + 1}`}
-                        className="min-w-0 flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:ring-2 focus:ring-emerald-500"
+                        placeholder={`Enter option ${idx + 1}...`}
+                        className="bg-transparent border-0 focus:ring-0 text-xs sm:text-sm py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 flex-1 min-w-0 font-medium focus:outline-none"
                         required
                       />
                       {options.length > 2 && (
                         <button
                           type="button"
                           onClick={() => handleRemoveOptionField(idx)}
-                          className="p-1.5 text-slate-400 hover:text-red-500 flex-shrink-0 rounded-lg hover:bg-red-500/10 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all flex-shrink-0"
                           title="Remove option"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -347,6 +346,17 @@ export default function AdminPolls({
                       )}
                     </div>
                   ))}
+
+                  {options.length < 6 && (
+                    <button
+                      type="button"
+                      onClick={handleAddOptionField}
+                      className="w-full py-2.5 px-3 rounded-2xl border-2 border-dashed border-emerald-500/30 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/5 font-semibold text-xs flex items-center justify-center space-x-1.5 transition-all active:scale-[0.99]"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Another Option ({options.length}/6)</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -362,7 +372,7 @@ export default function AdminPolls({
                 />
               </div>
 
-              <div className="pt-2 flex justify-end space-x-3">
+              <div className="pt-3 flex justify-end space-x-3 border-t border-slate-100 dark:border-slate-800 sticky bottom-0 bg-white dark:bg-slate-900 pb-1">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
@@ -373,7 +383,7 @@ export default function AdminPolls({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="portal-button-primary text-xs font-mono font-bold"
+                  className="portal-button-primary text-xs font-mono font-bold active:scale-95 shadow-sm"
                 >
                   {isSubmitting ? "CREATING..." : "LAUNCH POLL"}
                 </button>
@@ -385,8 +395,8 @@ export default function AdminPolls({
 
       {/* Delete Confirmation Modal */}
       {confirmDeleteIds && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-scaleUp">
             <div className="flex items-center space-x-3 text-red-500 mb-4">
               <div className="p-3 bg-red-100 dark:bg-red-950/50 rounded-2xl">
                 <Trash2 className="w-6 h-6" />
