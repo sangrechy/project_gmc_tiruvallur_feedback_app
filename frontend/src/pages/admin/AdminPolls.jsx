@@ -121,8 +121,8 @@ export default function AdminPolls({
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+    <div className="space-y-5 sm:space-y-6 animate-fadeIn">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
             Poll Management
@@ -131,7 +131,7 @@ export default function AdminPolls({
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="portal-button-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-sm"
+          className="portal-button-primary w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>Create Poll</span>
@@ -140,7 +140,7 @@ export default function AdminPolls({
 
       {/* Multi-Select Bulk Action Sticky Bar */}
       {selectedIds.length > 0 && (
-        <div className="sticky top-20 z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center space-x-3">
             <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs font-mono">
               {selectedIds.length}
@@ -195,7 +195,7 @@ export default function AdminPolls({
       {/* Polls List */}
       <div className="space-y-4">
         {polls.length === 0 ? (
-          <div className="portal-card p-12 text-center text-slate-400 text-xs font-mono">
+          <div className="portal-card p-10 sm:p-12 text-center text-slate-400 text-xs font-mono">
             No active or archived polls. Click "Create Poll" to launch one.
           </div>
         ) : (
@@ -203,7 +203,7 @@ export default function AdminPolls({
             const isActive = poll.status === 'active';
 
             return (
-              <div key={poll.id} className="portal-card p-6 space-y-4">
+              <div key={poll.id} className="portal-card p-4 sm:p-6 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                   <div className="flex items-center space-x-2">
                     <input
@@ -279,7 +279,7 @@ export default function AdminPolls({
       {/* Create Poll Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-          <div className="portal-card max-w-lg w-full max-h-[85vh] overflow-y-auto p-5 sm:p-7 space-y-4 shadow-2xl">
+          <div className="portal-card max-w-lg w-full max-h-[82dvh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white font-sans">
                 Create Student Poll
@@ -372,18 +372,18 @@ export default function AdminPolls({
                 />
               </div>
 
-              <div className="pt-4 pb-4 px-5 sm:px-7 mt-4 flex items-center justify-end space-x-3 border-t border-slate-100 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-5 sm:-mx-7 rounded-b-3xl">
+              <div className="pt-3.5 pb-3.5 px-4 sm:px-6 mt-4 flex items-center justify-end space-x-2.5 border-t border-slate-100 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-4 sm:-mx-6 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="portal-button-secondary text-xs font-medium"
+                  className="portal-button-secondary px-4 sm:px-5 py-2.5 text-xs font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="portal-button-primary text-xs font-semibold active:scale-95 shadow-sm"
+                  className="portal-button-primary px-4 sm:px-5 py-2.5 text-xs font-semibold active:scale-95 shadow-sm"
                 >
                   {isSubmitting ? "Creating..." : "Launch Poll"}
                 </button>

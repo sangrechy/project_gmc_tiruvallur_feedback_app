@@ -29,17 +29,17 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#f8fafc]/90 dark:bg-[#07090e]/90 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 transition-colors duration-300">
+    <header className="sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)] bg-[#f8fafc]/90 dark:bg-[#07090e]/90 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-2">
+        <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20 gap-2">
           
           {/* Institution Brand & Logo (Responsive for small phones) */}
           <div 
             onClick={() => handleNavClick('home')}
             className="flex items-center space-x-2 sm:space-x-3.5 cursor-pointer group select-none min-w-0"
           >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 portal-card flex items-center justify-center font-bold text-sky-600 dark:text-sky-400 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-              <span className="font-mono text-xs sm:text-base font-black tracking-tight">GMC</span>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 portal-card flex items-center justify-center font-bold text-sky-600 dark:text-sky-400 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+              <span className="font-mono text-xs sm:text-sm font-black tracking-tight">GMC</span>
             </div>
             <div className="min-w-0">
               <div className="flex items-center space-x-1.5">
@@ -62,7 +62,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+                  className={`flex items-center space-x-2 px-3.5 py-2 !min-h-[38px] rounded-xl text-xs font-semibold tracking-wide transition-all ${
                     isActive
                       ? 'portal-button-primary shadow-sm'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-300/40 dark:hover:bg-white/5'
@@ -76,7 +76,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
           </nav>
 
           {/* Right Controls: Compact Mobile-Friendly Theme Switch + Council Login */}
-          <div className="flex items-center space-x-2 sm:space-x-3.5 flex-shrink-0">
+          <div className="flex items-center space-x-1.5 sm:space-x-3 flex-shrink-0">
             
             {/* THEME TOGGLE */}
             <div className="theme-toggle-container">
@@ -99,7 +99,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
             <button
               onClick={() => handleNavClick(isAdminLoggedIn ? 'admin-dashboard' : 'admin-login')}
               aria-label="Council Administration Portal"
-              className={`relative px-2.5 sm:px-3.5 py-1.5 sm:py-2 neu-button flex items-center space-x-1.5 sm:space-x-2 text-xs font-semibold rounded-xl transition-all group ${
+              className={`relative px-2.5 sm:px-3.5 h-9 sm:h-10 !min-h-[36px] sm:!min-h-[40px] neu-button flex items-center space-x-1.5 sm:space-x-2 text-xs font-semibold rounded-xl transition-all group ${
                 currentRoute.startsWith('admin')
                   ? 'border-sky-500 text-sky-500 bg-sky-500/10'
                   : 'text-slate-700 dark:text-slate-200 hover:text-sky-500'
@@ -116,9 +116,9 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle Navigation Menu"
-              className="lg:hidden p-2 neu-circle text-slate-700 dark:text-slate-200 flex items-center justify-center"
+              className="lg:hidden w-9 h-9 neu-circle text-slate-700 dark:text-slate-200 flex items-center justify-center flex-shrink-0"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
           </div>
         </div>

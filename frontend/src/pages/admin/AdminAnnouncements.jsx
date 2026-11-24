@@ -98,9 +98,9 @@ export default function AdminAnnouncements({
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn font-sans">
+    <div className="space-y-5 sm:space-y-6 animate-fadeIn font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/60 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
             Announcements
@@ -109,7 +109,7 @@ export default function AdminAnnouncements({
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="portal-button-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 self-start sm:self-auto shadow-sm"
+          className="portal-button-primary w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>Post Announcement</span>
@@ -118,7 +118,7 @@ export default function AdminAnnouncements({
 
       {/* Multi-Select Bulk Action Sticky Bar */}
       {selectedIds.length > 0 && (
-        <div className="sticky top-20 z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center space-x-3">
             <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs font-mono">
               {selectedIds.length}
@@ -247,7 +247,7 @@ export default function AdminAnnouncements({
       {/* Create Announcement Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-          <div className="portal-card max-w-lg w-full max-h-[85vh] overflow-y-auto p-4 sm:p-7 space-y-4 shadow-2xl">
+          <div className="portal-card max-w-lg w-full max-h-[82dvh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 New Campus Announcement

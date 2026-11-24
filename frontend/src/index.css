@@ -82,13 +82,14 @@
     width: 100%;
     max-width: 100vw;
     min-height: 100vh;
+    min-height: 100dvh;
     -webkit-tap-highlight-color: transparent;
     transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Prevent iOS Safari auto-zoom on input focus by ensuring at least 16px font-size */
   @media (max-width: 640px) {
-    input, select, textarea {
+    input:not([type="checkbox"]):not([type="radio"]), select, textarea {
       font-size: 16px !important;
     }
   }
@@ -186,9 +187,11 @@
   }
 }
 
-.portal-card:hover, .neu-card:hover {
-  border-color: var(--border-medium);
-  box-shadow: var(--card-shadow-hover);
+@media (hover: hover) and (pointer: fine) {
+  .portal-card:hover, .neu-card:hover {
+    border-color: var(--border-medium);
+    box-shadow: var(--card-shadow-hover);
+  }
 }
 
 /* Modern Inset Wells & Inputs */
@@ -236,10 +239,12 @@
   box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
 }
 
-.portal-button-primary:hover, .neu-btn-primary:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.08);
-  box-shadow: 0 8px 24px var(--accent-glow);
+@media (hover: hover) and (pointer: fine) {
+  .portal-button-primary:hover, .neu-btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow: 0 8px 24px var(--accent-glow);
+  }
 }
 
 .portal-button-primary:active, .neu-btn-primary:active {
@@ -261,11 +266,13 @@
   justify-content: center;
 }
 
-.portal-button-secondary:hover, .neu-btn-secondary:hover, .neu-button:hover {
-  background: var(--bg-surface);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-  transform: translateY(-1.5px);
+@media (hover: hover) and (pointer: fine) {
+  .portal-button-secondary:hover, .neu-btn-secondary:hover, .neu-button:hover {
+    background: var(--bg-surface);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    transform: translateY(-1.5px);
+  }
 }
 
 .portal-button-secondary:active, .neu-btn-secondary:active, .neu-button:active {
@@ -280,9 +287,11 @@
   transition: all 0.2s ease;
 }
 
-.neu-circle:hover {
-  border-color: var(--border-medium);
-  transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .neu-circle:hover {
+    border-color: var(--border-medium);
+    transform: scale(1.05);
+  }
 }
 
 /* Pill Badges */

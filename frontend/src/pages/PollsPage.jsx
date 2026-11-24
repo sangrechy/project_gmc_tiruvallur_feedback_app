@@ -68,38 +68,38 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center space-x-3">
+      <div className="grid grid-cols-2 sm:inline-flex items-center gap-2.5 sm:gap-3">
         <button
           onClick={() => setActiveTab('active')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center space-x-2 ${
+          className={`px-3 sm:px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center space-x-2 ${
             activeTab === 'active'
               ? 'portal-button-primary shadow-sm'
               : 'neu-button text-slate-600 dark:text-slate-300'
           }`}
         >
-          <span>Active Ballots</span>
-          <span className="px-2 py-0.5 rounded-full bg-white/20 dark:bg-black/20 text-[10px] font-mono">
+          <span className="truncate">Active Ballots</span>
+          <span className="px-2 py-0.5 rounded-full bg-white/20 dark:bg-black/20 text-[10px] font-mono flex-shrink-0">
             {activePolls.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('closed')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center space-x-2 ${
+          className={`px-3 sm:px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center justify-center space-x-2 ${
             activeTab === 'closed'
               ? 'portal-button-primary shadow-sm'
               : 'neu-button text-slate-600 dark:text-slate-300'
           }`}
         >
-          <span>Concluded Results</span>
-          <span className="px-2 py-0.5 rounded-full bg-white/20 dark:bg-black/20 text-[10px] font-mono">
+          <span className="truncate">Concluded</span>
+          <span className="px-2 py-0.5 rounded-full bg-white/20 dark:bg-black/20 text-[10px] font-mono flex-shrink-0">
             {closedPolls.length}
           </span>
         </button>
       </div>
 
       {/* Poll Cards Grid */}
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         {currentList.length > 0 ? (
           currentList.map((poll) => {
             const hasVoted = Boolean(poll.hasVoted || (poll.userVoted !== null && poll.userVoted !== undefined));
@@ -107,28 +107,28 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
             const isVotingThis = votingPollId === poll.id;
 
             return (
-              <div key={poll.id} className="portal-card p-6 sm:p-8 space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200/50 dark:border-slate-800">
-                  <div className="flex items-center space-x-2">
+              <div key={poll.id} className="portal-card p-4 sm:p-7 space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b border-slate-200/50 dark:border-slate-800">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                       {poll.category || "General"}
                     </span>
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="text-[11px] sm:text-xs font-mono text-slate-400">
                       Closes: {poll.closingDate || poll.expiresAt || "Ongoing"}
                     </span>
                   </div>
 
-                  <span className="text-xs font-mono font-semibold neu-pill px-3 py-1 text-slate-500 dark:text-slate-400">
+                  <span className="text-[11px] sm:text-xs font-mono font-semibold neu-pill px-2.5 sm:px-3 py-1 text-slate-500 dark:text-slate-400">
                     {poll.totalVotes} Total Votes
                   </span>
                 </div>
 
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight break-words">
                   {poll.question}
                 </h2>
 
                 {/* Options List */}
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   {poll.options.map((opt, idx) => {
                     const isSelected = selectedOpt === idx;
                     const percentage = poll.totalVotes > 0 
@@ -139,7 +139,7 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
                       <div
                         key={idx}
                         onClick={() => !hasVoted && poll.status === 'active' && handleSelectOption(poll.id, idx)}
-                        className={`relative p-4 rounded-xl transition-all overflow-hidden ${
+                        className={`relative p-3.5 sm:p-4 rounded-xl transition-all overflow-hidden ${
                           hasVoted || poll.status === 'closed'
                             ? 'neu-pressed cursor-default'
                             : isSelected
@@ -153,23 +153,23 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
                           style={{ width: `${percentage}%` }}
                         />
 
-                        <div className="relative z-10 flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
+                        <div className="relative z-10 flex items-center justify-between gap-3">
+                          <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
                             {!hasVoted && poll.status === 'active' && (
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                                 isSelected ? 'border-sky-500 bg-sky-500' : 'border-slate-400 dark:border-slate-600'
                               }`}>
                                 {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                               </div>
                             )}
-                            <span className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200">
+                            <span className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 break-words">
                               {opt.text}
                             </span>
                           </div>
 
-                          <div className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
+                          <div className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 flex-shrink-0 text-right whitespace-nowrap">
                             <span>{percentage}%</span>
-                            <span className="text-[10px] text-slate-400 font-normal ml-1.5">({opt.votes})</span>
+                            <span className="text-[10px] text-slate-400 font-normal ml-1">({opt.votes})</span>
                           </div>
                         </div>
                       </div>
@@ -179,11 +179,11 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
 
                 {/* Submit Action */}
                 {poll.status === 'active' && !hasVoted && (
-                  <div className="pt-2 flex justify-end">
+                  <div className="pt-1 flex justify-end">
                     <button
                       onClick={() => handleVoteSubmit(poll.id)}
                       disabled={isVotingThis || selectedOpt === undefined}
-                      className="portal-button-primary px-6 py-2.5 text-xs font-semibold disabled:opacity-50 flex items-center space-x-2"
+                      className="portal-button-primary w-full sm:w-auto px-6 py-2.5 text-xs font-semibold disabled:opacity-50 flex items-center justify-center space-x-2"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>{isVotingThis ? "Submitting Vote..." : "Cast Vote"}</span>
@@ -192,8 +192,8 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
                 )}
 
                 {hasVoted && (
-                  <div className="pt-2 flex items-center space-x-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4" />
+                  <div className="pt-1 flex items-center space-x-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                     <span>Your vote has been recorded.</span>
                   </div>
                 )}

@@ -131,22 +131,22 @@ export default function AdminStatus({ showToast }) {
         </div>
 
         {/* 6-item Real-time Status Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto text-left pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 max-w-xl mx-auto text-left pt-2">
           {checklist.map((item) => {
             const Icon = item.icon;
             return (
               <div 
                 key={item.name}
-                className="p-3 rounded-xl neu-card flex items-center justify-between"
+                className="p-3 rounded-xl neu-card flex items-center justify-between gap-2.5"
               >
-                <div className="flex items-center space-x-2.5">
+                <div className="flex items-center space-x-2 min-w-0 flex-1">
                   <Icon className="w-4 h-4 text-sky-500 flex-shrink-0" />
-                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
                     {item.name}
                   </span>
                 </div>
-                <span className={`inline-flex items-center space-x-1 text-xs font-bold ${item.color}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${item.dotColor}`} />
+                <span className={`inline-flex items-center space-x-1 text-[11px] sm:text-xs font-bold flex-shrink-0 whitespace-nowrap ${item.color}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${item.dotColor}`} />
                   <span>{item.status}</span>
                 </span>
               </div>

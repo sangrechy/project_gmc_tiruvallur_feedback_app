@@ -261,7 +261,7 @@ export default function AdminFeedback({
 
       {/* Multi-Select Bulk Action Floating/Sticky Bar */}
       {selectedIds.length > 0 && (
-        <div className="sticky top-20 z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center space-x-3">
             <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs font-mono">
               {selectedIds.length}
@@ -339,7 +339,7 @@ export default function AdminFeedback({
             return (
               <div 
                 key={item.id} 
-                className={`portal-card p-5 sm:p-6 transition-all border ${
+                className={`portal-card p-4 sm:p-6 transition-all border ${
                   isNeedsReview 
                     ? 'border-amber-500/30 bg-amber-500/[0.02]' 
                     : isReviewing 

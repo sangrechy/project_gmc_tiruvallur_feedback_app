@@ -47,14 +47,14 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
         {/* Category Pills (Touch friendly horizontal scroll on mobile) */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-2 px-2 sm:mx-0 sm:px-0 sm:flex-wrap">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 sm:flex-wrap">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all whitespace-nowrap min-h-[40px] flex items-center justify-center ${
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all whitespace-nowrap !min-h-[40px] flex items-center justify-center flex-shrink-0 ${
                 activeCategory === cat
                   ? 'portal-button-primary shadow-sm'
                   : 'neu-button text-slate-600 dark:text-slate-300'
@@ -79,12 +79,12 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
       </div>
 
       {/* Announcements List */}
-      <div className="space-y-5">
+      <div className="space-y-4 sm:space-y-5">
         {filtered.length > 0 ? (
           filtered.map((ann) => (
             <div
               key={ann.id}
-              className={`portal-card p-6 sm:p-7 transition-all hover:scale-[1.01] ${
+              className={`portal-card p-4 sm:p-7 transition-all ${
                 ann.pinned ? 'ring-1 ring-sky-500/40' : ''
               }`}
             >

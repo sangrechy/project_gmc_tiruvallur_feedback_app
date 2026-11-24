@@ -58,34 +58,34 @@ export default function AdminLayout({
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#07090e] flex flex-col font-sans transition-colors duration-300">
       
       {/* Top Navbar */}
-      <header className="bg-white/90 dark:bg-[#07090e]/90 sticky top-0 z-40 border-b border-slate-200/60 dark:border-white/10 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 flex items-center justify-between h-16">
+      <header className="bg-white/90 dark:bg-[#07090e]/90 sticky top-0 pt-[env(safe-area-inset-top,0px)] z-40 border-b border-slate-200/60 dark:border-white/10 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 flex items-center justify-between h-14 sm:h-16 gap-2">
           
           {/* Brand */}
           <div 
             onClick={() => handleSectionSelect('dashboard')}
-            className="flex items-center space-x-2.5 cursor-pointer select-none"
+            className="flex items-center space-x-2 sm:space-x-2.5 cursor-pointer select-none min-w-0"
           >
             <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-800/40 flex items-center justify-center flex-shrink-0">
               <Shield className="w-4 h-4 text-sky-500" />
             </div>
-            <div>
-              <span className="font-bold text-sm text-slate-900 dark:text-slate-100 block leading-tight">
+            <div className="min-w-0">
+              <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 block leading-tight truncate">
                 Council Portal
               </span>
-              <span className="text-[10px] text-slate-400 font-medium">
+              <span className="text-[10px] text-slate-400 font-medium block truncate">
                 GMC Thiruvallur
               </span>
             </div>
           </div>
 
           {/* Top Actions: Refresh, Status, Public Site & Logout */}
-          <div className="flex items-center space-x-1.5 sm:space-x-3">
+          <div className="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
             {/* Dedicated Council Refresh Button */}
             <button
               onClick={handleRefreshClick}
               disabled={isRefreshing}
-              className="px-2.5 sm:px-3 py-1.5 neu-button rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-sky-500 transition-colors flex items-center space-x-1.5 disabled:opacity-60"
+              className="px-2.5 sm:px-3 h-9 !min-h-[36px] neu-button rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-sky-500 transition-colors flex items-center space-x-1.5 disabled:opacity-60"
               title="Refresh feeds from cloud database"
               aria-label="Refresh council data"
             >
@@ -96,12 +96,13 @@ export default function AdminLayout({
             {/* Quick App Status Link */}
             <button
               onClick={() => handleSectionSelect('status')}
-              className={`px-2.5 sm:px-3 py-1.5 neu-button rounded-xl text-xs font-semibold transition-colors flex items-center space-x-1.5 ${
+              className={`px-2.5 sm:px-3 h-9 !min-h-[36px] neu-button rounded-xl text-xs font-semibold transition-colors flex items-center space-x-1.5 ${
                 currentSection === 'status'
                   ? 'border-sky-500 text-sky-500 bg-sky-500/10'
                   : 'text-slate-600 dark:text-slate-300 hover:text-sky-500'
               }`}
               title="App Status & Cloud Diagnostics"
+              aria-label="App Status"
             >
               <Activity className="w-3.5 h-3.5 text-sky-500" />
               <span className="hidden sm:inline">Status</span>
@@ -109,17 +110,19 @@ export default function AdminLayout({
 
             <button
               onClick={() => setCurrentRoute('home')}
-              className="px-2.5 sm:px-3 py-1.5 neu-button rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-sky-500 transition-colors flex items-center space-x-1.5"
+              className="px-2.5 sm:px-3 h-9 !min-h-[36px] neu-button rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-sky-500 transition-colors flex items-center space-x-1.5"
               title="Switch to Student View"
+              aria-label="Switch to Student View"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">Student View</span>
+              <span className="hidden sm:inline">Student View</span>
             </button>
 
             <button
               onClick={onLogout}
-              className="px-2.5 sm:px-3 py-1.5 neu-button rounded-xl text-xs font-semibold text-red-500 hover:text-red-600 flex items-center space-x-1.5 transition-colors"
+              className="px-2.5 sm:px-3 h-9 !min-h-[36px] neu-button rounded-xl text-xs font-semibold text-red-500 hover:text-red-600 flex items-center space-x-1.5 transition-colors"
               title="Logout from Council Portal"
+              aria-label="Logout"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Logout</span>
@@ -138,7 +141,7 @@ export default function AdminLayout({
               <button
                 key={item.id}
                 onClick={() => handleSectionSelect(item.id)}
-                className={`flex-shrink-0 flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                className={`flex-shrink-0 flex items-center space-x-1.5 px-3.5 py-2 !min-h-[38px] rounded-xl text-xs font-bold transition-all active:scale-95 ${
                   isActive
                     ? 'portal-button-primary shadow-sm'
                     : 'neu-button text-slate-700 dark:text-slate-300 hover:text-sky-500'
@@ -162,7 +165,7 @@ export default function AdminLayout({
         {children}
       </main>
 
-      {/* 📱 Council Mobile Bottom Navigation Bar (AI Analysis directly in Main Menu, Feedback Review at center) */}
+      {/* 📱 Council Mobile Bottom Navigation Bar */}
       <nav
         aria-label="Council Mobile Navigation"
         className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#f8fafc]/95 dark:bg-[#07090e]/95 backdrop-blur-2xl border-t border-slate-200/80 dark:border-white/10 pb-safe transition-colors shadow-2xl select-none"
@@ -178,10 +181,10 @@ export default function AdminLayout({
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            <div className="relative">
+            <div className="h-7 flex items-center justify-center relative">
               <LayoutDashboard className={`w-5 h-5 transition-transform duration-200 ${currentSection === 'dashboard' ? 'scale-110 text-sky-500 dark:text-sky-400' : ''}`} />
               {currentSection === 'dashboard' && (
-                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
             <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">Home</span>
@@ -196,10 +199,10 @@ export default function AdminLayout({
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            <div className="relative">
+            <div className="h-7 flex items-center justify-center relative">
               <Megaphone className={`w-5 h-5 transition-transform duration-200 ${currentSection === 'announcements' ? 'scale-110 text-sky-500 dark:text-sky-400' : ''}`} />
               {currentSection === 'announcements' && (
-                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
             <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">Notices</span>
@@ -214,19 +217,21 @@ export default function AdminLayout({
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            <div className={`relative p-2 rounded-2xl transition-all ${
-              currentSection === 'feedback'
-                ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/40 -translate-y-2 scale-105'
-                : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 -translate-y-1'
-            }`}>
-              <MessageSquare className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-red-500 text-white font-extrabold ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
+            <div className="h-7 flex items-center justify-center relative">
+              <div className={`relative p-1.5 rounded-xl transition-all ${
+                currentSection === 'feedback'
+                  ? 'bg-sky-500 text-white shadow-md shadow-sky-500/40 scale-105'
+                  : 'bg-sky-500/15 text-sky-600 dark:text-sky-400'
+              }`}>
+                <MessageSquare className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full text-[9px] font-mono bg-red-500 text-white font-extrabold ring-2 ring-white dark:ring-slate-900 animate-pulse">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </div>
             </div>
-            <span className={`text-[10px] tracking-tight mt-0.5 leading-none ${currentSection === 'feedback' ? 'font-black text-sky-500' : 'font-medium'} truncate`}>
+            <span className={`text-[10px] tracking-tight mt-1 leading-none ${currentSection === 'feedback' ? 'font-extrabold text-sky-500' : 'font-medium'} truncate`}>
               Review
             </span>
           </button>
@@ -240,10 +245,10 @@ export default function AdminLayout({
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            <div className="relative">
+            <div className="h-7 flex items-center justify-center relative">
               <Sparkles className={`w-5 h-5 transition-transform duration-200 ${currentSection === 'reports' ? 'scale-110 text-sky-500 dark:text-sky-400' : ''}`} />
               {currentSection === 'reports' && (
-                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
             <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">AI</span>
@@ -258,10 +263,10 @@ export default function AdminLayout({
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            <div className="relative">
+            <div className="h-7 flex items-center justify-center relative">
               <Vote className={`w-5 h-5 transition-transform duration-200 ${currentSection === 'polls' ? 'scale-110 text-sky-500 dark:text-sky-400' : ''}`} />
               {currentSection === 'polls' && (
-                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
             <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">Polls</span>
@@ -276,15 +281,15 @@ export default function AdminLayout({
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            <div className="relative">
+            <div className="h-7 flex items-center justify-center relative">
               <MessageCircle className={`w-5 h-5 transition-transform duration-200 ${currentSection === 'chat' ? 'scale-110 text-sky-500 dark:text-sky-400' : ''}`} />
               {activeChatsCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-sky-500 text-white font-extrabold ring-2 ring-white dark:ring-slate-900">
+                <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full text-[9px] font-mono bg-sky-500 text-white font-extrabold ring-2 ring-white dark:ring-slate-900">
                   {activeChatsCount}
                 </span>
               )}
               {currentSection === 'chat' && (
-                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/30" />
               )}
             </div>
             <span className="text-[10px] tracking-tight mt-1 leading-none font-medium truncate">Chat</span>
