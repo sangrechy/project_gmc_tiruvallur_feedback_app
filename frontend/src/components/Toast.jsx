@@ -17,7 +17,7 @@ export default function Toast({ message, type = 'success', onClose }) {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex items-center space-x-2.5 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl font-mono text-xs text-slate-800 dark:text-slate-100 animate-slideUp">
+    <div className="fixed top-5 left-1/2 -translate-x-1/2 sm:left-auto sm:right-5 sm:translate-x-0 z-[80] max-w-[92vw] sm:max-w-md flex items-center space-x-2.5 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl font-mono text-xs text-slate-800 dark:text-slate-100 animate-slideDown">
       {icons[type] || icons.info}
       <span className="font-medium font-sans">{message}</span>
       <button

@@ -179,12 +179,23 @@ export default function App() {
     setCurrentRoute('admin-dashboard');
   };
 
+  // Global Council Admin Presence Heartbeat: Active across all admin sections
+  useEffect(() => {
+    if (!adminUser) return;
+    storageService.pingAdminPresence(adminUser.email);
+    const interval = setInterval(() => {
+      storageService.pingAdminPresence(adminUser.email);
+    }, 45000);
+    return () => clearInterval(interval);
+  }, [adminUser]);
+
   const handleLogout = () => {
     setIsAuthVerifying(false);
     setAdminUser(null);
     setFeedbacks([]);
     setChats([]);
     localStorage.removeItem('gmc_admin_session');
+    storageService.setAdminOffline();
     if (isFirebaseConfigured && auth?.currentUser) {
       signOut(auth).catch(() => {});
     }

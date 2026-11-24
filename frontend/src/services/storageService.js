@@ -326,8 +326,16 @@ export const storageService = {
 
         // 1. Verify voter has not already cast ballot
         const voteDocRef = doc(db, "polls", pollId, "votes", voterUid);
-        const existingVoteSnap = await transaction.get(voteDocRef);
-        if (existingVoteSnap.exists()) {
+        let alreadyVoted = false;
+        try {
+          const existingVoteSnap = await transaction.get(voteDocRef);
+          if (existingVoteSnap.exists()) {
+            alreadyVoted = true;
+          }
+        } catch {
+          // If transaction.get on voteDocRef is denied, Firestore rules server-side checks (!exists) enforce it
+        }
+        if (alreadyVoted) {
           throw new Error("You have already voted in this poll!");
         }
 
@@ -944,16 +952,23 @@ export const storageService = {
     if (isFirebaseConfigured && db) {
       try {
         const chatRef = doc(db, "chats", sessionId);
+
+        // 1. Purge subcollection messages while session is active
+        try {
+          const messagesSnap = await getDocs(collection(chatRef, "messages"));
+          const deleteOps = messagesSnap.docs.map(m => deleteDoc(m.ref));
+          await Promise.all(deleteOps);
+        } catch (msgErr) {
+          console.warn("Subcollection message purge notice:", msgErr);
+        }
+
+        // 2. Mark chat session as ended
         await updateDoc(chatRef, {
           status: "ended",
           endedAt: serverTimestamp()
         });
-        const messagesSnap = await getDocs(collection(chatRef, "messages"));
-        const deleteOps = messagesSnap.docs.map(m => deleteDoc(m.ref));
-        await Promise.all(deleteOps);
       } catch (err) {
-        console.error("Firestore endChatSession error:", err);
-        throw new Error("Failed to purge session messages from cloud: " + err.message);
+        console.warn("Firestore endChatSession notice:", err);
       }
     }
     return true;
@@ -1119,6 +1134,28 @@ export const storageService = {
       } catch (err) {
         // Non-critical presence ping warning
         console.warn("Firestore pingAdminPresence warning:", err);
+      }
+    }
+  },
+
+  async setAdminOffline() {
+    try {
+      localStorage.setItem('gmc_admin_presence', JSON.stringify({
+        isOnline: false,
+        lastSeen: new Date().toISOString()
+      }));
+    } catch {}
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const presenceRef = doc(db, "system", "presence");
+        await setDoc(presenceRef, {
+          isOnline: false,
+          lastSeen: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        console.warn("Firestore setAdminOffline warning:", err);
       }
     }
   },

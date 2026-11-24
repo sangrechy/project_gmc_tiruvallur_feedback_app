@@ -372,7 +372,7 @@ export default function AdminPolls({
                 />
               </div>
 
-              <div className="pt-3 flex justify-end space-x-3 border-t border-slate-100 dark:border-slate-800 sticky bottom-0 bg-white dark:bg-slate-900 pb-1">
+              <div className="pt-4 pb-4 px-5 sm:px-7 mt-4 flex items-center justify-end space-x-3 border-t border-slate-100 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-5 sm:-mx-7 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}

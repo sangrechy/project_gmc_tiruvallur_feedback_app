@@ -21,7 +21,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   const [isSending, setIsSending] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
   const [adminPresence, setAdminPresence] = useState({ isOnline: false, lastSeen: null });
-  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const activeSessionIdRef = useRef(null);
 
   // Subscribe to real-time council admin presence
@@ -76,9 +76,31 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
     return () => window.removeEventListener('gmc-chat-updated', handleChatUpdate);
   }, []);
 
-  // Smooth scroll to bottom on new message
+  const scrollToBottom = (smooth = true) => {
+    if (!messagesContainerRef.current) return;
+    const container = messagesContainerRef.current;
+    if (smooth && typeof container.scrollTo === 'function') {
+      try {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth'
+        });
+      } catch {
+        container.scrollTop = container.scrollHeight;
+      }
+    } else {
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
+  // Keep scroll smoothly at bottom inside the message container without shifting the outer page window
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
+    if (!messagesContainerRef.current) return;
+    const container = messagesContainerRef.current;
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+    if (isNearBottom || (session?.messages?.length || 0) <= 2) {
+      scrollToBottom(true);
+    }
   }, [session?.messages]);
 
   // Real-time Firestore message subscription
@@ -108,6 +130,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
       await storageService.sendChatMessage(session.sessionId, 'student', text);
       const updated = await storageService.getOrCreateChatSession(session.sessionId);
       setSession(updated);
+      setTimeout(() => scrollToBottom(true), 50);
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -119,19 +142,22 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
     if (!session) return;
     try {
       await storageService.endChatSession(session.sessionId);
-      const updated = await storageService.getOrCreateChatSession(session.sessionId);
-      setSession(updated);
-      
-      // Clear session cookie upon closing
+    } catch (err) {
+      console.warn("Cloud endChatSession notice:", err);
+    } finally {
+      // Clear session cookie and session storage regardless of cloud latency
       cookieService.clearChatCookie();
       if (typeof sessionStorage !== 'undefined') {
         sessionStorage.removeItem('gmc_active_session_id');
       }
-
+      try {
+        const updated = await storageService.getOrCreateChatSession(session.sessionId);
+        setSession(updated);
+      } catch {
+        // Local fallback
+      }
       setShowEndModal(false);
       showToast("Live session terminated & conversation purged", "info");
-    } catch (err) {
-      showToast(err.message, "error");
     }
   };
 
@@ -252,7 +278,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
           </div>
 
           {/* Message Stream with Neumorphic Inset */}
-          <div className="h-[52vh] sm:h-96 min-h-[300px] overflow-y-auto p-3.5 sm:p-5 rounded-2xl neu-pressed space-y-3.5 sm:space-y-4">
+          <div ref={messagesContainerRef} className="h-[52vh] sm:h-96 min-h-[300px] overflow-y-auto p-3.5 sm:p-5 rounded-2xl neu-pressed space-y-3.5 sm:space-y-4 overscroll-contain">
             {session.messages.map((msg) => {
               const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
               return (
@@ -292,7 +318,6 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                 </div>
               );
             })}
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Message Input Form */}

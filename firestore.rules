@@ -355,7 +355,19 @@ service cloud.firestore {
 
       // Message Subcollection: council admins or verified session owner can read and send messages within 24h
       match /messages/{messageId} {
-        allow read: if isAdmin() || (isChatSessionActive(chatId) && (resource == null || !('ownerUid' in resource.data) || (isAuthenticated() && resource.data.ownerUid == request.auth.uid) || (isAuthenticated() && get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid)));
+        allow read: if isAdmin() || (
+          isChatSessionActive(chatId) && (
+            resource == null ||
+            !('ownerUid' in resource.data) ||
+            (isAuthenticated() && resource.data.ownerUid == request.auth.uid) ||
+            (isAuthenticated() && get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid)
+          )
+        ) || (
+          isAuthenticated() &&
+          exists(/databases/$(database)/documents/chats/$(chatId)) &&
+          get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid &&
+          request.time < get(/databases/$(database)/documents/chats/$(chatId)).data.createdAt + duration.value(24, 'h')
+        );
         allow create: if isValidMessage(request.resource.data, chatId) && isChatSessionActive(chatId) && (isAdmin() || (isAuthenticated() && request.resource.data.sender == 'student' && get(/databases/$(database)/documents/chats/$(chatId)).data.ownerUid == request.auth.uid));
         allow update: if false; // Messages are immutable once posted
         allow delete: if isAdmin() || (
@@ -398,9 +410,9 @@ service cloud.firestore {
                          areImmutableFieldsUnchanged(['id', 'question', 'category', 'status', 'closingDate', 'createdAt', 'createdBy'])
                        );
 
-      // Votes Subcollection: restricted to active polls; individual ballot reads restricted to admins
+      // Votes Subcollection: restricted to active polls; voters can inspect their own ballot or council admins
       match /votes/{voteId} {
-        allow read: if isAdmin();
+        allow read: if isAdmin() || (isAuthenticated() && voteId == request.auth.uid);
         allow create: if isAuthenticated() &&
                          isPollActive(pollId) &&
                          voteId == request.auth.uid &&
@@ -430,11 +442,15 @@ service cloud.firestore {
     // ===============================================================
     // 7. System Collection
     // Public read for system state (e.g. council presence heartbeat on ChatPage);
-    // Write restricted to authenticated council admins.
+    // Write restricted to council admins or authenticated representatives updating presence heartbeat.
     // ===============================================================
     match /system/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAdmin() || (
+        isAuthenticated() &&
+        docId == 'presence' &&
+        request.resource.data.keys().hasOnly(['isOnline', 'lastSeen', 'updatedAt', 'updatedBy'])
+      );
     }
   }
 }
