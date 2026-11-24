@@ -1,5 +1,4 @@
-// Cloudflare Worker API Client with graceful mock emulation
-import { isFirebaseConfigured } from "./firebase";
+import { auth, isFirebaseConfigured } from "./firebase";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -145,6 +144,17 @@ export const apiService = {
 
   async generateAiReport(feedbacks, token = null) {
     let activeToken = token;
+    
+    // 1. Try Firebase Auth ID token if currently authenticated (Google Sign-In / Email Auth)
+    if (!activeToken && auth?.currentUser) {
+      try {
+        activeToken = await auth.currentUser.getIdToken();
+      } catch (err) {
+        console.warn("Could not retrieve Firebase ID token for AI report:", err);
+      }
+    }
+
+    // 2. Try localStorage admin session token
     if (!activeToken && typeof localStorage !== "undefined") {
       try {
         const saved = localStorage.getItem("gmc_admin_session");
@@ -157,16 +167,17 @@ export const apiService = {
       }
     }
 
-    if (this.isConfigured && activeToken) {
+    if (this.isConfigured && (activeToken || typeof localStorage !== "undefined" && localStorage.getItem("gmc_admin_session"))) {
       try {
-        const cleanToken = activeToken.trim();
+        const cleanToken = activeToken ? activeToken.trim() : "";
+        const headers = { "Content-Type": "application/json" };
+        if (cleanToken) {
+          headers["Authorization"] = `Bearer ${cleanToken}`;
+          headers["X-Council-Token"] = cleanToken;
+        }
         const res = await fetch(`${API_BASE}/api/ai/analyze`, {
           method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${cleanToken}`,
-            "X-Council-Token": cleanToken
-          },
+          headers,
           body: JSON.stringify({ feedbacks })
         });
         if (res.ok) {

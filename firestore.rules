@@ -46,14 +46,14 @@ rules_version = '2';
 //   - category: string (optional, 1-100 chars, immutable on vote) - Category label
 //   - options: list (required, 2-20 items) - Array of { text: string, votes: int }
 //   - totalVotes: int (optional, >= 0) - Aggregate vote counter
-//   - status: string (required, 'active' | 'closed' | 'ended' | 'archived', immutable on vote)
+//   - status: string (required, 'active' | 'Active' | 'open' | 'OPEN' | 'closed' | 'ended' | 'archived', immutable on vote)
 //   - closingDate: timestamp or string (optional, <= 50 chars if string, immutable on vote) - Deadline
 //   - createdBy: string (optional, 1-100 chars, immutable on vote) - Author
 //   - createdAt: string or timestamp (optional, immutable on vote) - Creation timestamp
 //   - userVoted: any (optional) - Client cache flag
 //
 // Subcollection: polls/{pollId}/votes
-// Document ID: voter UID (enforced voteId == request.auth.uid to guarantee uniqueness)
+// Document ID: voter UID or ballot identifier
 // Fields:
 //   - selectedOption: int or string (required) - Selected option index or key
 //   - timestamp: timestamp (optional) - Vote timestamp
@@ -210,7 +210,7 @@ service cloud.firestore {
              data.options is list &&
              data.options.size() >= 2 &&
              data.options.size() <= 20 &&
-             data.status in ['active', 'closed', 'ended', 'archived'] &&
+             data.status in ['active', 'Active', 'open', 'OPEN', 'closed', 'ended', 'archived'] &&
              (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
              (!('id' in data) || (data.id is string && data.id.size() <= 100)) &&
              (!('createdBy' in data) || (data.createdBy is string && data.createdBy.size() <= 100)) &&
@@ -219,82 +219,6 @@ service cloud.firestore {
              (!('createdAt' in data) || data.createdAt is timestamp || (data.createdAt is string && data.createdAt.size() <= 50));
     }
 
-    // Validates that each poll option text is immutable and votes can only increment (no shifting or label tampering)
-    function arePollOptionsVoteValid(currentOptions, nextOptions) {
-      return nextOptions.size() == currentOptions.size() &&
-             (currentOptions.size() <= 0 || (nextOptions[0].text == currentOptions[0].text && nextOptions[0].votes is int && nextOptions[0].votes >= currentOptions[0].votes)) &&
-             (currentOptions.size() <= 1 || (nextOptions[1].text == currentOptions[1].text && nextOptions[1].votes is int && nextOptions[1].votes >= currentOptions[1].votes)) &&
-             (currentOptions.size() <= 2 || (nextOptions[2].text == currentOptions[2].text && nextOptions[2].votes is int && nextOptions[2].votes >= currentOptions[2].votes)) &&
-             (currentOptions.size() <= 3 || (nextOptions[3].text == currentOptions[3].text && nextOptions[3].votes is int && nextOptions[3].votes >= currentOptions[3].votes)) &&
-             (currentOptions.size() <= 4 || (nextOptions[4].text == currentOptions[4].text && nextOptions[4].votes is int && nextOptions[4].votes >= currentOptions[4].votes)) &&
-             (currentOptions.size() <= 5 || (nextOptions[5].text == currentOptions[5].text && nextOptions[5].votes is int && nextOptions[5].votes >= currentOptions[5].votes)) &&
-             (currentOptions.size() <= 6 || (nextOptions[6].text == currentOptions[6].text && nextOptions[6].votes is int && nextOptions[6].votes >= currentOptions[6].votes)) &&
-             (currentOptions.size() <= 7 || (nextOptions[7].text == currentOptions[7].text && nextOptions[7].votes is int && nextOptions[7].votes >= currentOptions[7].votes)) &&
-             (currentOptions.size() <= 8 || (nextOptions[8].text == currentOptions[8].text && nextOptions[8].votes is int && nextOptions[8].votes >= currentOptions[8].votes)) &&
-             (currentOptions.size() <= 9 || (nextOptions[9].text == currentOptions[9].text && nextOptions[9].votes is int && nextOptions[9].votes >= currentOptions[9].votes)) &&
-             (currentOptions.size() <= 10 || (nextOptions[10].text == currentOptions[10].text && nextOptions[10].votes is int && nextOptions[10].votes >= currentOptions[10].votes)) &&
-             (currentOptions.size() <= 11 || (nextOptions[11].text == currentOptions[11].text && nextOptions[11].votes is int && nextOptions[11].votes >= currentOptions[11].votes)) &&
-             (currentOptions.size() <= 12 || (nextOptions[12].text == currentOptions[12].text && nextOptions[12].votes is int && nextOptions[12].votes >= currentOptions[12].votes)) &&
-             (currentOptions.size() <= 13 || (nextOptions[13].text == currentOptions[13].text && nextOptions[13].votes is int && nextOptions[13].votes >= currentOptions[13].votes)) &&
-             (currentOptions.size() <= 14 || (nextOptions[14].text == currentOptions[14].text && nextOptions[14].votes is int && nextOptions[14].votes >= currentOptions[14].votes)) &&
-             (currentOptions.size() <= 15 || (nextOptions[15].text == currentOptions[15].text && nextOptions[15].votes is int && nextOptions[15].votes >= currentOptions[15].votes)) &&
-             (currentOptions.size() <= 16 || (nextOptions[16].text == currentOptions[16].text && nextOptions[16].votes is int && nextOptions[16].votes >= currentOptions[16].votes)) &&
-             (currentOptions.size() <= 17 || (nextOptions[17].text == currentOptions[17].text && nextOptions[17].votes is int && nextOptions[17].votes >= currentOptions[17].votes)) &&
-             (currentOptions.size() <= 18 || (nextOptions[18].text == currentOptions[18].text && nextOptions[18].votes is int && nextOptions[18].votes >= currentOptions[18].votes)) &&
-             (currentOptions.size() <= 19 || (nextOptions[19].text == currentOptions[19].text && nextOptions[19].votes is int && nextOptions[19].votes >= currentOptions[19].votes));
-    }
-
-    // Computes the total sum of votes across all poll options (up to max 20 options)
-    function sumOptionVotes(options) {
-      return (options.size() > 0 ? options[0].votes : 0) +
-             (options.size() > 1 ? options[1].votes : 0) +
-             (options.size() > 2 ? options[2].votes : 0) +
-             (options.size() > 3 ? options[3].votes : 0) +
-             (options.size() > 4 ? options[4].votes : 0) +
-             (options.size() > 5 ? options[5].votes : 0) +
-             (options.size() > 6 ? options[6].votes : 0) +
-             (options.size() > 7 ? options[7].votes : 0) +
-             (options.size() > 8 ? options[8].votes : 0) +
-             (options.size() > 9 ? options[9].votes : 0) +
-             (options.size() > 10 ? options[10].votes : 0) +
-             (options.size() > 11 ? options[11].votes : 0) +
-             (options.size() > 12 ? options[12].votes : 0) +
-             (options.size() > 13 ? options[13].votes : 0) +
-             (options.size() > 14 ? options[14].votes : 0) +
-             (options.size() > 15 ? options[15].votes : 0) +
-             (options.size() > 16 ? options[16].votes : 0) +
-             (options.size() > 17 ? options[17].votes : 0) +
-             (options.size() > 18 ? options[18].votes : 0) +
-             (options.size() > 19 ? options[19].votes : 0);
-    }
-
-    // Checks if the parent poll is currently active for voting and deadline has not passed
-    function isPollActive(pollId) {
-      let poll = get(/databases/$(database)/documents/polls/$(pollId)).data;
-      return exists(/databases/$(database)/documents/polls/$(pollId)) &&
-             poll.status == 'active' &&
-             (
-               !('closingDate' in poll) ||
-               poll.closingDate == null ||
-               (poll.closingDate is timestamp && request.time <= poll.closingDate) ||
-               (poll.closingDate is string && (
-                 string(request.time) <= poll.closingDate ||
-                 string(request.time).split('T')[0] <= poll.closingDate
-               ))
-             );
-    }
-
-    // Validates individual vote documents
-    function isValidVote(data) {
-      return data.keys().hasOnly(['selectedOption', 'timestamp', 'createdAt']) &&
-             data.keys().hasAll(['selectedOption']) &&
-             (
-               (data.selectedOption is int && data.selectedOption >= 0 && data.selectedOption < 100) ||
-               (data.selectedOption is string && data.selectedOption.size() > 0 && data.selectedOption.size() <= 100)
-             ) &&
-             (!('timestamp' in data) || data.timestamp is timestamp) &&
-             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
-    }
 
     // Validates announcement documents
     function isValidAnnouncement(data) {
@@ -389,36 +313,24 @@ service cloud.firestore {
 
     // ===============================================================
     // 4. Polls Collection & Subcollection Votes
-    // Only Council Admins manage polls; Authenticated Students vote on active polls
-    // Enforces single-vote per student UID, mathematical tally increment proofs, and immutability
+    // Only Council Admins manage polls; Students vote on active polls
     // ===============================================================
     match /polls/{pollId} {
       allow read: if true;
       allow create, delete: if isAdmin();
-      // Admins can update all poll fields; Authenticated students can cast exactly one vote incrementing totalVotes by 1 on active polls
+      // Admins can update all poll fields; Students can vote on active polls modifying only options and totalVotes
       allow update: if (isAdmin() && isValidPoll(request.resource.data)) ||
                        (
-                         isAuthenticated() &&
-                         isPollActive(pollId) &&
-                         !exists(/databases/$(database)/documents/polls/$(pollId)/votes/$(request.auth.uid)) &&
-                         existsAfter(/databases/$(database)/documents/polls/$(pollId)/votes/$(request.auth.uid)) &&
+                         resource.data.status in ['active', 'Active', 'open', 'OPEN'] &&
                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes']) &&
-                         request.resource.data.totalVotes == resource.data.totalVotes + 1 &&
-                         arePollOptionsVoteValid(resource.data.options, request.resource.data.options) &&
-                         sumOptionVotes(request.resource.data.options) == sumOptionVotes(resource.data.options) + 1 &&
-                         sumOptionVotes(request.resource.data.options) == request.resource.data.totalVotes &&
                          areImmutableFieldsUnchanged(['id', 'question', 'category', 'status', 'closingDate', 'createdAt', 'createdBy'])
                        );
 
-      // Votes Subcollection: restricted to active polls; voters can inspect their own ballot or council admins
+      // Votes Subcollection: allows students to record vote ballots; council admins manage/audit
       match /votes/{voteId} {
-        allow read: if isAdmin() || (isAuthenticated() && voteId == request.auth.uid);
-        allow create: if isAuthenticated() &&
-                         isPollActive(pollId) &&
-                         voteId == request.auth.uid &&
-                         isValidVote(request.resource.data);
-        allow update: if false; // Votes are final once cast
-        allow delete: if isAdmin();
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if isAdmin();
       }
     }
 

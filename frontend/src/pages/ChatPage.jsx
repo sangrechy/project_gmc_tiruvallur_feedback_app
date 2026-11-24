@@ -277,8 +277,8 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
             </div>
           </div>
 
-          {/* Message Stream with Neumorphic Inset */}
-          <div ref={messagesContainerRef} className="h-[52vh] sm:h-96 min-h-[300px] overflow-y-auto p-3.5 sm:p-5 rounded-2xl neu-pressed space-y-3.5 sm:space-y-4 overscroll-contain">
+          {/* Message Stream matching Council Admin layout & background */}
+          <div ref={messagesContainerRef} className="h-80 sm:h-96 min-h-[320px] overflow-y-auto p-3.5 sm:p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-4 overscroll-contain">
             {session.messages.map((msg) => {
               const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
               return (
@@ -307,10 +307,10 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                     <span className="text-[10px] text-slate-400 font-normal">• {msg.timestamp}</span>
                   </div>
                   <div
-                    className={`max-w-[88%] sm:max-w-[78%] p-3.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${
+                    className={`max-w-[88%] sm:max-w-[80%] p-3.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${
                       isCouncil
-                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border-2 border-sky-500/30 dark:border-sky-500/40 shadow-sm'
-                        : 'bg-sky-600 text-white rounded-tr-none border border-sky-500 shadow-md shadow-sky-600/20'
+                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-none shadow-sm'
+                        : 'bg-sky-600 text-white rounded-tr-none border border-sky-500 shadow-sm shadow-sky-600/20'
                     }`}
                   >
                     {msg.text}
@@ -320,32 +320,31 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
             })}
           </div>
 
-          {/* Message Input Form */}
+          {/* Message Input Form aligned with Council Desk */}
           {isConnected ? (
-            <form onSubmit={handleSendMessage} className="space-y-4">
-              <div className="flex items-center space-x-2 sm:space-x-3">
+            <form onSubmit={handleSendMessage} className="space-y-3">
+              <div className="flex items-center space-x-2 pt-1">
                 <input
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Type your message to the council representative..."
                   disabled={isSending}
-                  className="min-w-0 flex-1 px-4 py-3.5 neu-input text-base sm:text-sm placeholder-slate-400"
+                  className="min-w-0 flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder-slate-400"
                 />
                 <button
                   type="submit"
                   disabled={!inputText.trim() || isSending}
-                  title="Send Message"
-                  className="portal-button-primary px-4 sm:px-5 py-3.5 font-bold text-xs disabled:opacity-50 flex items-center justify-center space-x-1.5 active:scale-95 shadow-md flex-shrink-0"
+                  className="portal-button-primary px-3 sm:px-4 py-2.5 text-xs font-bold flex items-center justify-center space-x-1.5 flex-shrink-0 active:scale-95 transition-transform"
                 >
+                  <Send className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="hidden sm:inline">Send</span>
-                  <Send className="w-4 h-4 flex-shrink-0" />
                 </button>
               </div>
 
               {/* End Chat Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 pt-2 text-xs font-mono">
-                <div className="text-slate-400 flex items-center space-x-1.5 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs font-mono">
+                <div className="text-slate-400 flex items-center space-x-1.5 min-w-0 text-[11px]">
                   <Clock className="w-3.5 h-3.5 text-sky-500 flex-shrink-0" />
                   <span>Session auto-expires after 24 hours</span>
                 </div>
@@ -353,7 +352,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                 <button
                   type="button"
                   onClick={() => setShowEndModal(true)}
-                  className="text-red-500 hover:text-red-600 font-bold uppercase tracking-wider flex items-center space-x-1 transition-colors self-end sm:self-auto flex-shrink-0 active:scale-95"
+                  className="text-red-500 hover:text-red-600 font-bold uppercase tracking-wider flex items-center space-x-1 transition-colors self-end sm:self-auto flex-shrink-0 active:scale-95 text-xs"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>End Live Session</span>

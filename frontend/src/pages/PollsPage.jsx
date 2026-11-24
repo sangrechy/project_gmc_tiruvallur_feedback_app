@@ -102,7 +102,7 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
       <div className="space-y-6">
         {currentList.length > 0 ? (
           currentList.map((poll) => {
-            const hasVoted = poll.hasVoted;
+            const hasVoted = Boolean(poll.hasVoted || (poll.userVoted !== null && poll.userVoted !== undefined));
             const selectedOpt = selectedOptions[poll.id];
             const isVotingThis = votingPollId === poll.id;
 
@@ -111,10 +111,10 @@ export default function PollsPage({ polls, onVotePoll, showToast }) {
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200/50 dark:border-slate-800">
                   <div className="flex items-center space-x-2">
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
-                      {poll.category}
+                      {poll.category || "General"}
                     </span>
                     <span className="text-xs font-mono text-slate-400">
-                      Closes: {poll.expiresAt}
+                      Closes: {poll.closingDate || poll.expiresAt || "Ongoing"}
                     </span>
                   </div>
 

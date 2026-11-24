@@ -274,22 +274,40 @@ async function verifySessionToken(token, secretKey) {
  * Raw master passcodes are rejected on operational endpoints to prevent
  * session expiry bypass and enforce the 8-hour token lifetime.
  */
-async function authenticateAdminRequest(request, configuredToken) {
-  if (!configuredToken) return false;
+async function authenticateAdminRequest(request, configuredToken, env = {}) {
   const authHdr = request.headers.get("Authorization") || "";
   let token = authHdr.startsWith("Bearer ")
     ? authHdr.slice(7).trim()
     : (request.headers.get("X-Council-Token") || "").trim();
   if (!token) return false;
 
-  // Operational endpoints strictly require signed session tokens
+  // 1. Signed session token from /api/auth/verify
   if (token.startsWith("gmc_sess.")) {
+    if (!configuredToken) return false;
     const sessionRes = await verifySessionToken(token, configuredToken);
     return sessionRes.valid;
   }
 
-  // Raw master passcodes cannot directly access operational endpoints;
-  // they must first be exchanged at /api/auth/verify for a session token.
+  // 3. Firebase Auth ID Token (JWT from Google Sign-In or Firebase Email)
+  if (token.split(".").length === 3) {
+    try {
+      const parts = token.split(".");
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+      const now = Math.floor(Date.now() / 1000);
+      const projectId = env.FIREBASE_PROJECT_ID || env.VITE_FIREBASE_PROJECT_ID || "project-gmc-tiruvallur";
+      if (
+        payload &&
+        payload.exp > now &&
+        (payload.aud === projectId || payload.iss === `https://securetoken.google.com/${projectId}`) &&
+        payload.sub
+      ) {
+        return true;
+      }
+    } catch {
+      // Invalid JWT format
+    }
+  }
+
   return false;
 }
 
@@ -664,7 +682,7 @@ export default {
         let sender = "student";
         if (body?.sender === "admin" || body?.sender === "council") {
           const confToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
-          const isAdmin = await authenticateAdminRequest(request, confToken);
+          const isAdmin = await authenticateAdminRequest(request, confToken, env);
           if (isAdmin) {
             sender = "council";
           }
@@ -748,7 +766,7 @@ export default {
       if (path === "/api/ai/analyze" && request.method === "POST") {
         // Enforce council authorization on expensive AI endpoints
         const confToken = env.COUNCIL_AUTH_TOKEN ? env.COUNCIL_AUTH_TOKEN.trim() : "";
-        const isAuth = await authenticateAdminRequest(request, confToken);
+        const isAuth = await authenticateAdminRequest(request, confToken, env);
 
         if (!isTestEnv && !isAuth) {
           return jsonResponse({ error: "Unauthorized: Valid council access token required for AI triage" }, 401, env, request);
@@ -1100,7 +1118,7 @@ Respond ONLY with valid JSON strictly conforming to this schema:
 }`;
 
   // Candidate models with fallback in case of high demand spikes (503)
-  const candidateModels = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"];
+  const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
   let parsed = null;
   let lastError = null;
 

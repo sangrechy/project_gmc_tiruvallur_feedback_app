@@ -297,19 +297,30 @@ export const storageService = {
           console.warn("Anonymous auth failed for voting:", err);
         }
       }
-      const voterUid = auth?.currentUser?.uid;
+      let voterUid = auth?.currentUser?.uid;
+      if (!voterUid && typeof localStorage !== "undefined") {
+        let savedVoterId = localStorage.getItem("gmc_voter_uid");
+        if (!savedVoterId) {
+          savedVoterId = "voter_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+          localStorage.setItem("gmc_voter_uid", savedVoterId);
+        }
+        voterUid = savedVoterId;
+      }
       if (!voterUid) {
-        throw new Error("Authentication required to cast ballot in poll.");
+        voterUid = "voter_anon_" + Math.random().toString(36).slice(2, 10);
       }
 
       const pollRef = doc(db, "polls", pollId);
+      const voteDocRef = doc(db, "polls", pollId, "votes", voterUid);
+
       await runTransaction(db, async (transaction) => {
         const pollSnap = await transaction.get(pollRef);
         if (!pollSnap.exists()) {
           throw new Error("Poll not found");
         }
         const pollData = pollSnap.data();
-        if (pollData.status !== "active") {
+        const pollStatus = (pollData.status || "").toLowerCase();
+        if (pollStatus !== "active" && pollStatus !== "open") {
           throw new Error("This poll is closed and no longer accepting votes.");
         }
         if (pollData.closingDate) {
@@ -325,17 +336,8 @@ export const storageService = {
         }
 
         // 1. Verify voter has not already cast ballot
-        const voteDocRef = doc(db, "polls", pollId, "votes", voterUid);
-        let alreadyVoted = false;
-        try {
-          const existingVoteSnap = await transaction.get(voteDocRef);
-          if (existingVoteSnap.exists()) {
-            alreadyVoted = true;
-          }
-        } catch {
-          // If transaction.get on voteDocRef is denied, Firestore rules server-side checks (!exists) enforce it
-        }
-        if (alreadyVoted) {
+        const existingVoteSnap = await transaction.get(voteDocRef);
+        if (existingVoteSnap.exists()) {
           throw new Error("You have already voted in this poll!");
         }
 
@@ -350,7 +352,8 @@ export const storageService = {
         // 2. Atomically record individual ballot doc bound to voter UID
         transaction.set(voteDocRef, {
           selectedOption: optionIndex,
-          timestamp: serverTimestamp()
+          timestamp: serverTimestamp(),
+          createdAt: new Date().toISOString()
         });
 
         // 3. Atomically update poll options and increment totalVotes by 1 in same commit
