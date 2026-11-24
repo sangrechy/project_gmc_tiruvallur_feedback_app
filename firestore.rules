@@ -87,6 +87,14 @@ rules_version = '2';
 //   - role: string (optional) - Council role
 //   - status: string (optional, 'Active' | 'active' | 'Revoked' | 'Inactive') - Council member authorization status
 //
+// Collection: system
+// Document ID: operational or configuration document ID (e.g. 'presence')
+// Fields:
+//   - isOnline: bool (optional) - Council presence status indicator
+//   - lastSeen: timestamp or string (optional) - Heartbeat timestamp
+//   - updatedBy: string (optional) - Admin user identifier
+//   - updatedAt: timestamp (optional) - Heartbeat update server timestamp
+//
 // ===============================================================
 
 service cloud.firestore {
@@ -416,6 +424,16 @@ service cloud.firestore {
     // ===============================================================
     match /admins/{adminId} {
       allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ===============================================================
+    // 7. System Collection
+    // Public read for system state (e.g. council presence heartbeat on ChatPage);
+    // Write restricted to authenticated council admins.
+    // ===============================================================
+    match /system/{docId} {
+      allow read: if true;
       allow write: if isAdmin();
     }
   }

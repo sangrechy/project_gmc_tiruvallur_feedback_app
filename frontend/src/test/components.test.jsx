@@ -249,10 +249,6 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    // Switch to Email & Passcode mode
-    const emailModeBtn = screen.getByText('Email & Passcode');
-    fireEvent.click(emailModeBtn);
-
     const emailInput = screen.getByPlaceholderText('rep.council@gmcthiruvallur.ac.in');
     const passInput = screen.getByPlaceholderText('••••••••••••');
     fireEvent.change(emailInput, { target: { value: 'president.council@gmcthiruvallur.ac.in' } });
@@ -271,18 +267,7 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     });
   });
 
-  it('allows council login using decoupled Master Token input', async () => {
-    vi.spyOn(apiService, 'verifyCouncilToken').mockResolvedValueOnce({
-      valid: true,
-      token: 'SecretToken123!',
-      user: {
-        email: 'executive.council@gmcthiruvallur.ac.in',
-        name: 'Council Executive',
-        role: 'Council Executive',
-        token: 'SecretToken123!'
-      }
-    });
-
+  it('validates empty email and password submission on AdminLoginPage', async () => {
     const onLoginSuccess = vi.fn();
     const setCurrentRoute = vi.fn();
     const showToast = vi.fn();
@@ -295,16 +280,11 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
       />
     );
 
-    expect(screen.getByText('Council Master Secret Token')).toBeInTheDocument();
-    const tokenInput = screen.getByPlaceholderText('Enter Council Master Passcode');
-    fireEvent.change(tokenInput, { target: { value: 'SecretToken123!' } });
+    const submitBtn = screen.getByText('Authorize Session');
+    fireEvent.click(submitBtn);
 
-    const authorizeBtn = screen.getByText('Authorize with Master Token');
-    fireEvent.click(authorizeBtn);
-
-    await waitFor(() => {
-      expect(onLoginSuccess).toHaveBeenCalled();
-    });
+    expect(showToast).toHaveBeenCalledWith("Please enter email and password", "error");
+    expect(onLoginSuccess).not.toHaveBeenCalled();
   });
 
   it('renders AdminDashboard overview matching metrics, triage table, and quick actions', () => {

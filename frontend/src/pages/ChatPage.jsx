@@ -20,8 +20,17 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
+  const [adminPresence, setAdminPresence] = useState({ isOnline: false, lastSeen: null });
   const messagesEndRef = useRef(null);
   const activeSessionIdRef = useRef(null);
+
+  // Subscribe to real-time council admin presence
+  useEffect(() => {
+    const unsubscribe = storageService.subscribeToAdminPresence((presence) => {
+      setAdminPresence(presence);
+    });
+    return () => unsubscribe?.();
+  }, []);
 
   // Initialize or resume chat session using 24-hr Browser Cookies
   useEffect(() => {
@@ -191,6 +200,22 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
 
               {/* Status Badges */}
               <div className="flex flex-wrap items-center gap-2">
+                {/* Council Presence Light */}
+                {adminPresence.isOnline ? (
+                  <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 bg-emerald-50/50 dark:bg-emerald-950/30">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>COUNCIL: ONLINE</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/20 bg-amber-50/40 dark:bg-amber-950/20" title="Council representative is currently away; messages will be relayed">
+                    <span className="w-2 h-2 rounded-full bg-amber-500/80" />
+                    <span>COUNCIL: AWAY</span>
+                  </div>
+                )}
+
                 {/* 24-hr Cookie Badge */}
                 <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/20">
                   <Cookie className="w-3 h-3" />
@@ -229,7 +254,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
           {/* Message Stream with Neumorphic Inset */}
           <div className="h-[52vh] sm:h-96 min-h-[300px] overflow-y-auto p-3.5 sm:p-5 rounded-2xl neu-pressed space-y-3.5 sm:space-y-4">
             {session.messages.map((msg) => {
-              const isCouncil = msg.sender === 'council';
+              const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
               return (
                 <div
                   key={msg.id}

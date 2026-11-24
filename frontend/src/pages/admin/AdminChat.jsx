@@ -29,6 +29,15 @@ export default function AdminChat({
 
   const selectedSession = chats.find(c => c.id === selectedChatId) || chats[0];
 
+  // Council presence heartbeat ping
+  useEffect(() => {
+    storageService.pingAdminPresence();
+    const interval = setInterval(() => {
+      storageService.pingAdminPresence();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Subscribe to real-time incoming messages for the active conversation
   useEffect(() => {
     if (!selectedSession?.sessionId) return;
@@ -307,7 +316,7 @@ export default function AdminChat({
               {/* Messages Bubble Area */}
               <div className="h-80 sm:h-96 overflow-y-auto p-3.5 sm:p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-4">
                 {selectedSession.messages?.map((msg) => {
-                  const isCouncil = msg.sender === 'council';
+                  const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
                   return (
                     <div
                       key={msg.id}

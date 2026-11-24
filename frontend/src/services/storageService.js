@@ -751,7 +751,14 @@ export const storageService = {
             if (chatSnap.exists()) {
               const cloudData = chatSnap.data();
               const messagesSnap = await getDocs(collection(chatRef, "messages"));
-              const cloudMessages = messagesSnap.docs.map(m => ({ id: m.id, ...m.data() }));
+              const cloudMessages = messagesSnap.docs.map(m => {
+                const d = m.data();
+                return {
+                  id: m.id,
+                  ...d,
+                  sender: (d.sender === 'council' || d.sender === 'admin') ? 'council' : 'student'
+                };
+              });
               cloudMessages.sort((a, b) => {
                 const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
                 const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
@@ -891,7 +898,14 @@ export const storageService = {
       const chatRef = doc(db, "chats", sessionId);
       const q = query(collection(chatRef, "messages"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        const cloudMessages = snapshot.docs.map(m => ({ id: m.id, ...m.data() }));
+        const cloudMessages = snapshot.docs.map(m => {
+          const d = m.data();
+          return {
+            id: m.id,
+            ...d,
+            sender: (d.sender === 'council' || d.sender === 'admin') ? 'council' : 'student'
+          };
+        });
         cloudMessages.sort((a, b) => {
           const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
           const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
@@ -983,7 +997,14 @@ export const storageService = {
         const chatPromises = snap.docs.map(async (d) => {
           const chatData = d.data();
           const messagesSnap = await getDocs(collection(d.ref, "messages"));
-          const messages = messagesSnap.docs.map(m => ({ id: m.id, ...m.data() }));
+          const messages = messagesSnap.docs.map(m => {
+            const md = m.data();
+            return {
+              id: m.id,
+              ...md,
+              sender: (md.sender === 'council' || md.sender === 'admin') ? 'council' : 'student'
+            };
+          });
           messages.sort((a, b) => {
             const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
             const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
@@ -1068,5 +1089,96 @@ export const storageService = {
     admins.push(created);
     localStorage.setItem(KEYS.ADMINS, JSON.stringify(admins));
     return created;
+  },
+
+  // ==================== COUNCIL PRESENCE ====================
+  async pingAdminPresence(adminEmail = 'admin') {
+    const presenceData = {
+      isOnline: true,
+      lastSeen: new Date().toISOString(),
+      updatedBy: adminEmail || 'admin'
+    };
+    try {
+      localStorage.setItem('gmc_admin_presence', JSON.stringify({
+        ...presenceData,
+        timestamp: Date.now()
+      }));
+    } catch {
+      // Local storage fallback
+    }
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const presenceRef = doc(db, "system", "presence");
+        await setDoc(presenceRef, {
+          isOnline: true,
+          lastSeen: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          updatedBy: adminEmail || 'admin'
+        }, { merge: true });
+      } catch (err) {
+        // Non-critical presence ping warning
+        console.warn("Firestore pingAdminPresence warning:", err);
+      }
+    }
+  },
+
+  subscribeToAdminPresence(callback) {
+    if (typeof callback !== 'function') return () => {};
+
+    // Helper: evaluate presence status based on lastSeen (within 5 minutes = 300,000ms)
+    const evaluatePresence = (lastSeenTime, isOnlineFlag) => {
+      if (isOnlineFlag === false) return false;
+      if (!lastSeenTime) return false;
+      const parsedTime = typeof lastSeenTime === 'number' ? lastSeenTime : new Date(lastSeenTime).getTime();
+      if (isNaN(parsedTime)) return false;
+      const ageMs = Date.now() - parsedTime;
+      return ageMs >= 0 && ageMs < 5 * 60 * 1000;
+    };
+
+    // 1. Initial evaluation from local state
+    try {
+      const localData = JSON.parse(localStorage.getItem('gmc_admin_presence') || 'null');
+      if (localData) {
+        const isOnline = evaluatePresence(localData.timestamp || localData.lastSeen, localData.isOnline);
+        callback({ isOnline, lastSeen: localData.lastSeen });
+      } else {
+        callback({ isOnline: false, lastSeen: null });
+      }
+    } catch {
+      callback({ isOnline: false, lastSeen: null });
+    }
+
+    // 2. Real-time Firestore snapshot listener if cloud connected
+    if (isFirebaseConfigured && db) {
+      try {
+        const presenceRef = doc(db, "system", "presence");
+        const unsubscribe = onSnapshot(presenceRef, (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            let lastSeenDate = null;
+            if (data.lastSeen?.toDate) {
+              lastSeenDate = data.lastSeen.toDate();
+            } else if (data.updatedAt?.toDate) {
+              lastSeenDate = data.updatedAt.toDate();
+            } else if (data.lastSeen) {
+              lastSeenDate = new Date(data.lastSeen);
+            }
+            const isOnline = evaluatePresence(lastSeenDate, data.isOnline !== false);
+            callback({ isOnline, lastSeen: lastSeenDate ? lastSeenDate.toISOString() : null });
+          } else {
+            callback({ isOnline: false, lastSeen: null });
+          }
+        }, (err) => {
+          console.warn("Firestore presence onSnapshot warning:", err);
+        });
+        return unsubscribe;
+      } catch (err) {
+        console.warn("Firestore subscribeToAdminPresence failed:", err);
+        return () => {};
+      }
+    }
+
+    return () => {};
   }
 };
