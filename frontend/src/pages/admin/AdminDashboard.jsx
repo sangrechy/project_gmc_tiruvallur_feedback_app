@@ -15,6 +15,7 @@ import {
   ChevronRight, 
   Activity 
 } from 'lucide-react';
+import { formatDateTime, formatShortDateTime } from '../../utils/dateUtils';
 
 export default function AdminDashboard({ 
   feedbacks, 
@@ -163,6 +164,7 @@ export default function AdminDashboard({
               <tr className="border-b border-slate-200/50 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-mono">
                 <th className="py-2.5 px-3">Category</th>
                 <th className="py-2.5 px-3">Tracking ID</th>
+                <th className="py-2.5 px-3 hidden sm:table-cell">Submitted</th>
                 <th className="py-2.5 px-3">Status</th>
                 <th className="py-2.5 px-3 text-right">Action</th>
               </tr>
@@ -177,8 +179,14 @@ export default function AdminDashboard({
                         PII Sanitized
                       </span>
                     )}
+                    <div className="sm:hidden text-[10px] font-mono font-normal text-slate-400 mt-0.5">
+                      {formatShortDateTime(fb.serverTimestamp || fb.createdAt || fb.timestamp, 'Recently')}
+                    </div>
                   </td>
                   <td className="py-3 px-3 font-mono text-slate-500">{fb.trackingId}</td>
+                  <td className="py-3 px-3 font-mono text-[11px] text-slate-400 hidden sm:table-cell">
+                    {formatShortDateTime(fb.serverTimestamp || fb.createdAt || fb.timestamp, 'Recently')}
+                  </td>
                   <td className="py-3 px-3">
                     <span className={`px-2.5 py-1 text-[10px] font-semibold ${getStatusBadge(fb.status)}`}>
                       {fb.status}
@@ -237,12 +245,16 @@ export default function AdminDashboard({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="portal-card max-w-lg w-full p-6 sm:p-8 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-3">
-              <div className="flex items-center space-x-2 font-mono text-xs">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-xs">
                 <span className="font-bold text-sky-600 dark:text-sky-400">
                   {selectedFeedback.category}
                 </span>
                 <span className="text-slate-400">•</span>
                 <span className="text-slate-500">{selectedFeedback.trackingId}</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-[11px] text-slate-400">
+                  {formatDateTime(selectedFeedback.serverTimestamp || selectedFeedback.createdAt || selectedFeedback.timestamp, 'Recently')}
+                </span>
               </div>
               <button
                 onClick={() => setSelectedFeedback(null)}

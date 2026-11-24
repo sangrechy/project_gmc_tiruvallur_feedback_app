@@ -126,14 +126,25 @@ export default function AdminReports({ feedbacks, showToast }) {
         <div className="space-y-6">
           {/* Executive Summary Card */}
           <div className="portal-card p-6 border-l-4 border-l-emerald-600 space-y-3">
-            <div className="flex items-center space-x-2 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-              <Sparkles className="w-4 h-4" />
-              <span>EXECUTIVE AI SUMMARY</span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center space-x-2 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                <Sparkles className="w-4 h-4" />
+                <span>EXECUTIVE AI SUMMARY</span>
+              </div>
+              {reportData.isAiGenerated ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase">
+                  Live {reportData.aiProvider || 'AI'} Active
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  Fallback Mode{reportData.aiErrorReason ? ` • ${reportData.aiErrorReason}` : ''}
+                </span>
+              )}
             </div>
             <p className="text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100 leading-relaxed font-sans">
               "{reportData.executiveSummary}"
             </p>
-            <div className="text-[11px] font-mono text-slate-400 flex items-center space-x-4 pt-1">
+            <div className="text-[11px] font-mono text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
               <span>Analyzed: {reportData.totalAnalyzed} feedback items</span>
               <span>•</span>
               <span className="text-amber-500">

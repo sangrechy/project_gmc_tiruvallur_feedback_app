@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Vote, CheckCircle2, Clock, BarChart3, ArrowLeft, ChevronRight, AlertCircle } from 'lucide-react';
 
-export default function PollsPage({ polls, onVotePoll, showToast }) {
+export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToast }) {
   const [activeTab, setActiveTab] = useState('active');
   const [selectedOptions, setSelectedOptions] = useState({});
   const [votingPollId, setVotingPollId] = useState(null);

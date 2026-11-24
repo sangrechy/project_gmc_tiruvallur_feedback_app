@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ShieldAlert
 } from 'lucide-react';
+import { formatDateTime } from '../utils/dateUtils';
 
 export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showToast }) {
   const [category, setCategory] = useState('Academics');
@@ -106,7 +107,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
               </p>
             </div>
 
-            {/* Tracking ID Badge */}
+            {/* Tracking ID & Submission Time Badge */}
             <div className="p-4 rounded-2xl neu-pressed max-w-md mx-auto text-left font-mono text-xs space-y-2">
               <div className="flex items-center justify-between text-slate-400">
                 <span>Reference Tracking Token:</span>
@@ -114,6 +115,10 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
               </div>
               <div className="p-2.5 rounded-xl bg-slate-900/40 text-sky-400 font-mono text-center tracking-widest break-all select-all font-bold">
                 {submissionResult.trackingId || submissionResult.id}
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                <span>Submitted At:</span>
+                <span>{formatDateTime(submissionResult.submittedAt || submissionResult.createdAt || new Date())}</span>
               </div>
             </div>
 

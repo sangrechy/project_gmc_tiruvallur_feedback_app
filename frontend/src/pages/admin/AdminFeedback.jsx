@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Trash2
 } from 'lucide-react';
+import { formatDateTime } from '../../utils/dateUtils';
 
 export default function AdminFeedback({ 
   feedbacks, 
@@ -422,7 +423,7 @@ export default function AdminFeedback({
                   </p>
 
                   <div className="text-[11px] text-slate-400 font-mono">
-                    Submitted: {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Recently'}
+                    Submitted: {formatDateTime(item.serverTimestamp || item.createdAt || item.timestamp, 'Recently')}
                   </div>
                 </div>
 

@@ -17,11 +17,14 @@ describe('Storage Service Blackbox & Unit Verification', () => {
 
       expect(res.success).toBe(true);
       expect(res.trackingId).toMatch(/^GMC-FB-\d{4}$/);
+      expect(res.submittedAt).toBeDefined();
       expect(res.containsPII).toBe(false);
 
       const all = await storageService.getFeedbacks();
       const item = all.find(f => f.trackingId === res.trackingId);
       expect(item).toBeDefined();
+      expect(item.createdAt).toBeDefined();
+      expect(item.submittedAtMs).toBeGreaterThan(0);
       expect(item.category).toBe('Academics');
       expect(item.status).toBe('Received');
       expect(item.aiAnalysis).not.toBeNull();

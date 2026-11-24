@@ -144,11 +144,17 @@ export const apiService = {
 
   async generateAiReport(feedbacks, token = null) {
     let activeToken = token;
-    
-    // 1. Try Firebase Auth ID token if currently authenticated (Google Sign-In / Email Auth)
-    if (!activeToken && auth?.currentUser) {
+    let workerError = null;
+
+    // 1. Wait for Firebase Auth hydration and try Firebase Auth ID token (Google Sign-In / Email Auth)
+    if (!activeToken && auth) {
       try {
-        activeToken = await auth.currentUser.getIdToken();
+        if (typeof auth.authStateReady === "function") {
+          await auth.authStateReady();
+        }
+        if (auth.currentUser) {
+          activeToken = await auth.currentUser.getIdToken();
+        }
       } catch (err) {
         console.warn("Could not retrieve Firebase ID token for AI report:", err);
       }
@@ -167,7 +173,7 @@ export const apiService = {
       }
     }
 
-    if (this.isConfigured && (activeToken || typeof localStorage !== "undefined" && localStorage.getItem("gmc_admin_session"))) {
+    if (this.isConfigured && (activeToken || (typeof localStorage !== "undefined" && localStorage.getItem("gmc_admin_session")))) {
       try {
         const cleanToken = activeToken ? activeToken.trim() : "";
         const headers = { "Content-Type": "application/json" };
@@ -182,11 +188,20 @@ export const apiService = {
         });
         if (res.ok) {
           const aiData = await res.json();
-          return { ...aiData, isAiGenerated: true };
+          return {
+            ...aiData,
+            isAiGenerated: aiData.isAiGenerated ?? true
+          };
         }
+        const errData = await res.json().catch(() => ({}));
+        workerError = errData?.error ? `HTTP ${res.status}: ${errData.error}` : `Worker returned HTTP ${res.status}`;
+        console.warn("Cloudflare Worker AI API rejected request:", workerError);
       } catch (err) {
+        workerError = err?.message || "Network/CORS error";
         console.warn("Cloudflare Worker AI API call failed, falling back to local statistics:", err);
       }
+    } else if (this.isConfigured) {
+      workerError = "Admin auth token missing (re-login to Council Console)";
     }
 
     // Client-side statistical calculation (honest metrics without fabricated AI text)
@@ -212,6 +227,10 @@ export const apiService = {
       urgencyCount[urg || "Medium"] = (urgencyCount[urg || "Medium"] || 0) + 1;
     });
 
+    const reasonText = workerError
+      ? ` (${workerError})`
+      : " (Cloudflare Worker URL not configured)";
+
     return {
       generatedAt: new Date().toISOString(),
       totalAnalyzed: validFeedbacks.length,
@@ -220,8 +239,9 @@ export const apiService = {
       sentimentDistribution: sentimentCount,
       urgencyDistribution: urgencyCount,
       isAiGenerated: false,
+      aiErrorReason: workerError,
       executiveSummary: validFeedbacks.length > 0
-        ? `Statistical aggregation of ${validFeedbacks.length} student submissions across ${Object.keys(categoryCount).length} categories. Note: Automated AI narrative synthesis requires Cloudflare Worker with GROQ_API_KEY or GEMINI_API_KEY configured.`
+        ? `Statistical aggregation of ${validFeedbacks.length} student submissions across ${Object.keys(categoryCount).length} categories. Note: Automated AI narrative synthesis fallback triggered${reasonText}.`
         : "No non-PII feedback submissions available to analyze.",
       recurringThemes: Object.keys(categoryCount).map(c => `${c} (${categoryCount[c]} submissions)`),
       recommendations: [

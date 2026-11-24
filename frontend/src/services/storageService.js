@@ -20,6 +20,7 @@ import {
   onSnapshot
 } from "firebase/firestore";
 import { signInAnonymously } from "firebase/auth";
+import { toDateObject, toEpochMs, formatTimeOnly } from "../utils/dateUtils";
 import {
   INITIAL_ANNOUNCEMENTS,
   INITIAL_EVENTS,
@@ -39,6 +40,31 @@ const KEYS = {
   ADMINS: "gmc_admins",
   USER_VOTES: "gmc_user_votes",
 };
+
+// Shared normalizer for Firestore chat messages so sorting and timestamps work uniformly
+function normalizeCloudChatMessages(docs) {
+  const mapped = docs.map((m) => {
+    const d = m.data();
+    const createdAtDate = toDateObject(d.createdAt) || toDateObject(d.timestamp);
+    const createdAtIso = createdAtDate ? createdAtDate.toISOString() : null;
+    const displayTimestamp = (typeof d.timestamp === "string" && d.timestamp.trim())
+      ? d.timestamp.trim()
+      : (createdAtDate ? formatTimeOnly(createdAtDate) : "");
+    return {
+      id: m.id,
+      ...d,
+      sender: (d.sender === "council" || d.sender === "admin") ? "council" : "student",
+      createdAtIso,
+      timestamp: displayTimestamp
+    };
+  });
+  mapped.sort((a, b) => {
+    const timeA = toEpochMs(a.createdAt || a.createdAtIso || a.timestamp);
+    const timeB = toEpochMs(b.createdAt || b.createdAtIso || b.timestamp);
+    return timeA - timeB;
+  });
+  return mapped;
+}
 
 // Initialize LocalStorage with seed data if empty
 export function initLocalStore() {
@@ -362,6 +388,20 @@ export const storageService = {
           totalVotes: (Number(pollData.totalVotes) || 0) + 1
         });
       });
+
+      userVotes[pollId] = optionIndex;
+      localStorage.setItem(KEYS.USER_VOTES, JSON.stringify(userVotes));
+
+      // Keep local cache in sync if present, without throwing if poll lives only in Firestore
+      const localPolls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
+      const localTarget = localPolls.find(p => p.id === pollId);
+      if (localTarget && localTarget.options && localTarget.options[optionIndex]) {
+        localTarget.options[optionIndex].votes = (Number(localTarget.options[optionIndex].votes) || 0) + 1;
+        localTarget.totalVotes = (Number(localTarget.totalVotes) || 0) + 1;
+        localStorage.setItem(KEYS.POLLS, JSON.stringify(localPolls));
+      }
+      this.invalidateCache('polls');
+      return true;
     }
 
     const polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
@@ -605,6 +645,7 @@ export const storageService = {
       success: true,
       delivered: deliveredToServer,
       trackingId,
+      submittedAt: feedbackDoc.createdAt,
       containsPII: finalContainsPII,
       piiDetected: finalContainsPII,
       alertDispatched: Boolean(backendResult?.telegramAlertSent)
@@ -620,7 +661,16 @@ export const storageService = {
     if (isFirebaseConfigured && db) {
       try {
         const snap = await getDocs(collection(db, "feedback"));
-        data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        data = snap.docs.map(d => {
+          const raw = d.data();
+          const normalizedDate = toDateObject(raw.serverTimestamp || raw.createdAt || raw.timestamp);
+          return {
+            id: d.id,
+            ...raw,
+            createdAt: raw.createdAt || (normalizedDate ? normalizedDate.toISOString() : null),
+            submittedAtMs: normalizedDate ? normalizedDate.getTime() : 0
+          };
+        });
       } catch (err) {
         if (err.code === "permission-denied") {
           console.error("Firestore feedback read permission-denied: Council clearance required.");
@@ -630,8 +680,17 @@ export const storageService = {
       }
     }
     if (!data) {
-      data = JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]");
+      data = JSON.parse(localStorage.getItem(KEYS.FEEDBACK) || "[]").map(raw => {
+        const normalizedDate = toDateObject(raw.serverTimestamp || raw.createdAt || raw.timestamp);
+        return {
+          ...raw,
+          createdAt: raw.createdAt || (normalizedDate ? normalizedDate.toISOString() : null),
+          submittedAtMs: normalizedDate ? normalizedDate.getTime() : 0
+        };
+      });
     }
+
+    data.sort((a, b) => (b.submittedAtMs || 0) - (a.submittedAtMs || 0));
 
     this._feedbacksCache = data;
     this._feedbacksCacheTime = Date.now();
@@ -762,19 +821,7 @@ export const storageService = {
             if (chatSnap.exists()) {
               const cloudData = chatSnap.data();
               const messagesSnap = await getDocs(collection(chatRef, "messages"));
-              const cloudMessages = messagesSnap.docs.map(m => {
-                const d = m.data();
-                return {
-                  id: m.id,
-                  ...d,
-                  sender: (d.sender === 'council' || d.sender === 'admin') ? 'council' : 'student'
-                };
-              });
-              cloudMessages.sort((a, b) => {
-                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
-                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
-                return timeA - timeB;
-              });
+              const cloudMessages = normalizeCloudChatMessages(messagesSnap.docs);
 
               const syncedSession = {
                 id: sessionId,
@@ -813,19 +860,21 @@ export const storageService = {
     if (existing) return existing;
 
     // Create new session
+    const nowIso = new Date().toISOString();
     const newSession = {
       id: sessionId,
       sessionId,
       status: "active",
-      createdAt: new Date().toISOString(),
-      lastActivity: new Date().toISOString(),
+      createdAt: nowIso,
+      lastActivity: nowIso,
       ownerUid: currentUserUid,
       messages: [
         {
           id: `m-init-${Date.now()}`,
           sender: "council",
           text: "Hello! Welcome to the GMC Student Council temporary chat. How can we help you?",
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          createdAtIso: nowIso,
+          timestamp: formatTimeOnly(nowIso)
         }
       ]
     };
@@ -849,16 +898,18 @@ export const storageService = {
     if (!session) throw new Error("Chat session not found");
     if (session.status !== "active") throw new Error("This chat session has ended or expired");
 
+    const nowDate = new Date();
     const newMsg = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       sessionId: cleanSessionId,
       sender: cleanSender,
       text: cleanText,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      createdAtIso: nowDate.toISOString(),
+      timestamp: formatTimeOnly(nowDate)
     };
 
     session.messages.push(newMsg);
-    session.lastActivity = new Date().toISOString();
+    session.lastActivity = nowDate.toISOString();
     localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
 
     // Persist to Cloud Firestore if connected
@@ -909,19 +960,7 @@ export const storageService = {
       const chatRef = doc(db, "chats", sessionId);
       const q = query(collection(chatRef, "messages"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        const cloudMessages = snapshot.docs.map(m => {
-          const d = m.data();
-          return {
-            id: m.id,
-            ...d,
-            sender: (d.sender === 'council' || d.sender === 'admin') ? 'council' : 'student'
-          };
-        });
-        cloudMessages.sort((a, b) => {
-          const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
-          const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
-          return timeA - timeB;
-        });
+        const cloudMessages = normalizeCloudChatMessages(snapshot.docs);
         if (cloudMessages.length > 0) {
           callback(cloudMessages);
         }
@@ -939,14 +978,16 @@ export const storageService = {
     const chats = JSON.parse(localStorage.getItem(KEYS.CHATS) || "[]");
     const session = chats.find(c => c.sessionId === sessionId);
     if (session) {
+      const nowIso = new Date().toISOString();
       session.status = "ended";
-      session.lastActivity = new Date().toISOString();
+      session.lastActivity = nowIso;
       // Purge conversation message content locally to uphold student privacy promises
       session.messages = [{
         id: `msg-${Date.now()}-end`,
         sender: "council",
         text: "This chat session has been ended. All session contents have been safely purged according to council data retention guidelines.",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        createdAtIso: nowIso,
+        timestamp: formatTimeOnly(nowIso)
       }];
       localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
     }
@@ -1015,19 +1056,7 @@ export const storageService = {
         const chatPromises = snap.docs.map(async (d) => {
           const chatData = d.data();
           const messagesSnap = await getDocs(collection(d.ref, "messages"));
-          const messages = messagesSnap.docs.map(m => {
-            const md = m.data();
-            return {
-              id: m.id,
-              ...md,
-              sender: (md.sender === 'council' || md.sender === 'admin') ? 'council' : 'student'
-            };
-          });
-          messages.sort((a, b) => {
-            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.timestamp || 0).getTime();
-            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.timestamp || 0).getTime();
-            return timeA - timeB;
-          });
+          const messages = normalizeCloudChatMessages(messagesSnap.docs);
           return {
             id: d.id,
             sessionId: chatData.sessionId || d.id,
@@ -1040,10 +1069,12 @@ export const storageService = {
         });
         const cloudChats = await Promise.all(chatPromises);
         // Exclude chats older than 24h to fulfill 24-hr privacy lifecycle
-        const activeOrRecentChats = cloudChats.filter(c => {
-          const ageHours = (Date.now() - new Date(c.createdAt).getTime()) / (1000 * 60 * 60);
-          return ageHours <= 24;
-        });
+        const activeOrRecentChats = cloudChats
+          .filter(c => {
+            const ageHours = (Date.now() - new Date(c.createdAt).getTime()) / (1000 * 60 * 60);
+            return ageHours <= 24;
+          })
+          .sort((a, b) => toEpochMs(b.lastActivity || b.createdAt) - toEpochMs(a.lastActivity || a.createdAt));
         if (activeOrRecentChats.length > 0) {
           localStorage.setItem(KEYS.CHATS, JSON.stringify(activeOrRecentChats));
           return activeOrRecentChats;

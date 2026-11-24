@@ -14,6 +14,7 @@ import { storageService } from '../services/storageService';
 import { cookieService } from '../services/cookieService';
 import { auth, isFirebaseConfigured } from '../services/firebase';
 import { signInAnonymously } from 'firebase/auth';
+import { formatShortDateTime, formatTimeOnly } from '../utils/dateUtils';
 
 export default function ChatPage({ setCurrentRoute, showToast }) {
   const [session, setSession] = useState(null);
@@ -189,10 +190,10 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   const isConnected = session.status === 'active';
 
   return (
-    <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-4 pb-28 sm:py-10 space-y-4 sm:space-y-8 bg-grid-pattern">
-      {/* Navigation Breadcrumb */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
-        <button 
+    <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-3 pb-24 sm:py-6 space-y-3 bg-grid-pattern">
+      {/* Compact Navigation Breadcrumb */}
+      <div className="flex items-center justify-between pb-2.5 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
+        <button
           onClick={() => setCurrentRoute('home')}
           className="flex items-center space-x-1 text-slate-500 hover:text-sky-500 transition-colors"
         >
@@ -206,175 +207,168 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
         </div>
       </div>
 
-      {/* Main Chat Container */}
-      <div className="relative">
-        {/* Card */}
-        <div className="portal-card p-4 sm:p-8 space-y-6 relative">
-          
-          {/* Header Banner */}
-          <div className="border-b border-slate-200/60 dark:border-slate-800 pb-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full neu-pill text-[11px] font-semibold text-sky-600 dark:text-sky-400 mb-2 border border-sky-500/20">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>24-Hour Temporary Chat</span>
-                </div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
-                  Student Council Live Chat
-                </h1>
-              </div>
-
-              {/* Status Badges */}
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Council Presence Light */}
+      {/* Main Compact Chat Card matching Council Admin layout */}
+      <div className="portal-card p-3.5 sm:p-5 space-y-3 relative">
+        {/* Compact Single-Row Chat Top Bar (End Session always visible without scrolling) */}
+        <div className="flex items-center justify-between gap-2 border-b border-slate-200/50 dark:border-slate-800 pb-3">
+          <div className="flex items-center space-x-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-sky-500/10 text-sky-500 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
+                Student Council Live Chat
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[10px] font-mono">
                 {adminPresence.isOnline ? (
-                  <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 bg-emerald-50/50 dark:bg-emerald-950/30">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="inline-flex items-center space-x-1 font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
                     </span>
                     <span>COUNCIL: ONLINE</span>
-                  </div>
+                  </span>
                 ) : (
-                  <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/20 bg-amber-50/40 dark:bg-amber-950/20" title="Council representative is currently away; messages will be relayed">
-                    <span className="w-2 h-2 rounded-full bg-amber-500/80" />
+                  <span className="inline-flex items-center space-x-1 font-semibold text-amber-600 dark:text-amber-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                     <span>COUNCIL: AWAY</span>
-                  </div>
+                  </span>
                 )}
-
-                {/* 24-hr Cookie Badge */}
-                <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                  <Cookie className="w-3 h-3" />
-                  <span>Cookie Session (24h)</span>
-                </div>
-
-                {/* Connection Status */}
+                <span className="text-slate-300 dark:text-slate-700">•</span>
                 {isConnected ? (
-                  <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 status-pulse-dot" />
+                  <span className="inline-flex items-center space-x-1 font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 status-pulse-dot" />
                     <span>CONNECTED</span>
-                  </div>
+                  </span>
                 ) : (
-                  <div className="inline-flex items-center space-x-1 px-3 py-1 rounded-full neu-pill text-[10px] font-mono text-slate-400">
-                    <AlertCircle className="w-3 h-3" />
+                  <span className="inline-flex items-center space-x-1 text-slate-400">
+                    <AlertCircle className="w-2.5 h-2.5" />
                     <span>CLOSED</span>
-                  </div>
+                  </span>
                 )}
               </div>
             </div>
-
-            {/* Session Token Bar */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-200/40 dark:bg-slate-900/40 p-2.5 rounded-xl border border-slate-300/30 dark:border-slate-800/60">
-              <div className="flex items-center space-x-2">
-                <span>Session Hash:</span>
-                <span className="font-bold text-sky-600 dark:text-sky-400 select-all">
-                  {session.sessionId}
-                </span>
-              </div>
-              <div className="text-[11px] text-slate-400">
-                Self-purges after 24 hours of inactivity
-              </div>
-            </div>
           </div>
 
-          {/* Message Stream matching Council Admin layout & background */}
-          <div ref={messagesContainerRef} className="h-80 sm:h-96 min-h-[320px] overflow-y-auto p-3.5 sm:p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-4 overscroll-contain">
-            {session.messages.map((msg) => {
-              const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${isCouncil ? 'items-start' : 'items-end'} space-y-1`}
-                >
-                  <div className={`flex items-center space-x-1.5 text-[11px] font-mono font-bold px-1 ${
-                    isCouncil ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'
-                  }`}>
-                    {isCouncil ? (
-                      <>
-                        <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
-                          <ShieldCheck className="w-2.5 h-2.5" />
-                        </span>
-                        <span className="uppercase tracking-wider">Council Representative</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
-                          <User className="w-2.5 h-2.5" />
-                        </span>
-                        <span className="uppercase tracking-wider">You (Student)</span>
-                      </>
-                    )}
-                    <span className="text-[10px] text-slate-400 font-normal">• {msg.timestamp}</span>
-                  </div>
-                  <div
-                    className={`max-w-[88%] sm:max-w-[80%] p-3.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${
-                      isCouncil
-                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-none shadow-sm'
-                        : 'bg-sky-600 text-white rounded-tr-none border border-sky-500 shadow-sm shadow-sky-600/20'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Message Input Form aligned with Council Desk */}
-          {isConnected ? (
-            <form onSubmit={handleSendMessage} className="space-y-3">
-              <div className="flex items-center space-x-2 pt-1">
-                <input
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Type your message to the council representative..."
-                  disabled={isSending}
-                  className="min-w-0 flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder-slate-400"
-                />
-                <button
-                  type="submit"
-                  disabled={!inputText.trim() || isSending}
-                  className="portal-button-primary px-3 sm:px-4 py-2.5 text-xs font-bold flex items-center justify-center space-x-1.5 flex-shrink-0 active:scale-95 transition-transform"
-                >
-                  <Send className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="hidden sm:inline">Send</span>
-                </button>
-              </div>
-
-              {/* End Chat Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs font-mono">
-                <div className="text-slate-400 flex items-center space-x-1.5 min-w-0 text-[11px]">
-                  <Clock className="w-3.5 h-3.5 text-sky-500 flex-shrink-0" />
-                  <span>Session auto-expires after 24 hours</span>
-                </div>
-                
-                <button
-                  type="button"
-                  onClick={() => setShowEndModal(true)}
-                  className="text-red-500 hover:text-red-600 font-bold uppercase tracking-wider flex items-center space-x-1 transition-colors self-end sm:self-auto flex-shrink-0 active:scale-95 text-xs"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>End Live Session</span>
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="p-6 rounded-2xl neu-pressed text-center space-y-3">
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                This live session has been concluded. The conversation history is frozen and will be automatically purged by the server.
-              </p>
-              <button
-                onClick={handleStartNewChat}
-                className="portal-button-primary px-6 py-2.5 text-xs font-semibold inline-flex items-center space-x-2"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Start New Live Chat Session</span>
-              </button>
-            </div>
+          {isConnected && (
+            <button
+              type="button"
+              onClick={() => setShowEndModal(true)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl neu-button text-red-500 hover:text-red-600 text-[11px] sm:text-xs font-semibold flex items-center space-x-1 transition-colors flex-shrink-0 active:scale-95"
+            >
+              <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>End Live Session</span>
+            </button>
           )}
-
         </div>
+
+        {/* Slim Session & Timestamp Meta Strip */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10px] sm:text-[11px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-900/50 px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+          <div className="flex items-center space-x-2 min-w-0">
+            <span>Session:</span>
+            <span className="font-bold text-sky-600 dark:text-sky-400 select-all">
+              {session.sessionId}
+            </span>
+            {session.createdAt && (
+              <>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span>Started: {formatShortDateTime(session.createdAt)}</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center space-x-2 text-slate-400">
+            <span className="inline-flex items-center space-x-1 text-amber-600 dark:text-amber-400">
+              <Cookie className="w-3 h-3" />
+              <span>Cookie Session (24h)</span>
+            </span>
+            <span>•</span>
+            <span className="inline-flex items-center space-x-1">
+              <Clock className="w-3 h-3 text-sky-500" />
+              <span>Session auto-expires after 24 hours</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Message Stream matching Council Admin layout & height */}
+        <div ref={messagesContainerRef} className="h-[52vh] min-h-[240px] max-h-[420px] sm:h-96 overflow-y-auto p-3 sm:p-4 rounded-2xl bg-slate-100/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-3 overscroll-contain">
+          {session.messages.map((msg) => {
+            const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
+            const displayTime = formatShortDateTime(msg.createdAt || msg.createdAtIso, msg.timestamp || formatTimeOnly(session.createdAt));
+            return (
+              <div
+                key={msg.id}
+                className={`flex flex-col ${isCouncil ? 'items-start' : 'items-end'} space-y-1`}
+              >
+                <div className={`flex items-center space-x-1.5 text-[11px] font-mono font-bold px-1 ${
+                  isCouncil ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'
+                }`}>
+                  {isCouncil ? (
+                    <>
+                      <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
+                        <ShieldCheck className="w-2.5 h-2.5" />
+                      </span>
+                      <span className="uppercase tracking-wider">Council Representative</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
+                        <User className="w-2.5 h-2.5" />
+                      </span>
+                      <span className="uppercase tracking-wider">You (Student)</span>
+                    </>
+                  )}
+                  {displayTime && (
+                    <span className="text-[10px] text-slate-400 font-normal">• {displayTime}</span>
+                  )}
+                </div>
+                <div
+                  className={`max-w-[88%] sm:max-w-[80%] p-3 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${
+                    isCouncil
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-none'
+                      : 'bg-sky-600 text-white rounded-tr-none border border-sky-500 shadow-sky-600/20'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Compact Message Input Form aligned with Council Desk */}
+        {isConnected ? (
+          <form onSubmit={handleSendMessage} className="flex items-center space-x-2 pt-0.5">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Type your message to the council representative..."
+              disabled={isSending}
+              className="min-w-0 flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder-slate-400"
+            />
+            <button
+              type="submit"
+              disabled={!inputText.trim() || isSending}
+              className="portal-button-primary px-3 sm:px-4 py-2.5 text-xs font-bold flex items-center justify-center space-x-1.5 flex-shrink-0 active:scale-95 transition-transform"
+            >
+              <Send className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="hidden sm:inline">Send</span>
+            </button>
+          </form>
+        ) : (
+          <div className="p-4 rounded-2xl neu-pressed text-center space-y-2.5">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+              This live session has been concluded. The conversation history is frozen and will be automatically purged by the server.
+            </p>
+            <button
+              onClick={handleStartNewChat}
+              className="portal-button-primary px-5 py-2 text-xs font-semibold inline-flex items-center space-x-2"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Start New Live Chat Session</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Confirmation Modal to End Chat */}

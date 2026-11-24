@@ -203,8 +203,9 @@ export default function App() {
     showToast("Council session ended", "info");
   };
 
-  // Operation Handlers - Optimistic state updates to eliminate redundant Firestore collection re-reads
+  // Operation Handlers
   const handleVotePoll = async (pollId, optionIndex) => {
+    await storageService.votePoll(pollId, optionIndex);
     setPolls(prev => prev.map(p => {
       if (p.id !== pollId) return p;
       const currentOptions = Array.isArray(p.options) ? p.options : [];
@@ -215,13 +216,18 @@ export default function App() {
         options: currentOptions.map((opt, i) => i === optionIndex ? { ...opt, votes: (Number(opt.votes) || 0) + 1 } : opt)
       };
     }));
-    await storageService.votePoll(pollId, optionIndex);
   };
 
   const handleSubmitFeedback = async (feedbackData) => {
     const result = await storageService.submitFeedback(feedbackData);
     if (adminUser) {
-      setFeedbacks(prev => [{ ...feedbackData, trackingId: result.trackingId, id: `fb-${Date.now()}`, status: 'Received' }, ...prev]);
+      setFeedbacks(prev => [{
+        ...feedbackData,
+        trackingId: result.trackingId,
+        id: `fb-${Date.now()}`,
+        status: 'Received',
+        createdAt: result.submittedAt || new Date().toISOString()
+      }, ...prev]);
     }
     return result;
   };
@@ -435,6 +441,7 @@ export default function App() {
               <PollsPage
                 polls={polls}
                 onVotePoll={handleVotePoll}
+                setCurrentRoute={setCurrentRoute}
                 showToast={showToast}
               />
             )}

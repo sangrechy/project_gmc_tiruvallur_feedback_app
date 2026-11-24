@@ -448,4 +448,69 @@ describe('Cloudflare Worker Serverless Endpoints Blackbox Verification', () => {
       globalThis.fetch = prevFetch;
     }
   });
+
+  test('POST /api/ai/analyze uses current Gemini model and accepts Firebase Auth JWT in production', async () => {
+    let calledUrl = '';
+    const prevFetch = globalThis.fetch;
+    globalThis.fetch = async (url, options) => {
+      if (typeof url === 'string' && url.includes('generativelanguage.googleapis.com')) {
+        calledUrl = url;
+        return new Response(JSON.stringify({
+          candidates: [{
+            content: {
+              parts: [{
+                text: JSON.stringify({
+                  executiveSummary: 'Gemini summary ok',
+                  sentimentDistribution: { Positive: 0, Neutral: 0, Negative: 1 },
+                  urgencyDistribution: { High: 1, Medium: 0, Low: 0 },
+                  recurringThemes: ['Infrastructure'],
+                  recommendations: ['Fix reading hall AC'],
+                  itemAnalysis: [{ id: 0, sentiment: 'Negative', urgency: 'High', summary: 'AC broken' }]
+                })
+              }]
+            }
+          }]
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return prevFetch(url, options);
+    };
+
+    try {
+      const futureExp = Math.floor(Date.now() / 1000) + 3600;
+      const jwtPayload = Buffer.from(JSON.stringify({
+        aud: 'gmc-test-project',
+        iss: 'https://securetoken.google.com/gmc-test-project',
+        sub: 'admin-uid-1',
+        exp: futureExp
+      })).toString('base64url');
+      const mockJwt = `eyJhbGciOiJSUzI1NiJ9.${jwtPayload}.sig`;
+
+      const aiEnv = {
+        ...mockEnv,
+        ENVIRONMENT: 'production',
+        FIREBASE_PROJECT_ID: 'gmc-test-project',
+        GEMINI_API_KEY: 'mock-gemini-key'
+      };
+      const res = await worker.fetch(new Request('https://worker.dev/api/ai/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mockJwt}`
+        },
+        body: JSON.stringify({
+          feedbacks: [{ category: 'Infrastructure', content: 'AC not working in reading hall.', containsPII: false }]
+        })
+      }), aiEnv, mockCtx);
+
+      assert.equal(res.status, 200);
+      assert.match(calledUrl, /gemini-3\.5-flash-lite/);
+      const data = await res.json();
+      assert.equal(data.isAiGenerated, true);
+      assert.equal(data.aiProvider, 'gemini');
+      assert.equal(data.executiveSummary, 'Gemini summary ok');
+    } finally {
+      globalThis.fetch = prevFetch;
+    }
+  });
 });
+

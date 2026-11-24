@@ -12,6 +12,7 @@ import {
   Shield
 } from 'lucide-react';
 import { storageService } from '../../services/storageService';
+import { formatShortDateTime, formatTimeOnly } from '../../utils/dateUtils';
 
 export default function AdminChat({ 
   chats, 
@@ -238,7 +239,7 @@ export default function AdminChat({
                       </div>
                       <div className="flex items-center space-x-1.5 flex-shrink-0">
                         <span className="text-[10px] text-slate-400">
-                          {lastMsg?.timestamp || 'Today'}
+                          {formatShortDateTime(lastMsg?.createdAt || lastMsg?.createdAtIso || c.lastActivity || c.createdAt, lastMsg?.timestamp || 'Recent')}
                         </span>
                         <button
                           onClick={(e) => {
@@ -287,9 +288,14 @@ export default function AdminChat({
                     <h2 className="font-bold text-sm text-slate-900 dark:text-white">
                       Chat with Student
                     </h2>
-                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center space-x-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      <span>Active Conversation</span>
+                    <span className={`text-[11px] font-medium flex items-center space-x-1 ${
+                      selectedSession.status === 'active' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${selectedSession.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                      <span>
+                        {selectedSession.status === 'active' ? 'Active Conversation' : 'Closed Conversation'}
+                        {selectedSession.createdAt ? ` • Started ${formatShortDateTime(selectedSession.createdAt)}` : ''}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -317,6 +323,7 @@ export default function AdminChat({
               <div className="h-80 sm:h-96 overflow-y-auto p-3.5 sm:p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-4">
                 {selectedSession.messages?.map((msg) => {
                   const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
+                  const displayTime = formatShortDateTime(msg.createdAt || msg.createdAtIso, msg.timestamp || formatTimeOnly(selectedSession.createdAt));
                   return (
                     <div
                       key={msg.id}
@@ -340,7 +347,9 @@ export default function AdminChat({
                             <span className="uppercase tracking-wider">Student (Anonymous)</span>
                           </>
                         )}
-                        <span className="text-[10px] text-slate-400 font-normal">• {msg.timestamp}</span>
+                        {displayTime && (
+                          <span className="text-[10px] text-slate-400 font-normal">• {displayTime}</span>
+                        )}
                       </div>
                       <div
                         className={`max-w-[88%] sm:max-w-[80%] p-3.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${

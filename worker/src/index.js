@@ -288,13 +288,14 @@ async function authenticateAdminRequest(request, configuredToken, env = {}) {
     return sessionRes.valid;
   }
 
-  // 3. Firebase Auth ID Token (JWT from Google Sign-In or Firebase Email)
+  // 2. Firebase Auth ID Token (JWT from Google Sign-In or Firebase Email)
   if (token.split(".").length === 3) {
     try {
       const parts = token.split(".");
       const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
       const now = Math.floor(Date.now() / 1000);
-      const projectId = env.FIREBASE_PROJECT_ID || env.VITE_FIREBASE_PROJECT_ID || "project-gmc-tiruvallur";
+      const rawProjectId = env.FIREBASE_PROJECT_ID || env.VITE_FIREBASE_PROJECT_ID || "project-gmc-tiruvallur";
+      const projectId = String(rawProjectId).trim().replace(/^["']|["']$/g, "");
       if (
         payload &&
         payload.exp > now &&
@@ -320,10 +321,14 @@ function escapeTelegramMarkdown(str) {
 }
 
 /**
- * Compute CORS headers dynamically based on ALLOWED_ORIGINS
+ * Compute CORS headers dynamically based on ALLOWED_ORIGINS or exact same-origin
  */
 function getCorsHeaders(env = {}, request = null) {
   const origin = request?.headers?.get("Origin") || "";
+  let requestOrigin = "";
+  try {
+    if (request?.url) requestOrigin = new URL(request.url).origin;
+  } catch {}
   const isProd = env?.ENVIRONMENT === "production";
   let allowed;
 
@@ -335,19 +340,22 @@ function getCorsHeaders(env = {}, request = null) {
     // Strictly trusted production origins (HIGH-05: no localhost in production)
     allowed = [
       env?.PORTAL_URL || "https://gmc-thiruvallur-portal.pages.dev",
-      "https://project-gmc-tiruvallur-feedback-app.pages.dev"
+      "https://project-gmc-tiruvallur-feedback-app.pages.dev",
+      "https://gmc-tiruvallur-feedback-app.studentcouncil26gmchtrl.workers.dev"
     ];
   } else {
     // Development local origins
     allowed = [
       env?.PORTAL_URL || "https://gmc-thiruvallur-portal.pages.dev",
       "https://project-gmc-tiruvallur-feedback-app.pages.dev",
+      "https://gmc-tiruvallur-feedback-app.studentcouncil26gmchtrl.workers.dev",
       "http://localhost:5173",
       "http://localhost:3000",
       "http://127.0.0.1:5173"
     ];
   }
-  const isAllowed = allowed.includes("*") || (origin && allowed.includes(origin));
+  const isSameOrigin = Boolean(origin && requestOrigin && origin === requestOrigin);
+  const isAllowed = allowed.includes("*") || isSameOrigin || (origin && allowed.includes(origin));
 
   const headers = {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -802,12 +810,14 @@ export default {
         const eligibleFeedbacks = rawFeedbacks.filter((f) => !f.containsPII && !piiRegex.test(f.content || ""));
 
         let aiReport = null;
+        let aiErrorReason = null;
 
         // Try Groq API first
         if (env.GROQ_API_KEY && eligibleFeedbacks.length > 0) {
           try {
             aiReport = await generateGroqAnalysis(env.GROQ_API_KEY, eligibleFeedbacks, rawFeedbacks.length);
           } catch (err) {
+            aiErrorReason = `Groq error: ${err?.message || "unknown"}`;
             console.warn("Groq AI failed, falling back:", err);
           }
         }
@@ -818,13 +828,19 @@ export default {
           try {
             aiReport = await generateGeminiAnalysis(geminiKey, eligibleFeedbacks, rawFeedbacks.length);
           } catch (err) {
+            aiErrorReason = `Gemini error: ${err?.message || "unknown"}`;
             console.warn("Gemini AI failed, falling back:", err);
           }
         }
 
         // Fallback heuristic report if no AI key configured or online calls failed
         if (!aiReport) {
-          aiReport = generateLocalHeuristicReport(rawFeedbacks, eligibleFeedbacks);
+          if (!aiErrorReason) {
+            aiErrorReason = eligibleFeedbacks.length === 0
+              ? "No non-PII feedback submissions eligible for AI model"
+              : "Neither GROQ_API_KEY nor GEMINI_API_KEY is configured";
+          }
+          aiReport = generateLocalHeuristicReport(rawFeedbacks, eligibleFeedbacks, aiErrorReason);
         }
 
         return jsonResponse(aiReport, 200, env, request);
@@ -1069,7 +1085,7 @@ async function generateGroqAnalysis(apiKey, feedbacks, totalRawCount = feedbacks
   const data = await res.json();
   const parsed = JSON.parse(data.choices[0].message.content);
 
-  return compileReportData(feedbacks, parsed, totalRawCount);
+  return compileReportData(feedbacks, parsed, totalRawCount, "groq");
 }
 
 /**
@@ -1117,15 +1133,15 @@ Respond ONLY with valid JSON strictly conforming to this schema:
   ]
 }`;
 
-  // Candidate models with fallback in case of high demand spikes (503)
-  const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+  // Current official Gemini models (2026) with legacy fallback
+  const candidateModels = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-2.5-flash"];
   let parsed = null;
   let lastError = null;
 
   for (const model of candidateModels) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -1133,7 +1149,7 @@ Respond ONLY with valid JSON strictly conforming to this schema:
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-goog-api-key": apiKey,
+            "x-goog-api-key": apiKey.trim(),
           },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
@@ -1146,13 +1162,16 @@ Respond ONLY with valid JSON strictly conforming to this schema:
 
       if (res.ok) {
         const data = await res.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (rawText) {
+          rawText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
           parsed = JSON.parse(rawText);
           break;
         }
+        lastError = new Error(`Gemini model ${model} returned empty candidate content`);
       } else {
-        lastError = new Error(`Gemini model ${model} returned ${res.status}`);
+        const errBody = await res.text().catch(() => "");
+        lastError = new Error(`Gemini model ${model} returned HTTP ${res.status}${errBody ? `: ${errBody.slice(0, 120)}` : ""}`);
       }
     } catch (err) {
       lastError = err;
@@ -1161,10 +1180,10 @@ Respond ONLY with valid JSON strictly conforming to this schema:
 
   if (!parsed) throw (lastError || new Error("Gemini AI analysis failed across all models"));
 
-  return compileReportData(feedbacks, parsed, totalRawCount);
+  return compileReportData(feedbacks, parsed, totalRawCount, "gemini");
 }
 
-function compileReportData(feedbacks, aiParsed, totalRawCount = feedbacks.length) {
+function compileReportData(feedbacks, aiParsed, totalRawCount = feedbacks.length, aiProvider = "ai") {
   const categoryCount = {};
   feedbacks.forEach((f) => {
     categoryCount[f.category] = (categoryCount[f.category] || 0) + 1;
@@ -1202,6 +1221,8 @@ function compileReportData(feedbacks, aiParsed, totalRawCount = feedbacks.length
     categoryDistribution: categoryCount,
     sentimentDistribution: sentimentCount,
     urgencyDistribution: urgencyCount,
+    isAiGenerated: true,
+    aiProvider,
     executiveSummary: aiParsed?.executiveSummary || "Analysis complete.",
     recurringThemes: Array.isArray(aiParsed?.recurringThemes) ? aiParsed.recurringThemes : [],
     recommendations: Array.isArray(aiParsed?.recommendations) ? aiParsed.recommendations : [],
@@ -1209,7 +1230,7 @@ function compileReportData(feedbacks, aiParsed, totalRawCount = feedbacks.length
   };
 }
 
-function generateLocalHeuristicReport(allFeedbacks, cleanFeedbacks) {
+function generateLocalHeuristicReport(allFeedbacks, cleanFeedbacks, aiErrorReason = null) {
   const categoryCount = {};
   const sentimentCount = { Positive: 0, Neutral: 0, Negative: 0 };
   const urgencyCount = { High: 0, Medium: 0, Low: 0 };
@@ -1226,9 +1247,10 @@ function generateLocalHeuristicReport(allFeedbacks, cleanFeedbacks) {
   const sortedCategories = Object.entries(categoryCount).sort((a, b) => b[1] - a[1]);
   const topCategories = sortedCategories.slice(0, 3).map(([cat, count]) => `${cat} (${count} submission${count > 1 ? "s" : ""})`);
 
+  const reasonSuffix = aiErrorReason ? ` (${aiErrorReason})` : "";
   const summary = cleanFeedbacks.length > 0
-    ? `Heuristic aggregation of ${cleanFeedbacks.length} student submissions across ${Object.keys(categoryCount).length} categories${topCategories.length > 0 ? ", led by " + topCategories.join(", ") : ""}. Note: Automated narrative synthesis requires GROQ_API_KEY or GEMINI_API_KEY configured in worker secrets.`
-    : "No non-PII feedback submissions available for heuristic aggregation.";
+    ? `Heuristic aggregation of ${cleanFeedbacks.length} student submissions across ${Object.keys(categoryCount).length} categories${topCategories.length > 0 ? ", led by " + topCategories.join(", ") : ""}. Note: Live AI synthesis fell back${reasonSuffix}.`
+    : "No non-PII feedback submissions available for AI or heuristic analysis.";
 
   const recurringThemes = topCategories.length > 0
     ? topCategories.map((c) => `Category volume: ${c}`)
@@ -1247,6 +1269,9 @@ function generateLocalHeuristicReport(allFeedbacks, cleanFeedbacks) {
     categoryDistribution: categoryCount,
     sentimentDistribution: sentimentCount,
     urgencyDistribution: urgencyCount,
+    isAiGenerated: false,
+    aiProvider: "heuristic",
+    aiErrorReason,
     executiveSummary: summary,
     recurringThemes,
     recommendations,
