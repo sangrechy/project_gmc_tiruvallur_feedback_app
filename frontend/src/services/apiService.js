@@ -9,7 +9,7 @@ export const apiService = {
   _statusCacheTime: 0,
 
   async getAppStatus(forceRefresh = false) {
-    if (!forceRefresh && this._statusCache && (Date.now() - this._statusCacheTime < 15000)) {
+    if (!forceRefresh && this._statusCache && (Date.now() - this._statusCacheTime < 60000)) {
       return this._statusCache;
     }
 

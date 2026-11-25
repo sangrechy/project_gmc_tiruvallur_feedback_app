@@ -15,13 +15,37 @@ export default function AdminReports({ feedbacks, showToast }) {
   const [reportData, setReportData] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const generateReport = async () => {
+  const cacheKey = `gmc_ai_report_${feedbacks.length}_${feedbacks[0]?.id || 'none'}`;
+
+  const generateReport = async (forceRefresh = false) => {
+    if (!forceRefresh && typeof sessionStorage !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.generatedAt && (Date.now() - new Date(parsed.generatedAt).getTime() < 5 * 60 * 1000)) {
+            setReportData(parsed);
+            return;
+          }
+        }
+      } catch {
+        // Ignore session cache parse issues
+      }
+    }
+
     setIsGenerating(true);
     try {
       const saved = localStorage.getItem('gmc_admin_session');
       const token = saved ? (JSON.parse(saved)?.sessionToken || JSON.parse(saved)?.token) : null;
       const data = await apiService.generateAiReport(feedbacks, token);
       setReportData(data);
+      if (data?.isAiGenerated && typeof sessionStorage !== 'undefined') {
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        } catch {
+          // Ignore storage quota issues
+        }
+      }
       if (data?.isAiGenerated) {
         showToast("AI intelligence report generated via Cloudflare Worker", "success");
       } else {
@@ -35,7 +59,7 @@ export default function AdminReports({ feedbacks, showToast }) {
   };
 
   useEffect(() => {
-    generateReport();
+    generateReport(false);
   }, [feedbacks.length]);
 
   const exportJSON = () => {
@@ -94,7 +118,7 @@ export default function AdminReports({ feedbacks, showToast }) {
 
         <div className="flex items-center space-x-2">
           <button
-            onClick={generateReport}
+            onClick={() => generateReport(true)}
             disabled={isGenerating}
             className="portal-button-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 active:scale-95 shadow-sm"
           >

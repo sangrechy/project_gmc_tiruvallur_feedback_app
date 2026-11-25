@@ -96,13 +96,14 @@ initLocalStore();
 export const storageService = {
   isLive: isFirebaseConfigured,
 
-  // In-memory cache to reduce redundant Firestore collection read cycles
+  // In-memory cache & in-flight deduplication to minimize Firestore reads under heavy student load
   _announcementsCache: null,
   _announcementsCacheTime: 0,
   _pollsCache: null,
   _pollsCacheTime: 0,
   _feedbacksCache: null,
   _feedbacksCacheTime: 0,
+  _inFlight: {},
 
   invalidateCache(key) {
     if (!key || key === 'announcements') {
@@ -121,27 +122,39 @@ export const storageService = {
 
   // ==================== ANNOUNCEMENTS ====================
   async getAnnouncements(force = false) {
-    if (!force && this._announcementsCache && Date.now() - this._announcementsCacheTime < 30000) {
+    if (!force && this._announcementsCache && Date.now() - this._announcementsCacheTime < 120000) {
       return this._announcementsCache;
     }
+    if (!force && this._inFlight.announcements) {
+      return this._inFlight.announcements;
+    }
 
-    let data = null;
-    if (isFirebaseConfigured && db) {
-      try {
-        const q = query(collection(db, "announcements"), orderBy("date", "desc"));
-        const snap = await getDocs(q);
-        data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      } catch (err) {
-        console.warn("Firestore error, falling back to local:", err);
+    const fetchPromise = (async () => {
+      let data = null;
+      if (isFirebaseConfigured && db) {
+        try {
+          const q = query(collection(db, "announcements"), orderBy("date", "desc"));
+          const snap = await getDocs(q);
+          data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (err) {
+          console.warn("Firestore error, falling back to local:", err);
+        }
       }
-    }
-    if (!data) {
-      data = JSON.parse(localStorage.getItem(KEYS.ANNOUNCEMENTS) || "[]");
-    }
+      if (!data) {
+        data = JSON.parse(localStorage.getItem(KEYS.ANNOUNCEMENTS) || "[]");
+      }
 
-    this._announcementsCache = data;
-    this._announcementsCacheTime = Date.now();
-    return data;
+      this._announcementsCache = data;
+      this._announcementsCacheTime = Date.now();
+      return data;
+    })();
+
+    this._inFlight.announcements = fetchPromise;
+    try {
+      return await fetchPromise;
+    } finally {
+      delete this._inFlight.announcements;
+    }
   },
 
   async addAnnouncement(announcement) {
@@ -278,29 +291,42 @@ export const storageService = {
     const userVotes = JSON.parse(localStorage.getItem(KEYS.USER_VOTES) || "{}");
     let polls = null;
 
-    if (!force && this._pollsCache && Date.now() - this._pollsCacheTime < 20000) {
+    if (!force && this._pollsCache && Date.now() - this._pollsCacheTime < 60000) {
       polls = this._pollsCache;
+    } else if (!force && this._inFlight.polls) {
+      polls = await this._inFlight.polls;
     } else {
-      if (isFirebaseConfigured && db) {
-        try {
-          const snap = await getDocs(collection(db, "polls"));
-          polls = snap.docs.map(d => {
-            const data = d.data();
-            return {
-              id: d.id,
-              ...data,
-              closingDate: data.closingDate?.toDate ? data.closingDate.toDate().toISOString().split("T")[0] : data.closingDate
-            };
-          });
-        } catch (err) {
-          console.warn("Firestore error, falling back to local polls:", err);
+      const fetchPromise = (async () => {
+        let fetched = null;
+        if (isFirebaseConfigured && db) {
+          try {
+            const snap = await getDocs(collection(db, "polls"));
+            fetched = snap.docs.map(d => {
+              const data = d.data();
+              return {
+                id: d.id,
+                ...data,
+                closingDate: data.closingDate?.toDate ? data.closingDate.toDate().toISOString().split("T")[0] : data.closingDate
+              };
+            });
+          } catch (err) {
+            console.warn("Firestore error, falling back to local polls:", err);
+          }
         }
+        if (!fetched) {
+          fetched = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
+        }
+        this._pollsCache = fetched;
+        this._pollsCacheTime = Date.now();
+        return fetched;
+      })();
+
+      this._inFlight.polls = fetchPromise;
+      try {
+        polls = await fetchPromise;
+      } finally {
+        delete this._inFlight.polls;
       }
-      if (!polls) {
-        polls = JSON.parse(localStorage.getItem(KEYS.POLLS) || "[]");
-      }
-      this._pollsCache = polls;
-      this._pollsCacheTime = Date.now();
     }
 
     return polls.map(p => ({
@@ -653,7 +679,7 @@ export const storageService = {
   },
 
   async getFeedbacks(force = false) {
-    if (!force && this._feedbacksCache && Date.now() - this._feedbacksCacheTime < 20000) {
+    if (!force && this._feedbacksCache && Date.now() - this._feedbacksCacheTime < 45000) {
       return this._feedbacksCache;
     }
 

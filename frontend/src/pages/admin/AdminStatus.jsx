@@ -20,10 +20,10 @@ export default function AdminStatus({ showToast }) {
   const [copied, setCopied] = useState(false);
   const [statusData, setStatusData] = useState(null);
 
-  const fetchStatus = async () => {
+  const fetchStatus = async (forceRefresh = false) => {
     setLoading(true);
     try {
-      const data = await apiService.getAppStatus();
+      const data = await apiService.getAppStatus(forceRefresh);
       setStatusData(data);
     } catch (err) {
       showToast?.('Failed to fetch status', 'error');
@@ -33,7 +33,7 @@ export default function AdminStatus({ showToast }) {
   };
 
   useEffect(() => {
-    fetchStatus();
+    fetchStatus(false);
   }, []);
 
   const handleCopyDiagnostics = () => {
@@ -166,7 +166,7 @@ export default function AdminStatus({ showToast }) {
         {/* Control Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <button
-            onClick={fetchStatus}
+            onClick={() => fetchStatus(true)}
             disabled={loading}
             className="px-5 py-2.5 neu-button text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center space-x-2 rounded-xl"
           >

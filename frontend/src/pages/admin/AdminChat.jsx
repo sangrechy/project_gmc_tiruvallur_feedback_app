@@ -17,6 +17,7 @@ import { formatShortDateTime, formatTimeOnly } from '../../utils/dateUtils';
 export default function AdminChat({ 
   chats, 
   onRefreshChats, 
+  onUpdateChatMessages,
   onDeleteMultipleChats, 
   showToast 
 }) {
@@ -30,20 +31,16 @@ export default function AdminChat({
 
   const selectedSession = chats.find(c => c.id === selectedChatId) || chats[0];
 
-  // Council presence heartbeat ping
-  useEffect(() => {
-    storageService.pingAdminPresence();
-    const interval = setInterval(() => {
-      storageService.pingAdminPresence();
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Subscribe to real-time incoming messages for the active conversation
+  // Subscribe to real-time incoming messages for the active conversation (zero extra collection reads)
   useEffect(() => {
     if (!selectedSession?.sessionId) return;
-    const unsubscribe = storageService.subscribeToChat(selectedSession.sessionId, () => {
-      onRefreshChats?.();
+    const activeId = selectedSession.sessionId;
+    const unsubscribe = storageService.subscribeToChat(activeId, (cloudMessages) => {
+      if (onUpdateChatMessages) {
+        onUpdateChatMessages(activeId, cloudMessages);
+      } else {
+        onRefreshChats?.();
+      }
     });
     return () => unsubscribe?.();
   }, [selectedSession?.sessionId]);
@@ -265,53 +262,53 @@ export default function AdminChat({
         </div>
 
         {/* Right: Active Chat Conversation */}
-        <div className={`portal-card p-4 sm:p-5 lg:col-span-2 flex flex-col justify-between space-y-3 ${!showMobileChatView ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`portal-card p-3 sm:p-4 lg:col-span-2 flex-col justify-between h-[calc(100dvh-11rem)] lg:h-[580px] overflow-hidden ${!showMobileChatView ? 'hidden lg:flex' : 'flex'}`}>
           {selectedSession ? (
             <>
               {/* Chat Top Bar */}
-              <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-3">
-                <div className="flex items-center space-x-2.5">
+              <div className="flex-shrink-0 flex items-center justify-between border-b border-slate-200/70 dark:border-slate-800 pb-2.5 mb-2.5">
+                <div className="flex items-center space-x-2.5 min-w-0">
                   {/* Mobile Back Button */}
                   <button
                     onClick={() => setShowMobileChatView(false)}
-                    className="lg:hidden p-1.5 neu-button rounded-xl text-slate-600 dark:text-slate-300"
+                    className="lg:hidden p-1.5 !min-h-[34px] w-8 h-8 neu-button rounded-lg text-slate-600 dark:text-slate-300 flex-shrink-0"
                     title="Back to all conversations"
                   >
                     <ArrowLeft className="w-4 h-4" />
                   </button>
 
-                  <div className="w-8 h-8 rounded-full bg-sky-500/10 text-sky-500 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-xs flex-shrink-0">
                     <User className="w-4 h-4" />
                   </div>
 
-                  <div>
-                    <h2 className="font-bold text-sm text-slate-900 dark:text-white">
+                  <div className="min-w-0">
+                    <h2 className="font-bold text-sm text-slate-900 dark:text-white truncate">
                       Chat with Student
                     </h2>
-                    <span className={`text-[11px] font-medium flex items-center space-x-1 ${
+                    <span className={`text-[11px] font-medium flex items-center space-x-1 truncate ${
                       selectedSession.status === 'active' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${selectedSession.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                      <span>
-                        {selectedSession.status === 'active' ? 'Active Conversation' : 'Closed Conversation'}
-                        {selectedSession.createdAt ? ` • Started ${formatShortDateTime(selectedSession.createdAt)}` : ''}
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${selectedSession.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                      <span className="truncate">
+                        {selectedSession.status === 'active' ? 'Active' : 'Closed'}
+                        {selectedSession.createdAt ? ` • ${formatShortDateTime(selectedSession.createdAt)}` : ''}
                       </span>
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1.5 flex-shrink-0">
                   {selectedSession.status === 'active' && (
                     <button
                       onClick={handleEndSession}
-                      className="px-3 py-1.5 rounded-xl neu-button text-red-500 hover:text-red-600 text-xs font-semibold transition-colors"
+                      className="px-2.5 py-1.5 !min-h-[34px] rounded-lg neu-button text-red-600 dark:text-red-400 text-xs font-semibold transition-colors"
                     >
                       End Chat
                     </button>
                   )}
                   <button
                     onClick={() => setConfirmDeleteSessions([selectedSession.sessionId || selectedSession.id])}
-                    className="p-1.5 rounded-xl neu-button text-slate-400 hover:text-red-500 dark:hover:text-red-400 text-xs transition-colors"
+                    className="p-1.5 !min-h-[34px] w-8 h-8 rounded-lg neu-button text-slate-400 hover:text-red-500 dark:hover:text-red-400 text-xs transition-colors"
                     title="Delete this conversation"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -320,7 +317,7 @@ export default function AdminChat({
               </div>
 
               {/* Messages Bubble Area */}
-              <div className="h-80 sm:h-96 overflow-y-auto p-3.5 sm:p-5 rounded-2xl bg-slate-100/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-4">
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 rounded-xl bg-slate-100/70 dark:bg-slate-950/90 border border-slate-200/70 dark:border-slate-800 space-y-3 overscroll-contain">
                 {selectedSession.messages?.map((msg) => {
                   const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
                   const displayTime = formatShortDateTime(msg.createdAt || msg.createdAtIso, msg.timestamp || formatTimeOnly(selectedSession.createdAt));

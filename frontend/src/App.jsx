@@ -179,13 +179,14 @@ export default function App() {
     setCurrentRoute('admin-dashboard');
   };
 
-  // Global Council Admin Presence Heartbeat: Active across all admin sections
+  // Global Council Admin Presence Heartbeat (120s interval, pauses when tab is hidden to save writes)
   useEffect(() => {
     if (!adminUser) return;
     storageService.pingAdminPresence(adminUser.email);
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       storageService.pingAdminPresence(adminUser.email);
-    }, 45000);
+    }, 120000);
     return () => clearInterval(interval);
   }, [adminUser]);
 
@@ -287,6 +288,15 @@ export default function App() {
     setChats(updated);
   };
 
+  // Surgical in-memory update from real-time onSnapshot without re-reading every chat collection
+  const handleUpdateChatMessages = (sessionId, cloudMessages) => {
+    setChats(prev => prev.map(c =>
+      (c.sessionId === sessionId || c.id === sessionId)
+        ? { ...c, messages: cloudMessages, lastActivity: new Date().toISOString() }
+        : c
+    ));
+  };
+
   const handleDeleteMultipleChats = async (sessionIds) => {
     setChats(prev => prev.filter(c => !sessionIds.includes(c.id) && !sessionIds.includes(c.sessionId)));
     await storageService.deleteMultipleChats(sessionIds);
@@ -297,7 +307,7 @@ export default function App() {
   const activeChatsCount = chats.filter(c => c.status === 'active').length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#e6edf8] dark:bg-[#0c1427] text-slate-800 dark:text-slate-100 transition-colors duration-300">
+    <div className="min-h-[100dvh] flex flex-col bg-[#f4f6fa] dark:bg-[#090e1a] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Render Main App or Admin Console */}
       {currentRoute === 'admin-dashboard' ? (
         isAuthVerifying ? (
@@ -344,6 +354,7 @@ export default function App() {
                 <AdminChat
                   chats={chats}
                   onRefreshChats={handleRefreshChats}
+                  onUpdateChatMessages={handleUpdateChatMessages}
                   onDeleteMultipleChats={handleDeleteMultipleChats}
                   showToast={showToast}
                 />
@@ -457,10 +468,12 @@ export default function App() {
             )}
           </main>
 
-          <Footer 
-            setCurrentRoute={setCurrentRoute} 
-            isAdminLoggedIn={!!adminUser} 
-          />
+          {currentRoute !== 'chat' && (
+            <Footer
+              setCurrentRoute={setCurrentRoute}
+              isAdminLoggedIn={!!adminUser}
+            />
+          )}
           
           {/* Thumb-Friendly Mobile Bottom Navigation Bar */}
           <MobileBottomNav 

@@ -128,10 +128,17 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
     setIsSending(true);
 
     try {
-      await storageService.sendChatMessage(session.sessionId, 'student', text);
-      const updated = await storageService.getOrCreateChatSession(session.sessionId);
-      setSession(updated);
-      setTimeout(() => scrollToBottom(true), 50);
+      const newMsg = await storageService.sendChatMessage(session.sessionId, 'student', text);
+      setSession(prev => {
+        if (!prev) return prev;
+        const exists = prev.messages?.some(m => m.id === newMsg.id);
+        return {
+          ...prev,
+          lastActivity: new Date().toISOString(),
+          messages: exists ? prev.messages : [...(prev.messages || []), newMsg]
+        };
+      });
+      setTimeout(() => scrollToBottom(true), 40);
     } catch (err) {
       showToast(err.message, "error");
     } finally {
@@ -190,54 +197,45 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   const isConnected = session.status === 'active';
 
   return (
-    <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-3 pb-24 sm:py-6 space-y-3 bg-grid-pattern">
-      {/* Compact Navigation Breadcrumb */}
-      <div className="flex items-center justify-between pb-2.5 border-b border-slate-300/40 dark:border-slate-800/80 text-xs font-mono">
-        <button
-          onClick={() => setCurrentRoute('home')}
-          className="flex items-center space-x-1 text-slate-500 hover:text-sky-500 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Home</span>
-        </button>
-        <div className="flex items-center space-x-1 text-slate-400">
-          <span>PORTAL</span>
-          <span>/</span>
-          <span className="text-sky-600 dark:text-sky-400 font-bold">LIVE CHAT</span>
-        </div>
-      </div>
+    <div className="h-[calc(100dvh-8.25rem)] md:h-[calc(100dvh-5.5rem)] max-h-[760px] max-w-3xl mx-auto px-2.5 sm:px-6 py-2 sm:py-4 flex flex-col">
+      {/* Main Full-Viewport Compact Chat Card matching Council Admin UI */}
+      <div className="portal-card flex-1 min-h-0 flex flex-col p-3 sm:p-4 overflow-hidden">
+        {/* Compact Single-Row Chat Top Bar (Back + Title + Online Status + End Live Session) */}
+        <div className="flex-shrink-0 flex items-center justify-between gap-2 border-b border-slate-200/70 dark:border-slate-800 pb-2.5">
+          <div className="flex items-center space-x-2 min-w-0">
+            <button
+              type="button"
+              onClick={() => setCurrentRoute('home')}
+              className="p-1.5 !min-h-[34px] w-8 h-8 neu-button rounded-lg text-slate-600 dark:text-slate-300 flex-shrink-0"
+              title="Back to Home"
+              aria-label="Back to Home"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
 
-      {/* Main Compact Chat Card matching Council Admin layout */}
-      <div className="portal-card p-3.5 sm:p-5 space-y-3 relative">
-        {/* Compact Single-Row Chat Top Bar (End Session always visible without scrolling) */}
-        <div className="flex items-center justify-between gap-2 border-b border-slate-200/50 dark:border-slate-800 pb-3">
-          <div className="flex items-center space-x-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-sky-500/10 text-sky-500 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
+
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
+              <h1 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate leading-tight">
                 Student Council Live Chat
               </h1>
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[10px] font-mono">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono mt-0.5 truncate">
                 {adminPresence.isOnline ? (
                   <span className="inline-flex items-center space-x-1 font-bold text-emerald-600 dark:text-emerald-400">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                    </span>
-                    <span>COUNCIL: ONLINE</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>ONLINE</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center space-x-1 font-semibold text-amber-600 dark:text-amber-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    <span>COUNCIL: AWAY</span>
+                    <span>AWAY</span>
                   </span>
                 )}
                 <span className="text-slate-300 dark:text-slate-700">•</span>
                 {isConnected ? (
                   <span className="inline-flex items-center space-x-1 font-bold text-emerald-600 dark:text-emerald-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 status-pulse-dot" />
                     <span>CONNECTED</span>
                   </span>
                 ) : (
@@ -254,7 +252,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
             <button
               type="button"
               onClick={() => setShowEndModal(true)}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl neu-button text-red-500 hover:text-red-600 text-[11px] sm:text-xs font-semibold flex items-center space-x-1 transition-colors flex-shrink-0 active:scale-95"
+              className="px-2.5 py-1.5 !min-h-[34px] rounded-lg neu-button text-red-600 dark:text-red-400 text-[11px] font-semibold flex items-center space-x-1 transition-colors flex-shrink-0 active:scale-95"
             >
               <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
               <span>End Live Session</span>
@@ -262,17 +260,14 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
           )}
         </div>
 
-        {/* Slim Session & Timestamp Meta Strip */}
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10px] sm:text-[11px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-900/50 px-2.5 py-1.5 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
-          <div className="flex items-center space-x-2 min-w-0">
-            <span>Session:</span>
-            <span className="font-bold text-sky-600 dark:text-sky-400 select-all">
-              {session.sessionId}
-            </span>
+        {/* Ultra-Slim Single-Line Session Meta Bar (never wraps vertically on phones) */}
+        <div className="flex-shrink-0 mt-2 mb-2 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar whitespace-nowrap text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100/90 dark:bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
+          <div className="flex items-center space-x-1.5">
+            <span className="font-bold text-sky-600 dark:text-sky-400 select-all">{session.sessionId}</span>
             {session.createdAt && (
               <>
                 <span className="text-slate-300 dark:text-slate-700">•</span>
-                <span>Started: {formatShortDateTime(session.createdAt)}</span>
+                <span>{formatShortDateTime(session.createdAt)}</span>
               </>
             )}
           </div>
@@ -289,8 +284,8 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
           </div>
         </div>
 
-        {/* Message Stream matching Council Admin layout & height */}
-        <div ref={messagesContainerRef} className="h-[52vh] min-h-[240px] max-h-[420px] sm:h-96 overflow-y-auto p-3 sm:p-4 rounded-2xl bg-slate-100/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-3 overscroll-contain">
+        {/* Flex-1 Message Stream: Auto-fits exact remaining height on EVERY phone */}
+        <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 rounded-xl bg-slate-100/70 dark:bg-slate-950/90 border border-slate-200/70 dark:border-slate-800 space-y-3 overscroll-contain">
           {session.messages.map((msg) => {
             const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
             const displayTime = formatShortDateTime(msg.createdAt || msg.createdAtIso, msg.timestamp || formatTimeOnly(session.createdAt));
@@ -299,22 +294,22 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                 key={msg.id}
                 className={`flex flex-col ${isCouncil ? 'items-start' : 'items-end'} space-y-1`}
               >
-                <div className={`flex items-center space-x-1.5 text-[11px] font-mono font-bold px-1 ${
-                  isCouncil ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'
+                <div className={`flex items-center space-x-1.5 text-[10px] sm:text-[11px] font-mono font-bold px-1 ${
+                  isCouncil ? 'text-sky-700 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300'
                 }`}>
                   {isCouncil ? (
                     <>
-                      <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
+                      <span className="w-4 h-4 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
                         <ShieldCheck className="w-2.5 h-2.5" />
                       </span>
-                      <span className="uppercase tracking-wider">Council Representative</span>
+                      <span className="uppercase tracking-wider">Council</span>
                     </>
                   ) : (
                     <>
                       <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                         <User className="w-2.5 h-2.5" />
                       </span>
-                      <span className="uppercase tracking-wider">You (Student)</span>
+                      <span className="uppercase tracking-wider">You</span>
                     </>
                   )}
                   {displayTime && (
@@ -322,10 +317,10 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                   )}
                 </div>
                 <div
-                  className={`max-w-[88%] sm:max-w-[80%] p-3 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${
+                  className={`max-w-[88%] sm:max-w-[78%] px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed break-words shadow-sm ${
                     isCouncil
-                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-tl-none'
-                      : 'bg-sky-600 text-white rounded-tr-none border border-sky-500 shadow-sky-600/20'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 rounded-tl-sm'
+                      : 'bg-sky-600 text-white rounded-tr-sm border border-sky-600'
                   }`}
                 >
                   {msg.text}
@@ -335,40 +330,42 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
           })}
         </div>
 
-        {/* Compact Message Input Form aligned with Council Desk */}
-        {isConnected ? (
-          <form onSubmit={handleSendMessage} className="flex items-center space-x-2 pt-0.5">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Type your message to the council representative..."
-              disabled={isSending}
-              className="min-w-0 flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder-slate-400"
-            />
-            <button
-              type="submit"
-              disabled={!inputText.trim() || isSending}
-              className="portal-button-primary px-3 sm:px-4 py-2.5 text-xs font-bold flex items-center justify-center space-x-1.5 flex-shrink-0 active:scale-95 transition-transform"
-            >
-              <Send className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="hidden sm:inline">Send</span>
-            </button>
-          </form>
-        ) : (
-          <div className="p-4 rounded-2xl neu-pressed text-center space-y-2.5">
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              This live session has been concluded. The conversation history is frozen and will be automatically purged by the server.
-            </p>
-            <button
-              onClick={handleStartNewChat}
-              className="portal-button-primary px-5 py-2 text-xs font-semibold inline-flex items-center space-x-2"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Start New Live Chat Session</span>
-            </button>
-          </div>
-        )}
+        {/* Pinned Message Input Form — Always visible without scrolling */}
+        <div className="flex-shrink-0 pt-2.5">
+          {isConnected ? (
+            <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Type your message..."
+                disabled={isSending}
+                className="min-w-0 flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300/80 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder-slate-400"
+              />
+              <button
+                type="submit"
+                disabled={!inputText.trim() || isSending}
+                className="portal-button-primary px-3.5 sm:px-4 py-2.5 !min-h-[42px] text-xs font-bold flex items-center justify-center space-x-1.5 flex-shrink-0 active:scale-95 transition-transform"
+              >
+                <Send className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Send</span>
+              </button>
+            </form>
+          ) : (
+            <div className="p-3 rounded-xl neu-pressed text-center space-y-2">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                This live session has ended and conversation history was purged.
+              </p>
+              <button
+                onClick={handleStartNewChat}
+                className="portal-button-primary px-4 py-2 !min-h-[38px] text-xs font-semibold inline-flex items-center space-x-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Start New Live Chat Session</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Confirmation Modal to End Chat */}
