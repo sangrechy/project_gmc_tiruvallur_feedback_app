@@ -1037,26 +1037,67 @@ function detectHeuristicSentiment(content) {
 }
 
 /**
- * Groq AI Inference with tuned prompt & structured sentiment classification
+ * Format a feedback submission's timestamp into a concise, human-readable date & time string (IST)
+ */
+function formatFeedbackTimestamp(f) {
+  const raw = f?.serverTimestamp || f?.createdAt || f?.timestamp || f?.date;
+  if (!raw) return "Unknown date/time";
+  let date = null;
+  if (raw instanceof Date) {
+    date = raw;
+  } else if (typeof raw === "object" && (typeof raw.seconds === "number" || typeof raw._seconds === "number")) {
+    const secs = typeof raw.seconds === "number" ? raw.seconds : raw._seconds;
+    date = new Date(secs * 1000);
+  } else if (typeof raw === "number") {
+    date = new Date(raw);
+  } else if (typeof raw === "string") {
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      date = parsed;
+    } else {
+      return raw.slice(0, 40);
+    }
+  }
+  if (!date || Number.isNaN(date.getTime())) return "Unknown date/time";
+  try {
+    return new Intl.DateTimeFormat("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(date) + " IST";
+  } catch {
+    return date.toISOString();
+  }
+}
+
+/**
+ * Groq AI Inference with concise, token-efficient Executive Summary prompt
  */
 async function generateGroqAnalysis(apiKey, feedbacks, totalRawCount = feedbacks.length) {
+  const reportGeneratedAt = formatFeedbackTimestamp({ createdAt: new Date().toISOString() });
   const sanitizedSubmissions = feedbacks.map((f, idx) => ({
-    id: idx,
-    trackingId: f.trackingId || `REF-${idx + 1}`,
+    id: idx + 1,
     category: sanitizeInput(f.category, 100),
+    submittedAt: formatFeedbackTimestamp(f),
     content: redactPiiText(sanitizeInput(f.content, 4000)),
   }));
 
-  const systemPrompt = "You are the Senior AI Triage & Analytics Officer for Government Medical College (GMC) Thiruvallur Student Council. Analyze the student grievance submissions objectively. Classify every submission's sentiment accurately into Positive, Neutral, or Negative (grievances and complaints are Negative; praise and appreciation are Positive; inquiries and neutral suggestions are Neutral). Calculate exact counts for sentimentDistribution and urgencyDistribution.";
+  const systemPrompt =
+    "You are the Senior AI Analytics Officer for Government Medical College (GMC) Thiruvallur Student Council. " +
+    "Write a concise, meaningful, and professional executiveSummary based strictly on the actual student submissions provided. " +
+    "Reference the relevant submission dates/times (submittedAt) and categories accurately. " +
+    "Include brief numbered key observations (1., 2., ...) separated by newlines when appropriate. " +
+    "Do not invent grievances not present in the data, and clearly identify test/placeholder entries if present. " +
+    "Also return exact counts for sentimentDistribution (Positive, Neutral, Negative) summing to the submission count.";
 
-  const userContent = `<student_submissions>\n${JSON.stringify(sanitizedSubmissions)}\n</student_submissions>\n\nReturn JSON conforming to schema:
+  const userContent = `Report generated at: ${reportGeneratedAt}\n<student_submissions>\n${JSON.stringify(sanitizedSubmissions)}\n</student_submissions>\n\nReturn ONLY valid JSON conforming strictly to this schema:
 {
   "executiveSummary": "string",
-  "sentimentDistribution": { "Positive": 0, "Neutral": 0, "Negative": 0 },
-  "urgencyDistribution": { "High": 0, "Medium": 0, "Low": 0 },
-  "recurringThemes": ["string"],
-  "recommendations": ["string"],
-  "itemAnalysis": [{ "id": 0, "sentiment": "Positive|Neutral|Negative", "urgency": "High|Medium|Low", "summary": "string" }]
+  "sentimentDistribution": { "Positive": 0, "Neutral": 0, "Negative": 0 }
 }`;
 
   const controller = new AbortController();
@@ -1089,48 +1130,37 @@ async function generateGroqAnalysis(apiKey, feedbacks, totalRawCount = feedbacks
 }
 
 /**
- * Google Gemini AI Inference with tuned prompt, sentiment classification & candidate model fallback
+ * Google Gemini AI Inference with concise, token-efficient Executive Summary prompt & candidate model fallback
  */
 async function generateGeminiAnalysis(apiKey, feedbacks, totalRawCount = feedbacks.length) {
+  const reportGeneratedAt = formatFeedbackTimestamp({ createdAt: new Date().toISOString() });
   const sanitizedSubmissions = feedbacks.map((f, idx) => ({
-    id: idx,
-    trackingId: f.trackingId || `REF-${idx + 1}`,
+    id: idx + 1,
     category: sanitizeInput(f.category, 100),
+    submittedAt: formatFeedbackTimestamp(f),
     content: redactPiiText(sanitizeInput(f.content, 4000)),
   }));
 
-  const prompt = `You are the Senior AI Triage & Analytics Officer for Government Medical College (GMC) Thiruvallur Student Council.
-Analyze the student grievance submissions inside <student_submissions>.
+  const prompt = `You are the Senior AI Analytics Officer for Government Medical College (GMC) Thiruvallur Student Council.
+Report generated at: ${reportGeneratedAt}
+
+Analyze ONLY the actual submissions inside <student_submissions>. Each item includes its category, submittedAt date/time, and content.
 
 TASK REQUIREMENTS:
-1. Objectively classify the sentiment of each submission:
-   - "Negative": Grievances, complaints, broken infrastructure, dirty facilities, mess problems, delays, or academic distress.
-   - "Positive": Appreciation, constructive praise, gratitude for improvements, or resolved issues.
-   - "Neutral": Objective inquiries, schedule questions, or neutral suggestions without strong emotional tone.
-2. Calculate honest counts for sentimentDistribution (Positive, Neutral, Negative) and urgencyDistribution (High, Medium, Low).
-3. Provide a high-level executiveSummary tailored for the GMC Thiruvallur Student Council and college leadership.
-4. Extract key recurringThemes and actionable recommendations to resolve top issues.
-5. Provide an itemAnalysis array mapping back to each submission by its id.
+1. Write a concise, meaningful, professional "executiveSummary" tailored for the GMC Thiruvallur Student Council:
+   - Summarize the actual batch objectively in 2-4 clear sentences, referencing the relevant submission dates/times (from submittedAt) and categories.
+   - When appropriate, follow with concise numbered key observations (1., 2., ...) separated by newlines (\\n).
+   - Remain strictly factual: do not invent issues not present in the submissions, and clearly note if entries are test or placeholder submissions.
+2. Compute exact counts for "sentimentDistribution" (Positive, Neutral, Negative) summing to the total number of submissions.
 
 <student_submissions>
 ${JSON.stringify(sanitizedSubmissions)}
 </student_submissions>
 
-Respond ONLY with valid JSON strictly conforming to this schema:
+Respond ONLY with valid JSON strictly conforming to this minimal schema (no extra keys):
 {
   "executiveSummary": "string",
-  "sentimentDistribution": { "Positive": 0, "Neutral": 0, "Negative": 0 },
-  "urgencyDistribution": { "High": 0, "Medium": 0, "Low": 0 },
-  "recurringThemes": ["string"],
-  "recommendations": ["string"],
-  "itemAnalysis": [
-    {
-      "id": 0,
-      "sentiment": "Positive|Neutral|Negative",
-      "urgency": "High|Medium|Low",
-      "summary": "string"
-    }
-  ]
+  "sentimentDistribution": { "Positive": 0, "Neutral": 0, "Negative": 0 }
 }`;
 
   // Current official Gemini models (2026) with legacy fallback
@@ -1190,7 +1220,6 @@ function compileReportData(feedbacks, aiParsed, totalRawCount = feedbacks.length
   });
 
   const sentimentCount = { Positive: 0, Neutral: 0, Negative: 0 };
-  const urgencyCount = { High: 0, Medium: 0, Low: 0 };
 
   if (aiParsed?.sentimentDistribution && typeof aiParsed.sentimentDistribution === "object") {
     sentimentCount.Positive = Number(aiParsed.sentimentDistribution.Positive) || 0;
@@ -1203,45 +1232,28 @@ function compileReportData(feedbacks, aiParsed, totalRawCount = feedbacks.length
     });
   }
 
-  if (aiParsed?.urgencyDistribution && typeof aiParsed.urgencyDistribution === "object") {
-    urgencyCount.High = Number(aiParsed.urgencyDistribution.High) || 0;
-    urgencyCount.Medium = Number(aiParsed.urgencyDistribution.Medium) || 0;
-    urgencyCount.Low = Number(aiParsed.urgencyDistribution.Low) || 0;
-  } else {
-    feedbacks.forEach((f) => {
-      const urg = f.aiAnalysis?.urgency || detectHeuristicSentiment(f.content).urgency;
-      urgencyCount[urg] = (urgencyCount[urg] || 0) + 1;
-    });
-  }
-
   return {
     generatedAt: new Date().toISOString(),
     totalAnalyzed: feedbacks.length,
     excludedPIICount: Math.max(0, totalRawCount - feedbacks.length),
     categoryDistribution: categoryCount,
     sentimentDistribution: sentimentCount,
-    urgencyDistribution: urgencyCount,
     isAiGenerated: true,
     aiProvider,
     executiveSummary: aiParsed?.executiveSummary || "Analysis complete.",
-    recurringThemes: Array.isArray(aiParsed?.recurringThemes) ? aiParsed.recurringThemes : [],
-    recommendations: Array.isArray(aiParsed?.recommendations) ? aiParsed.recommendations : [],
-    itemAnalysis: Array.isArray(aiParsed?.itemAnalysis) ? aiParsed.itemAnalysis : [],
   };
 }
 
 function generateLocalHeuristicReport(allFeedbacks, cleanFeedbacks, aiErrorReason = null) {
   const categoryCount = {};
   const sentimentCount = { Positive: 0, Neutral: 0, Negative: 0 };
-  const urgencyCount = { High: 0, Medium: 0, Low: 0 };
 
   cleanFeedbacks.forEach((f) => {
     categoryCount[f.category] = (categoryCount[f.category] || 0) + 1;
-    const detected = f.aiAnalysis?.sentiment && f.aiAnalysis?.urgency
-      ? f.aiAnalysis
+    const detected = f.aiAnalysis?.sentiment
+      ? { sentiment: f.aiAnalysis.sentiment }
       : detectHeuristicSentiment(f.content);
     sentimentCount[detected.sentiment] = (sentimentCount[detected.sentiment] || 0) + 1;
-    urgencyCount[detected.urgency] = (urgencyCount[detected.urgency] || 0) + 1;
   });
 
   const sortedCategories = Object.entries(categoryCount).sort((a, b) => b[1] - a[1]);
@@ -1252,29 +1264,15 @@ function generateLocalHeuristicReport(allFeedbacks, cleanFeedbacks, aiErrorReaso
     ? `Heuristic aggregation of ${cleanFeedbacks.length} student submissions across ${Object.keys(categoryCount).length} categories${topCategories.length > 0 ? ", led by " + topCategories.join(", ") : ""}. Note: Live AI synthesis fell back${reasonSuffix}.`
     : "No non-PII feedback submissions available for AI or heuristic analysis.";
 
-  const recurringThemes = topCategories.length > 0
-    ? topCategories.map((c) => `Category volume: ${c}`)
-    : ["No active grievance trends registered."];
-
-  const recommendations = [
-    "Review open high-urgency grievances in the Feedback Review section.",
-    "Verify campus infrastructure and schedule follow-ups with relevant committees.",
-    "Broadcast timely resolution circulars to students via Council Announcements.",
-  ];
-
   return {
     generatedAt: new Date().toISOString(),
     totalAnalyzed: cleanFeedbacks.length,
     excludedPIICount: Math.max(0, allFeedbacks.length - cleanFeedbacks.length),
     categoryDistribution: categoryCount,
     sentimentDistribution: sentimentCount,
-    urgencyDistribution: urgencyCount,
     isAiGenerated: false,
     aiProvider: "heuristic",
     aiErrorReason,
     executiveSummary: summary,
-    recurringThemes,
-    recommendations,
-    itemAnalysis: [],
   };
 }

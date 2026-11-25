@@ -213,10 +213,10 @@ export default function AdminPolls({
                       className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer mr-0.5"
                       title="Select poll"
                     />
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                    <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-semibold ${
                       isActive ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-200 text-slate-600'
                     }`}>
-                      [{poll.status.toUpperCase()}]
+                      {isActive ? 'Active' : 'Closed'}
                     </span>
                     <span className="text-xs font-mono text-slate-400">
                       Deadline: {poll.closingDate}

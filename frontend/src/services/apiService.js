@@ -237,18 +237,11 @@ export const apiService = {
       excludedPIICount: (feedbacks || []).length - validFeedbacks.length,
       categoryDistribution: categoryCount,
       sentimentDistribution: sentimentCount,
-      urgencyDistribution: urgencyCount,
       isAiGenerated: false,
       aiErrorReason: workerError,
       executiveSummary: validFeedbacks.length > 0
         ? `Statistical aggregation of ${validFeedbacks.length} student submissions across ${Object.keys(categoryCount).length} categories. Note: Automated AI narrative synthesis fallback triggered${reasonText}.`
-        : "No non-PII feedback submissions available to analyze.",
-      recurringThemes: Object.keys(categoryCount).map(c => `${c} (${categoryCount[c]} submissions)`),
-      recommendations: [
-        "Review open grievances in the Feedback Review section",
-        "Monitor student polls for ongoing campus sentiment",
-        "Issue circulars via Announcements for resolved student matters"
-      ]
+        : "No non-PII feedback submissions available to analyze."
     };
   },
 

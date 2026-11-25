@@ -121,7 +121,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputText.trim() || !session || session.status !== 'active') return;
+    if (isSending || !inputText.trim() || !session || session.status !== 'active') return;
 
     const text = inputText.trim();
     setInputText('');
@@ -219,29 +219,29 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
 
             <div className="min-w-0">
               <h1 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate leading-tight">
-                Student Council Live Chat
+                Live Chat
               </h1>
               <div className="flex items-center gap-1.5 text-[10px] font-mono mt-0.5 truncate">
                 {adminPresence.isOnline ? (
                   <span className="inline-flex items-center space-x-1 font-bold text-emerald-600 dark:text-emerald-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>ONLINE</span>
+                    <span>Online</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center space-x-1 font-semibold text-amber-600 dark:text-amber-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    <span>AWAY</span>
+                    <span>Away</span>
                   </span>
                 )}
                 <span className="text-slate-300 dark:text-slate-700">•</span>
                 {isConnected ? (
                   <span className="inline-flex items-center space-x-1 font-bold text-emerald-600 dark:text-emerald-400">
-                    <span>CONNECTED</span>
+                    <span>Connected</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center space-x-1 text-slate-400">
                     <AlertCircle className="w-2.5 h-2.5" />
-                    <span>CLOSED</span>
+                    <span>Closed</span>
                   </span>
                 )}
               </div>
@@ -302,14 +302,14 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
                       <span className="w-4 h-4 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
                         <ShieldCheck className="w-2.5 h-2.5" />
                       </span>
-                      <span className="uppercase tracking-wider">Council</span>
+                      <span>Council</span>
                     </>
                   ) : (
                     <>
                       <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                         <User className="w-2.5 h-2.5" />
                       </span>
-                      <span className="uppercase tracking-wider">You</span>
+                      <span>You</span>
                     </>
                   )}
                   {displayTime && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   MessageCircle, 
   Send, 
@@ -28,8 +28,16 @@ export default function AdminChat({
   const [selectedChatIds, setSelectedChatIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDeleteSessions, setConfirmDeleteSessions] = useState(null);
+  const messagesContainerRef = useRef(null);
 
   const selectedSession = chats.find(c => c.id === selectedChatId) || chats[0];
+
+  // Keep messages scrolled smoothly inside the message stream container
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    container.scrollTop = container.scrollHeight;
+  }, [selectedSession?.id, selectedSession?.messages?.length]);
 
   // Subscribe to real-time incoming messages for the active conversation (zero extra collection reads)
   useEffect(() => {
@@ -136,7 +144,7 @@ export default function AdminChat({
     <div className="space-y-4 animate-fadeIn font-sans max-w-5xl mx-auto">
       
       {/* Friendly Header */}
-      <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
+      <div className={`pb-4 border-b border-slate-200/60 dark:border-slate-800 ${showMobileChatView ? 'hidden lg:block' : 'block'}`}>
         <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
           Student Chats
         </h1>
@@ -174,11 +182,11 @@ export default function AdminChat({
       )}
 
       {/* WhatsApp-style 2-Column Chat Desk */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[500px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:min-h-[500px]">
         
         {/* Left: Chat List (Hidden on mobile if chat conversation is open) */}
         <div className={`portal-card p-3 sm:p-4 space-y-2 lg:col-span-1 ${showMobileChatView ? 'hidden lg:block' : 'block'}`}>
-          <div className="text-xs font-bold text-slate-500 uppercase px-1 pb-1 flex items-center justify-between">
+          <div className="text-xs font-bold text-slate-500 px-1 pb-1 flex items-center justify-between">
             <label className="flex items-center space-x-2 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -262,7 +270,7 @@ export default function AdminChat({
         </div>
 
         {/* Right: Active Chat Conversation */}
-        <div className={`portal-card p-3 sm:p-4 lg:col-span-2 flex-col justify-between h-[calc(100dvh-11rem)] lg:h-[580px] overflow-hidden ${!showMobileChatView ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`portal-card p-3 sm:p-4 lg:col-span-2 flex-col h-[calc(100dvh-10.25rem)] md:h-[calc(100dvh-12rem)] lg:h-[580px] overflow-hidden ${!showMobileChatView ? 'hidden lg:flex' : 'flex'}`}>
           {selectedSession ? (
             <>
               {/* Chat Top Bar */}
@@ -317,7 +325,7 @@ export default function AdminChat({
               </div>
 
               {/* Messages Bubble Area */}
-              <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 rounded-xl bg-slate-100/70 dark:bg-slate-950/90 border border-slate-200/70 dark:border-slate-800 space-y-3 overscroll-contain">
+              <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 rounded-xl bg-slate-100/70 dark:bg-slate-950/90 border border-slate-200/70 dark:border-slate-800 space-y-3 overscroll-contain">
                 {selectedSession.messages?.map((msg) => {
                   const isCouncil = msg.sender === 'council' || msg.sender === 'admin';
                   const displayTime = formatShortDateTime(msg.createdAt || msg.createdAtIso, msg.timestamp || formatTimeOnly(selectedSession.createdAt));
@@ -334,14 +342,14 @@ export default function AdminChat({
                             <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
                               <Shield className="w-2.5 h-2.5" />
                             </span>
-                            <span className="uppercase tracking-wider">You (Council)</span>
+                            <span>You (Council)</span>
                           </>
                         ) : (
                           <>
                             <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0">
                               <User className="w-2.5 h-2.5" />
                             </span>
-                            <span className="uppercase tracking-wider">Student (Anonymous)</span>
+                            <span>Student (Anonymous)</span>
                           </>
                         )}
                         {displayTime && (
@@ -363,30 +371,32 @@ export default function AdminChat({
               </div>
 
               {/* Message Reply Input */}
-              {selectedSession.status === 'active' ? (
-                <form onSubmit={handleSendReply} className="flex items-center space-x-2 pt-1">
-                  <input
-                    type="text"
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Type your reply to the student..."
-                    disabled={isSending}
-                    className="min-w-0 flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder-slate-400"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!replyText.trim() || isSending}
-                    className="portal-button-primary px-3 sm:px-4 py-2.5 text-xs font-bold flex items-center justify-center space-x-1.5 flex-shrink-0 active:scale-95 transition-transform"
-                  >
-                    <Send className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="hidden sm:inline">Send</span>
-                  </button>
-                </form>
-              ) : (
-                <div className="p-3 text-center text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                  This chat has ended.
-                </div>
-              )}
+              <div className="flex-shrink-0 pt-2.5">
+                {selectedSession.status === 'active' ? (
+                  <form onSubmit={handleSendReply} className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      placeholder="Type your reply to the student..."
+                      disabled={isSending}
+                      className="min-w-0 flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300/80 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder-slate-400"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!replyText.trim() || isSending}
+                      className="portal-button-primary px-3.5 sm:px-4 py-2.5 !min-h-[42px] text-xs font-bold flex items-center justify-center space-x-1.5 flex-shrink-0 active:scale-95 transition-transform"
+                    >
+                      <Send className="w-4 h-4 flex-shrink-0" />
+                      <span className="hidden sm:inline">Send</span>
+                    </button>
+                  </form>
+                ) : (
+                  <div className="p-3 text-center text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                    This chat has ended.
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <div className="text-center py-24 text-slate-400 text-xs">

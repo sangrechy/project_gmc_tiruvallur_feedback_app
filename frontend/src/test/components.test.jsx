@@ -181,9 +181,9 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Student Council Live Chat')).toBeInTheDocument();
+      expect(screen.getByText('Live Chat')).toBeInTheDocument();
       expect(screen.getByText('Cookie Session (24h)')).toBeInTheDocument();
-      expect(screen.getByText('CONNECTED')).toBeInTheDocument();
+      expect(screen.getByText('Connected')).toBeInTheDocument();
       expect(screen.getByText(/Session auto-expires after 24 hours/)).toBeInTheDocument();
       expect(screen.getByText('End Live Session')).toBeInTheDocument();
     });
@@ -375,11 +375,13 @@ describe('GMC Thiruvallur UI Blackbox Test Suite', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/AI Analytics & Summary/i)).toBeInTheDocument();
-      expect(screen.getByText(/EXECUTIVE AI SUMMARY/)).toBeInTheDocument();
+      expect(screen.getByText('Executive AI Summary')).toBeInTheDocument();
+      expect(screen.getByText(/Generated:/)).toBeInTheDocument();
       expect(screen.getByText('Sentiment Distribution')).toBeInTheDocument();
       expect(screen.getByText('Category Distribution')).toBeInTheDocument();
-      expect(screen.getByText('Recurring Campus Concerns')).toBeInTheDocument();
-      expect(screen.getByText('Council Recommendations')).toBeInTheDocument();
+      expect(screen.queryByText('Recurring Campus Concerns')).not.toBeInTheDocument();
+      expect(screen.queryByText('Council Recommendations')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Submission-Level AI Sentiment/i)).not.toBeInTheDocument();
     });
   });
 

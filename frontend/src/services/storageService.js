@@ -942,13 +942,17 @@ export const storageService = {
     if (isFirebaseConfigured && db) {
       try {
         const chatRef = doc(db, "chats", cleanSessionId);
-        await addDoc(collection(chatRef, "messages"), {
+        const docRef = await addDoc(collection(chatRef, "messages"), {
           sessionId: cleanSessionId,
           sender: cleanSender === "council" ? "admin" : "student",
           text: cleanText,
           timestamp: newMsg.timestamp,
           createdAt: serverTimestamp()
         });
+        if (docRef?.id) {
+          newMsg.id = docRef.id;
+          localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
+        }
         try {
           await updateDoc(chatRef, {
             lastActivity: serverTimestamp()

@@ -10,6 +10,7 @@ import {
   FileCode
 } from 'lucide-react';
 import { apiService } from '../../services/apiService';
+import { formatDateTime } from '../../utils/dateUtils';
 
 export default function AdminReports({ feedbacks, showToast }) {
   const [reportData, setReportData] = useState(null);
@@ -153,11 +154,11 @@ export default function AdminReports({ feedbacks, showToast }) {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center space-x-2 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
                 <Sparkles className="w-4 h-4" />
-                <span>EXECUTIVE AI SUMMARY</span>
+                <span>Executive AI Summary</span>
               </div>
               {reportData.isAiGenerated ? (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase">
-                  Live {reportData.aiProvider || 'AI'} Active
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  Live {reportData.aiProvider ? reportData.aiProvider.charAt(0).toUpperCase() + reportData.aiProvider.slice(1) : 'AI'} Active
                 </span>
               ) : (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
@@ -165,10 +166,16 @@ export default function AdminReports({ feedbacks, showToast }) {
                 </span>
               )}
             </div>
-            <p className="text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100 leading-relaxed font-sans">
-              "{reportData.executiveSummary}"
+            <p className="text-sm sm:text-base font-medium text-slate-800 dark:text-slate-100 leading-relaxed font-sans whitespace-pre-line">
+              {reportData.executiveSummary}
             </p>
-            <div className="text-[11px] font-mono text-slate-400 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+            <div className="text-[11px] font-mono text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
+              {reportData.generatedAt && (
+                <>
+                  <span>Generated: {formatDateTime(reportData.generatedAt)}</span>
+                  <span>•</span>
+                </>
+              )}
               <span>Analyzed: {reportData.totalAnalyzed} feedback items</span>
               <span>•</span>
               <span className="text-amber-500">
@@ -181,7 +188,7 @@ export default function AdminReports({ feedbacks, showToast }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Sentiment Breakdown */}
             <div className="portal-card p-6 space-y-4">
-              <h2 className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
+              <h2 className="text-xs font-mono font-bold text-slate-500 tracking-wide">
                 Sentiment Distribution
               </h2>
               <div className="space-y-3">
@@ -207,7 +214,7 @@ export default function AdminReports({ feedbacks, showToast }) {
 
             {/* Category Distribution */}
             <div className="portal-card p-6 space-y-4">
-              <h2 className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
+              <h2 className="text-xs font-mono font-bold text-slate-500 tracking-wide">
                 Category Distribution
               </h2>
               <div className="space-y-3">
@@ -230,84 +237,6 @@ export default function AdminReports({ feedbacks, showToast }) {
               </div>
             </div>
           </div>
-
-          {/* Recurring Themes & Actionable Recommendations */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="portal-card p-6 space-y-3">
-              <h2 className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
-                Recurring Campus Concerns
-              </h2>
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-sans">
-                {reportData.recurringThemes?.map((theme, i) => (
-                  <li key={i} className="flex items-start space-x-2">
-                    <span className="font-mono text-emerald-600 font-bold">•</span>
-                    <span>{theme}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="portal-card p-6 space-y-3">
-              <h2 className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
-                Council Recommendations
-              </h2>
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-sans">
-                {reportData.recommendations?.map((rec, i) => (
-                  <li key={i} className="flex items-start space-x-2">
-                    <span className="font-mono text-blue-600 font-bold">•</span>
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Submission-Level AI Sentiment & Triage Breakdown */}
-          {reportData.itemAnalysis && reportData.itemAnalysis.length > 0 && (
-            <div className="portal-card p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
-                  Submission-Level AI Sentiment &amp; Triage
-                </h2>
-                <span className="text-[11px] font-mono text-slate-400">
-                  {reportData.itemAnalysis.length} items classified
-                </span>
-              </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {reportData.itemAnalysis.map((item, idx) => {
-                  const sentColor = item.sentiment === 'Positive'
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    : item.sentiment === 'Negative'
-                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
-
-                  const urgColor = item.urgency === 'High'
-                    ? 'text-rose-500'
-                    : item.urgency === 'Medium'
-                    ? 'text-amber-500'
-                    : 'text-slate-400';
-
-                  return (
-                    <div key={idx} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${sentColor}`}>
-                            {item.sentiment}
-                          </span>
-                          <span className={`text-[11px] font-mono font-semibold ${urgColor}`}>
-                            • {item.urgency} Urgency
-                          </span>
-                        </div>
-                        <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200">
-                          {item.summary}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <div className="portal-card p-12 text-center text-slate-400 font-mono text-xs">

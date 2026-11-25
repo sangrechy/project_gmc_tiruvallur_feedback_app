@@ -25,11 +25,6 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
         </button>
-        <div className="flex items-center space-x-1 text-slate-400">
-          <span>PORTAL</span>
-          <span>/</span>
-          <span className="text-sky-600 dark:text-sky-400 font-bold">CAMPUS DISPATCHES</span>
-        </div>
       </div>
 
       {/* Announcements Header Card */}

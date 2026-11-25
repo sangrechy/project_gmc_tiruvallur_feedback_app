@@ -79,7 +79,7 @@ export default function AdminDashboard({
           <div className="text-2xl sm:text-4xl font-extrabold text-sky-600 dark:text-sky-400 font-mono">
             {totalFeedbackCount < 10 ? `0${totalFeedbackCount}` : totalFeedbackCount}
           </div>
-          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1.5 font-mono">
+          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5 font-mono">
             Total Feedback
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function AdminDashboard({
           <div className="text-2xl sm:text-4xl font-extrabold text-amber-500 font-mono">
             {unreadFeedbackCount < 10 ? `0${unreadFeedbackCount}` : unreadFeedbackCount}
           </div>
-          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1.5 font-mono">
+          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5 font-mono">
             Pending Review
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function AdminDashboard({
           <div className="text-2xl sm:text-4xl font-extrabold text-blue-500 font-mono">
             {activeChatsCount < 10 ? `0${activeChatsCount}` : activeChatsCount}
           </div>
-          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1.5 font-mono">
+          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5 font-mono">
             Active Relays
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function AdminDashboard({
           <div className="text-2xl sm:text-4xl font-extrabold text-purple-500 font-mono">
             {activePollsCount < 10 ? `0${activePollsCount}` : activePollsCount}
           </div>
-          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1.5 font-mono">
+          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5 font-mono">
             Active Polls
           </div>
         </div>

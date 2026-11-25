@@ -109,14 +109,13 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
         </button>
-        <span className="text-sky-600 dark:text-sky-400 font-bold">COUNCIL CLEARANCE</span>
       </div>
 
       {/* Login Card */}
       <div className="relative">
         <div className="portal-card p-5 sm:p-10 space-y-6 text-center relative">
           <div>
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[10px] font-mono font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-2 border border-sky-500/20">
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full neu-pill text-[11px] font-mono font-semibold text-sky-600 dark:text-sky-400 mb-2 border border-sky-500/20">
               <ShieldAlert className="w-3 h-3 text-sky-500" />
               <span>Council Executive Access</span>
             </div>
