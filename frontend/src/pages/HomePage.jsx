@@ -53,7 +53,7 @@ export default function HomePage({
             <span>Student Council • GMC Thiruvallur</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
+          <h1 className="text-3xl sm:text-5xl font-bold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
             Talk to <span className="text-sky-600 dark:text-sky-400 font-sans">Student Council</span>
           </h1>
 
@@ -63,7 +63,7 @@ export default function HomePage({
               onClick={() => setCurrentRoute('feedback')}
               className="portal-button-primary w-full sm:w-auto px-6 sm:px-7 py-3.5 flex items-center justify-center space-x-2.5 text-sm font-semibold tracking-wide group"
             >
-              <MessageSquarePlus className="w-4 h-4 transition-transform group-hover:scale-110" />
+              <MessageSquarePlus className="w-4 h-4 transition-transform" />
               <span>Submit Anonymous Feedback</span>
               <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -88,7 +88,6 @@ export default function HomePage({
             <div className="flex flex-wrap items-center justify-between pb-4 mb-5 border-b border-slate-200/60 dark:border-white/10 gap-2.5">
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500 status-pulse-dot flex-shrink-0" />
                   <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
                     Latest Announcements
                   </h2>
@@ -115,11 +114,11 @@ export default function HomePage({
                 <div
                   key={ann.id}
                   onClick={() => setCurrentRoute('announcements')}
-                  className="p-4 sm:p-5 rounded-2xl bg-white/60 dark:bg-[#141c2e]/70 border border-slate-200/60 dark:border-white/5 hover:border-sky-500/40 transition-all cursor-pointer flex flex-col justify-between group"
+                  className="p-4 sm:p-5 rounded-2xl bg-white/60 dark:bg-[#1d222b] border border-slate-200/60 dark:border-white/5 hover:border-sky-500/40 transition-all cursor-pointer flex flex-col justify-between group"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider neu-pill truncate max-w-[60%]">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold  tracking-wide neu-pill truncate max-w-[60%]">
                         {ann.category}
                       </span>
                       <div className="text-[11px] font-mono text-slate-400 flex items-center space-x-1 flex-shrink-0">
@@ -182,7 +181,7 @@ export default function HomePage({
                         className={`relative p-3.5 sm:p-4 rounded-xl cursor-pointer transition-all overflow-hidden ${
                           isSelected
                             ? 'bg-sky-500/10 border border-sky-500 ring-1 ring-sky-500/50'
-                            : 'bg-white/60 dark:bg-[#141c2e]/60 border border-slate-200/60 dark:border-white/5 hover:border-slate-400/40'
+                            : 'bg-white/60 dark:bg-[#1d222b] border border-slate-200/60 dark:border-white/5 hover:border-slate-400/40'
                         }`}
                       >
                         {/* Progress Fill Bar in background */}
@@ -250,7 +249,7 @@ export default function HomePage({
             {/* Card 1: Anonymous Feedback */}
             <div 
               onClick={() => setCurrentRoute('feedback')}
-              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+              className="portal-card p-5 sm:p-6 flex flex-col justify-between cursor-pointer group"
             >
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center mb-5 text-sky-500 group-hover:text-sky-400 transition-colors">
@@ -272,10 +271,10 @@ export default function HomePage({
             {/* Card 2: Temporary Live Chat */}
             <div 
               onClick={() => setCurrentRoute('chat')}
-              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+              className="portal-card p-5 sm:p-6 flex flex-col justify-between cursor-pointer group"
             >
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-5 text-blue-500 group-hover:text-blue-400 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center mb-5 text-sky-500 group-hover:text-sky-400 transition-colors">
                   <MessageCircle className="w-6 h-6" />
                 </div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
@@ -285,7 +284,7 @@ export default function HomePage({
                   Encrypted session with student council representatives. Backed by 24h browser cookies with instant self-purge.
                 </p>
               </div>
-              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
                 <span>Connect Live</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </div>
@@ -294,10 +293,10 @@ export default function HomePage({
             {/* Card 3: Student Polls */}
             <div 
               onClick={() => setCurrentRoute('polls')}
-              className="portal-card p-6 flex flex-col justify-between hover:scale-[1.02] cursor-pointer transition-all group"
+              className="portal-card p-5 sm:p-6 flex flex-col justify-between cursor-pointer group"
             >
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-5 text-amber-500 group-hover:text-amber-400 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center mb-5 text-sky-500 group-hover:text-sky-400 transition-colors">
                   <Vote className="w-6 h-6" />
                 </div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
@@ -307,7 +306,7 @@ export default function HomePage({
                   Vote on academic schedules, canteen menus, cultural night themes, and council resolutions.
                 </p>
               </div>
-              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
+              <div className="mt-6 flex items-center space-x-1 text-xs font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-1 transition-transform">
                 <span>Cast Your Vote</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </div>

@@ -20,6 +20,9 @@ const securityHeaders = {
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload"
 };
 
+// Compiled once per isolate (no /g flag, so .test() is stateless and safe to share across requests)
+const PII_DETECT_REGEX = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|(?:\+91[\-\s]?)?[6-9]\d{9}|[0-9]{10,12}|(?:roll|reg(?:istration)?|student\s*id)\s*(?:(?:no|number|#)?\s*(?:is|[:.-])?)\s*\d+|(?:hostel\s+)?room\s*(?:no\.?)?\s*\d+|my name is\s+[a-z]+|i am\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
+
 // Rate Limiting In-Memory Store
 const rateLimitMap = new Map();
 
@@ -202,20 +205,31 @@ async function deriveSigningKey(secretKey) {
   return new Uint8Array(hash);
 }
 
-/**
- * Generate a cryptographically signed, short-lived session token (HMAC-SHA256)
- * Prevents raw master passcodes from ever being stored in browser localStorage
- */
-async function createSessionToken(payload, secretKey) {
-  const enc = new TextEncoder();
+// Derived HMAC key is identical for a given secret, so import it once per isolate and reuse it
+let cachedSigningKey = { secret: null, key: null };
+async function getSigningKey(secretKey) {
+  if (cachedSigningKey.key && cachedSigningKey.secret === secretKey) {
+    return cachedSigningKey.key;
+  }
   const derivedKeyBytes = await deriveSigningKey(secretKey);
   const key = await crypto.subtle.importKey(
     "raw",
     derivedKeyBytes,
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign", "verify"]
   );
+  cachedSigningKey = { secret: secretKey, key };
+  return key;
+}
+
+/**
+ * Generate a cryptographically signed, short-lived session token (HMAC-SHA256)
+ * Prevents raw master passcodes from ever being stored in browser localStorage
+ */
+async function createSessionToken(payload, secretKey) {
+  const enc = new TextEncoder();
+  const key = await getSigningKey(secretKey);
   const payloadJson = JSON.stringify(payload);
   const b64Payload = base64UrlEncode(payloadJson);
   const dataToSign = enc.encode(`gmc_sess.${b64Payload}`);
@@ -240,14 +254,7 @@ async function verifySessionToken(token, secretKey) {
 
   try {
     const enc = new TextEncoder();
-    const derivedKeyBytes = await deriveSigningKey(secretKey);
-    const key = await crypto.subtle.importKey(
-      "raw",
-      derivedKeyBytes,
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["verify"]
-    );
+    const key = await getSigningKey(secretKey);
     const dataToVerify = enc.encode(`gmc_sess.${b64Payload}`);
     const sigBytes = base64UrlDecodeToBytes(b64Sig);
     const isValid = await crypto.subtle.verify("HMAC", key, sigBytes, dataToVerify);
@@ -611,8 +618,7 @@ export default {
         const trackingId = "GMC-FB-" + Math.floor(1000 + Math.random() * 9000);
 
         // Server-side PII check (doctor/student titles, phone numbers, roll nos, rooms, emails)
-        const piiRegex = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|(?:\+91[\-\s]?)?[6-9]\d{9}|[0-9]{10,12}|(?:roll|reg(?:istration)?|student\s*id)\s*(?:(?:no|number|#)?\s*(?:is|[:.-])?)\s*\d+|(?:hostel\s+)?room\s*(?:no\.?)?\s*\d+|my name is\s+[a-z]+|i am\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
-        const autoDetectedPII = piiRegex.test(content);
+                const autoDetectedPII = PII_DETECT_REGEX.test(content);
         const finalContainsPII = Boolean(declaredPII || autoDetectedPII);
 
         // Telegram Council Alert (Generic alert without PII contents)
@@ -806,8 +812,7 @@ export default {
         const rawFeedbacks = Array.isArray(body?.feedbacks) ? body.feedbacks : [];
 
         // STRICT PRIVACY: Filter out any feedback declaring or detecting PII (server-side regex enforcement)
-        const piiRegex = /\b((dr\.|dr\s|prof\.|mr\.|ms\.|mrs\.)\s+[a-z]+|(?:\+91[\-\s]?)?[6-9]\d{9}|[0-9]{10,12}|(?:roll|reg(?:istration)?|student\s*id)\s*(?:(?:no|number|#)?\s*(?:is|[:.-])?)\s*\d+|(?:hostel\s+)?room\s*(?:no\.?)?\s*\d+|my name is\s+[a-z]+|i am\s+[a-z]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/i;
-        const eligibleFeedbacks = rawFeedbacks.filter((f) => !f.containsPII && !piiRegex.test(f.content || ""));
+                const eligibleFeedbacks = rawFeedbacks.filter((f) => !f.containsPII && !PII_DETECT_REGEX.test(f.content || ""));
 
         let aiReport = null;
         let aiErrorReason = null;
@@ -922,7 +927,18 @@ async function sendTelegramMessage(botToken, chatId, text) {
 /**
  * Obtain a short-lived Gmail OAuth2 access token using the stored refresh token
  */
+let cachedGmailToken = { refreshToken: null, accessToken: null, expiresAt: 0 };
+
 async function getGmailAccessToken(clientId, clientSecret, refreshToken) {
+  // Reuse a still-valid access token (saves one OAuth round-trip per alert email)
+  if (
+    cachedGmailToken.accessToken &&
+    cachedGmailToken.refreshToken === refreshToken &&
+    Date.now() < cachedGmailToken.expiresAt
+  ) {
+    return cachedGmailToken.accessToken;
+  }
+
   const params = new URLSearchParams({
     client_id: clientId,
     client_secret: clientSecret,
@@ -942,6 +958,10 @@ async function getGmailAccessToken(clientId, clientSecret, refreshToken) {
   }
 
   const data = await res.json();
+  const ttlMs = Math.max(0, (Number(data.expires_in) || 0) - 120) * 1000;
+  if (data.access_token && ttlMs > 0) {
+    cachedGmailToken = { refreshToken, accessToken: data.access_token, expiresAt: Date.now() + ttlMs };
+  }
   return data.access_token;
 }
 

@@ -145,14 +145,14 @@ export default function AdminChat({
       
       {/* Friendly Header */}
       <div className={`pb-4 border-b border-slate-200/60 dark:border-slate-800 ${showMobileChatView ? 'hidden lg:block' : 'block'}`}>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
           Student Chats
         </h1>
       </div>
 
       {/* Multi-Select Bulk Action Sticky Bar */}
       {selectedChatIds.length > 0 && (
-        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-lg border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center space-x-3">
             <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs font-mono">
               {selectedChatIds.length}
@@ -408,8 +408,8 @@ export default function AdminChat({
 
       {/* Confirmation Modal */}
       {confirmDeleteSessions && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-lg animate-scaleUp">
             <div className="flex items-center space-x-3 text-red-500 mb-4">
               <div className="p-3 bg-red-100 dark:bg-red-950/50 rounded-2xl">
                 <Trash2 className="w-6 h-6" />

@@ -55,10 +55,10 @@ export default function AdminLayout({
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#07090e] flex flex-col font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-[#f5f6f8] dark:bg-[#0e1116] flex flex-col font-sans transition-colors duration-300">
       
       {/* Top Navbar */}
-      <header className="bg-white/90 dark:bg-[#07090e]/90 sticky top-0 pt-[env(safe-area-inset-top,0px)] z-40 border-b border-slate-200/60 dark:border-white/10 backdrop-blur-md">
+      <header className="bg-white/90 dark:bg-[#161a21]/95 sticky top-0 pt-[env(safe-area-inset-top,0px)] z-40 border-b border-slate-200/60 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 flex items-center justify-between h-14 sm:h-16 gap-2">
           
           {/* Brand */}
@@ -132,7 +132,7 @@ export default function AdminLayout({
       </header>
 
       {/* 💻 Desktop Tab Bar (Hidden on Mobile) */}
-      <div className="hidden md:block bg-white/80 dark:bg-[#0b101d]/80 sticky top-16 z-30 border-b border-slate-200/60 dark:border-white/10 backdrop-blur-sm">
+      <div className="hidden md:block bg-white/80 dark:bg-[#161a21] sticky top-16 z-30 border-b border-slate-200/60 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-center space-x-2 lg:space-x-3 overflow-x-auto select-none no-scrollbar">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -168,7 +168,7 @@ export default function AdminLayout({
       {/* 📱 Council Mobile Bottom Navigation Bar */}
       <nav
         aria-label="Council Mobile Navigation"
-        className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#f8fafc]/95 dark:bg-[#07090e]/95 backdrop-blur-2xl border-t border-slate-200/80 dark:border-white/10 pb-safe transition-colors shadow-2xl select-none"
+        className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 dark:bg-[#161a21]/95 border-t border-slate-200/80 dark:border-white/10 pb-safe transition-colors shadow-lg select-none"
       >
         <div className="grid grid-cols-6 h-16 items-center px-1 max-w-lg mx-auto relative">
           
@@ -220,18 +220,18 @@ export default function AdminLayout({
             <div className="h-7 flex items-center justify-center relative">
               <div className={`relative p-1.5 rounded-xl transition-all ${
                 currentSection === 'feedback'
-                  ? 'bg-sky-500 text-white shadow-md shadow-sky-500/40 scale-105'
+                  ? 'bg-sky-500 text-white'
                   : 'bg-sky-500/15 text-sky-600 dark:text-sky-400'
               }`}>
                 <MessageSquare className="w-4 h-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full text-[9px] font-mono bg-red-500 text-white font-extrabold ring-2 ring-white dark:ring-slate-900 animate-pulse">
+                  <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full text-[9px] font-mono bg-red-500 text-white font-bold ring-2 ring-white dark:ring-slate-900">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </div>
             </div>
-            <span className={`text-[10px] tracking-tight mt-1 leading-none ${currentSection === 'feedback' ? 'font-extrabold text-sky-500' : 'font-medium'} truncate`}>
+            <span className={`text-[10px] tracking-tight mt-1 leading-none ${currentSection === 'feedback' ? 'font-bold text-sky-500' : 'font-medium'} truncate`}>
               Review
             </span>
           </button>
@@ -284,7 +284,7 @@ export default function AdminLayout({
             <div className="h-7 flex items-center justify-center relative">
               <MessageCircle className={`w-5 h-5 transition-transform duration-200 ${currentSection === 'chat' ? 'scale-110 text-sky-500 dark:text-sky-400' : ''}`} />
               {activeChatsCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full text-[9px] font-mono bg-sky-500 text-white font-extrabold ring-2 ring-white dark:ring-slate-900">
+                <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full text-[9px] font-mono bg-sky-500 text-white font-bold ring-2 ring-white dark:ring-slate-900">
                   {activeChatsCount}
                 </span>
               )}

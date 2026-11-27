@@ -92,7 +92,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
                 {submissionResult.delivered ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
                 <span>{submissionResult.delivered ? "Grievance Recorded in Council Database" : "Saved in Browser Only (Cloud Database Disconnected)"}</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
                 {submissionResult.delivered ? "Feedback Dispatched Successfully" : "Stored in Local Browser"}
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
@@ -106,9 +106,9 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
             <div className="p-4 rounded-2xl neu-pressed max-w-md mx-auto text-left font-mono text-xs space-y-2">
               <div className="flex items-center justify-between text-slate-400">
                 <span>Reference Tracking Token:</span>
-                <span className="text-[10px] uppercase font-bold text-sky-500">Anonymous Token</span>
+                <span className="text-[10px]  font-bold text-sky-500">Anonymous Token</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-900/40 text-sky-400 font-mono text-center tracking-widest break-all select-all font-bold">
+              <div className="p-2.5 rounded-xl bg-slate-900/40 text-sky-400 font-code text-center tracking-widest break-all select-all font-bold">
                 {submissionResult.trackingId || submissionResult.id}
               </div>
               <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
@@ -162,7 +162,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Student Grievance Channel</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
                 Anonymous Feedback Portal
               </h1>
             </div>
@@ -173,7 +173,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
               <div>
                 <label 
                   htmlFor="feedback_category"
-                  className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2 font-mono"
+                  className="block text-xs font-bold text-slate-800 dark:text-slate-200  tracking-wide mb-2 font-mono"
                 >
                   Grievance Category
                 </label>
@@ -185,7 +185,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
                     className="w-full px-4 py-3.5 neu-input text-xs sm:text-sm font-medium appearance-none"
                   >
                     {categories.map((cat) => (
-                      <option key={cat} value={cat} className="bg-[#f8fafc] dark:bg-[#0e131f] text-slate-900 dark:text-slate-100">
+                      <option key={cat} value={cat} className="bg-[#f5f6f8] dark:bg-[#161a21] text-slate-900 dark:text-slate-100">
                         {cat}
                       </option>
                     ))}
@@ -201,7 +201,7 @@ export default function FeedbackPage({ onSubmitFeedback, setCurrentRoute, showTo
                 <div className="flex justify-between items-center mb-2">
                   <label 
                     htmlFor="feedback_content"
-                    className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-mono"
+                    className="block text-xs font-bold text-slate-800 dark:text-slate-200  tracking-wide font-mono"
                   >
                     Detailed Message
                   </label>

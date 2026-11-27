@@ -47,7 +47,7 @@ export default function AdminManagement({ showToast }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
             Admin &amp; Bot Management
           </h1>
         </div>
@@ -65,14 +65,14 @@ export default function AdminManagement({ showToast }) {
       <div className="portal-card p-6 space-y-4">
         <div className="flex items-center space-x-2 border-b border-slate-100 dark:border-slate-800 pb-3">
           <Users className="w-4 h-4 text-emerald-600" />
-          <h2 className="text-sm font-bold font-mono text-slate-900 dark:text-white uppercase tracking-wider">
+          <h2 className="text-sm font-bold font-mono text-slate-900 dark:text-white  tracking-wide">
             Authorized Council Representatives
           </h2>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 ">
               <tr>
                 <th className="py-2.5 px-3">Name</th>
                 <th className="py-2.5 px-3">Council Email</th>
@@ -103,7 +103,7 @@ export default function AdminManagement({ showToast }) {
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center space-x-2">
             <Bot className="w-5 h-5 text-blue-500" />
-            <h2 className="text-sm font-bold font-mono text-slate-900 dark:text-white uppercase tracking-wider">
+            <h2 className="text-sm font-bold font-mono text-slate-900 dark:text-white  tracking-wide">
               TELEGRAM ADMIN BOT INTERFACE (@GMCThiruvallurCouncilBot)
             </h2>
           </div>
@@ -135,10 +135,10 @@ export default function AdminManagement({ showToast }) {
 
       {/* Add Admin Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 animate-fadeIn">
           <div className="portal-card max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono uppercase">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono ">
                 Authorize Council Admin
               </h3>
               <button
@@ -151,7 +151,7 @@ export default function AdminManagement({ showToast }) {
 
             <form onSubmit={handleAddAdmin} className="space-y-4">
               <div>
-                <label className="block text-xs font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-mono font-bold  text-slate-700 dark:text-slate-300 mb-1">
                   Full Name & Designation
                 </label>
                 <input
@@ -165,7 +165,7 @@ export default function AdminManagement({ showToast }) {
               </div>
 
               <div>
-                <label className="block text-xs font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-mono font-bold  text-slate-700 dark:text-slate-300 mb-1">
                   Council Representative Email
                 </label>
                 <input
@@ -179,7 +179,7 @@ export default function AdminManagement({ showToast }) {
               </div>
 
               <div>
-                <label className="block text-xs font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-mono font-bold  text-slate-700 dark:text-slate-300 mb-1">
                   Role
                 </label>
                 <select

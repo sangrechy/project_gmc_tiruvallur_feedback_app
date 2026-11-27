@@ -29,7 +29,7 @@ import { isFirebaseConfigured, auth } from './services/firebase';
 import { signOut } from 'firebase/auth';
 
 const AdminLoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center p-6 bg-[#f8fafc] dark:bg-[#07090e]">
+  <div className="min-h-screen flex items-center justify-center p-6 bg-[#f5f6f8] dark:bg-[#0e1116]">
     <div className="portal-card p-6 flex items-center space-x-3 text-sky-600 dark:text-sky-400 font-mono text-sm shadow-lg">
       <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-ping" />
       <span>Loading Secure Council Console...</span>
@@ -307,7 +307,7 @@ export default function App() {
   const activeChatsCount = chats.filter(c => c.status === 'active').length;
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-[#f4f6fa] dark:bg-[#090e1a] text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="min-h-[100dvh] flex flex-col bg-[#f5f6f8] dark:bg-[#0e1116] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Render Main App or Admin Console */}
       {currentRoute === 'admin-dashboard' ? (
         isAuthVerifying ? (

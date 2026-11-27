@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Search, 
   CheckCircle2, 
@@ -46,32 +46,36 @@ export default function AdminFeedback({
     'Others'
   ];
 
-  // Counts
-  const totalCount = feedbacks.length;
-  const needsReviewCount = feedbacks.filter(f => f.status === 'Received').length;
-  const inReviewCount = feedbacks.filter(f => f.status === 'Reviewing').length;
-  const resolvedCount = feedbacks.filter(f => f.status === 'Resolved').length;
+  // Counts (computed once per feedback change, not on every keystroke)
+  const { totalCount, needsReviewCount, inReviewCount, resolvedCount } = useMemo(() => ({
+    totalCount: feedbacks.length,
+    needsReviewCount: feedbacks.filter(f => f.status === 'Received').length,
+    inReviewCount: feedbacks.filter(f => f.status === 'Reviewing').length,
+    resolvedCount: feedbacks.filter(f => f.status === 'Resolved').length
+  }), [feedbacks]);
 
-  const filtered = feedbacks.filter((fb) => {
-    const content = fb.content || '';
-    const trackingId = fb.trackingId || fb.id || '';
-    const notes = fb.councilNotes || '';
+  const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
+    return feedbacks.filter((fb) => {
+      const content = fb.content || '';
+      const trackingId = fb.trackingId || fb.id || '';
+      const notes = fb.councilNotes || '';
 
-    const matchesSearch = 
-      content.toLowerCase().includes(term) ||
-      trackingId.toLowerCase().includes(term) ||
-      notes.toLowerCase().includes(term);
-    
-    const matchesStatus = 
-      statusFilter === 'ALL' ? true :
-      statusFilter === 'Received' ? fb.status === 'Received' :
-      statusFilter === 'Reviewing' ? fb.status === 'Reviewing' :
-      statusFilter === 'Resolved' ? fb.status === 'Resolved' : true;
+      const matchesSearch = 
+        content.toLowerCase().includes(term) ||
+        trackingId.toLowerCase().includes(term) ||
+        notes.toLowerCase().includes(term);
+      
+      const matchesStatus = 
+        statusFilter === 'ALL' ? true :
+        statusFilter === 'Received' ? fb.status === 'Received' :
+        statusFilter === 'Reviewing' ? fb.status === 'Reviewing' :
+        statusFilter === 'Resolved' ? fb.status === 'Resolved' : true;
 
-    const matchesCategory = categoryFilter === 'ALL' || fb.category === categoryFilter;
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+      const matchesCategory = categoryFilter === 'ALL' || fb.category === categoryFilter;
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+  }, [feedbacks, searchTerm, statusFilter, categoryFilter]);
 
   const handleUpdateStatus = async (id, newStatus, notes) => {
     setIsUpdating(true);
@@ -165,7 +169,7 @@ export default function AdminFeedback({
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div className="flex items-center space-x-3">
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
             Feedback Review
           </h1>
           {onRefreshFeedback && (
@@ -261,7 +265,7 @@ export default function AdminFeedback({
 
       {/* Multi-Select Bulk Action Floating/Sticky Bar */}
       {selectedIds.length > 0 && (
-        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-lg border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center space-x-3">
             <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs font-mono">
               {selectedIds.length}
@@ -339,7 +343,7 @@ export default function AdminFeedback({
             return (
               <div 
                 key={item.id} 
-                className={`portal-card p-4 sm:p-6 transition-all border ${
+                className={`portal-card cv-auto p-4 sm:p-6 border ${
                   isNeedsReview 
                     ? 'border-amber-500/30 bg-amber-500/[0.02]' 
                     : isReviewing 
@@ -370,7 +374,7 @@ export default function AdminFeedback({
                       className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full font-mono text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-500 transition-colors"
                       title="Click to copy Tracking ID"
                     >
-                      <span>{item.trackingId}</span>
+                      <span className="font-code text-[11px]">{item.trackingId}</span>
                       {copiedId === item.id ? (
                         <Check className="w-3 h-3 text-emerald-500" />
                       ) : (
@@ -430,7 +434,7 @@ export default function AdminFeedback({
                 {/* Council Action Note (If any) */}
                 {item.councilNotes && (
                   <div className="mb-4 p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-xs text-sky-900 dark:text-sky-200">
-                    <span className="font-bold block text-[11px] font-mono uppercase text-sky-700 dark:text-sky-400">
+                    <span className="font-bold block text-[11px] font-mono  text-sky-700 dark:text-sky-400">
                       Council Action Note:
                     </span>
                     <p className="mt-1 font-sans">{item.councilNotes}</p>
@@ -542,8 +546,8 @@ export default function AdminFeedback({
 
       {/* Confirmation Modal */}
       {confirmDeleteIds && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-lg animate-scaleUp">
             <div className="flex items-center space-x-3 text-red-500 mb-4">
               <div className="p-3 bg-red-100 dark:bg-red-950/50 rounded-2xl">
                 <Trash2 className="w-6 h-6" />

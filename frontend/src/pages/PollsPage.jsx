@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Vote, CheckCircle2, Clock, BarChart3, ArrowLeft, ChevronRight, AlertCircle } from 'lucide-react';
 
 export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToast }) {
@@ -6,8 +6,8 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
   const [selectedOptions, setSelectedOptions] = useState({});
   const [votingPollId, setVotingPollId] = useState(null);
 
-  const activePolls = polls.filter(p => p.status === 'active');
-  const closedPolls = polls.filter(p => p.status === 'closed');
+  const activePolls = useMemo(() => polls.filter(p => p.status === 'active'), [polls]);
+  const closedPolls = useMemo(() => polls.filter(p => p.status === 'closed'), [polls]);
   const currentList = activeTab === 'active' ? activePolls : closedPolls;
 
   const handleSelectOption = (pollId, optionIndex) => {
@@ -56,7 +56,7 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
             <Vote className="w-3.5 h-3.5" />
             <span>Collegiate Student Democracy</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
             Council Polls
           </h1>
         </div>
@@ -102,10 +102,10 @@ export default function PollsPage({ polls, onVotePoll, setCurrentRoute, showToas
             const isVotingThis = votingPollId === poll.id;
 
             return (
-              <div key={poll.id} className="portal-card p-4 sm:p-7 space-y-5">
+              <div key={poll.id} className="portal-card cv-auto p-4 sm:p-7 space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b border-slate-200/50 dark:border-slate-800">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold  tracking-wide bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                       {poll.category || "General"}
                     </span>
                     <span className="text-[11px] sm:text-xs font-mono text-slate-400">

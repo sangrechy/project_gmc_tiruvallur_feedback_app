@@ -3,63 +3,57 @@
 @tailwind utilities;
 
 :root {
-  /* Light Theme - Clean Medical-Institutional Palette */
-  --bg-primary: #f4f6fa;
+  /* Light theme: calm neutral canvas, white surfaces, one teal accent */
+  --bg-primary: #f5f6f8;
   --bg-secondary: #ffffff;
-  --bg-surface: #eef2f7;
-  --bg-glass: #ffffff;
-  --bg-glass-strong: #ffffff;
-  --bg-overlay: rgba(244, 246, 250, 0.96);
+  --bg-surface: #f0f2f5;
 
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 
-  --accent-primary: #0369a1;
-  --accent-secondary: #0284c7;
-  --accent-glow: rgba(3, 105, 161, 0.14);
-  --accent-gradient: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+  --accent-primary: #0f766e;
+  --accent-hover: #115e59;
+  --accent-soft: rgba(15, 118, 110, 0.1);
+  --accent-ring: rgba(15, 118, 110, 0.22);
+  --on-accent: #ffffff;
 
-  --border-subtle: rgba(15, 23, 42, 0.08);
-  --border-medium: rgba(15, 23, 42, 0.14);
-  --border-focus: #0284c7;
+  --border-subtle: #e5e7eb;
+  --border-medium: #d1d5db;
 
-  --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-  --card-shadow-hover: 0 6px 20px -4px rgba(15, 23, 42, 0.09), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --card-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+  --card-shadow-hover: 0 2px 8px rgba(17, 24, 39, 0.07);
 
-  --badge-bg: rgba(3, 105, 161, 0.07);
-  --badge-border: rgba(3, 105, 161, 0.18);
-  --badge-text: #0369a1;
+  --badge-bg: rgba(15, 118, 110, 0.08);
+  --badge-border: rgba(15, 118, 110, 0.18);
+  --badge-text: #0f766e;
 }
 
 .dark {
-  /* Dark Theme - Refined Deep Slate Institutional Palette */
-  --bg-primary: #090e1a;
-  --bg-secondary: #111827;
-  --bg-surface: #182235;
-  --bg-glass: #111827;
-  --bg-glass-strong: #111827;
-  --bg-overlay: rgba(9, 14, 26, 0.96);
+  /* Dark theme: soft charcoal, not pitch black */
+  --bg-primary: #0e1116;
+  --bg-secondary: #161a21;
+  --bg-surface: #1d222b;
 
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
 
-  --accent-primary: #38bdf8;
-  --accent-secondary: #0ea5e9;
-  --accent-glow: rgba(56, 189, 248, 0.18);
-  --accent-gradient: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+  --accent-primary: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-soft: rgba(45, 212, 191, 0.12);
+  --accent-ring: rgba(45, 212, 191, 0.28);
+  --on-accent: #04201d;
 
-  --border-subtle: rgba(148, 163, 184, 0.12);
-  --border-medium: rgba(148, 163, 184, 0.2);
-  --border-focus: #38bdf8;
+  --border-subtle: #262c36;
+  --border-medium: #343b47;
 
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 6px 16px -4px rgba(0, 0, 0, 0.35);
-  --card-shadow-hover: 0 8px 24px -6px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --card-shadow-hover: 0 2px 10px rgba(0, 0, 0, 0.4);
 
-  --badge-bg: rgba(56, 189, 248, 0.1);
-  --badge-border: rgba(56, 189, 248, 0.22);
-  --badge-text: #7dd3fc;
+  --badge-bg: rgba(45, 212, 191, 0.1);
+  --badge-border: rgba(45, 212, 191, 0.22);
+  --badge-text: #5eead4;
 }
 
 @layer base {
@@ -74,8 +68,8 @@
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    letter-spacing: -0.01em;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
@@ -84,7 +78,6 @@
     min-height: 100vh;
     min-height: 100dvh;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   /* Prevent iOS Safari auto-zoom on input focus by ensuring at least 16px font-size */
@@ -93,18 +86,23 @@
       font-size: 16px !important;
     }
   }
+
+  /* Numbers line up cleanly in stats, counts and timestamps */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 /* Safe area insets for notched phones & Android gesture navigation bar */
 .pb-safe {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
 }
 
 .pt-safe {
   padding-top: max(env(safe-area-inset-top, 0px), 12px);
 }
 
-/* Android & Touch devices active feedback */
+/* Touch devices: crisp tap feedback with no layout cost */
 @media (hover: none) and (pointer: coarse) {
   button,
   a,
@@ -118,14 +116,13 @@
   button:active,
   .portal-button-primary:active,
   .portal-button-secondary:active,
-  .neu-button:active,
-  .neu-card:active {
+  .neu-button:active {
     transform: scale(0.98);
     transition: transform 0.08s ease-out;
   }
 }
 
-/* Clean canvas without noisy grid lines for crisp readability & faster paint */
+/* Clean canvas: no decorative background pattern */
 .bg-grid-pattern {
   background-image: none;
 }
@@ -139,105 +136,111 @@
   scrollbar-width: none;
 }
 
-/* Custom Sleek Scrollbars for desktop */
+/* Slim desktop scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-medium);
   border-radius: 9999px;
+  border: 2px solid var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary);
+  background: var(--text-muted);
 }
 
-/* ================= CRISP SURFACE CARDS & PANELS (60FPS MOBILE OPTIMIZED) ================= */
+/* Long lists: browser skips painting cards that are off-screen (big win on mid-range phones) */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 160px;
+}
+
+/* ================= SURFACES ================= */
 
 .portal-card, .neu-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: 16px;
+  border-radius: 14px;
   box-shadow: var(--card-shadow);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 @media (min-width: 640px) {
   .portal-card, .neu-card {
-    border-radius: 18px;
+    border-radius: 16px;
   }
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .portal-card, .neu-card {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
   .portal-card:hover, .neu-card:hover {
     border-color: var(--border-medium);
     box-shadow: var(--card-shadow-hover);
   }
 }
 
-/* Clean Inset Wells & Inputs */
+/* Inputs */
 .neu-input, input.neu-input, textarea.neu-input, select.neu-input {
-  background: var(--bg-surface) !important;
+  background: var(--bg-secondary) !important;
   border: 1px solid var(--border-medium) !important;
   border-radius: 12px;
   color: var(--text-primary);
-  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .neu-input:focus, input.neu-input:focus, textarea.neu-input:focus, select.neu-input:focus {
   outline: none;
   border-color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+  box-shadow: 0 0 0 3px var(--accent-ring) !important;
 }
 
+/* Inset wells */
 .neu-pressed {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  transition: border-color 0.16s ease, background-color 0.16s ease;
+  border-radius: 12px;
 }
 
-/* Touch-optimized Primary Button (Min 44px height) */
+/* ================= BUTTONS ================= */
+
+/* Primary: flat solid accent, 44px touch target */
 .portal-button-primary, .neu-btn-primary {
-  background: var(--accent-gradient);
-  color: #ffffff;
+  background: var(--accent-primary);
+  color: var(--on-accent);
   font-weight: 600;
   border-radius: 12px;
   min-height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 2px 6px var(--accent-glow);
-  transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.dark .portal-button-primary, .dark .neu-btn-primary {
-  background: var(--accent-gradient);
-  color: #06101f;
-  font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.22);
-}
-
 @media (hover: hover) and (pointer: fine) {
   .portal-button-primary:hover, .neu-btn-primary:hover {
-    filter: brightness(1.06);
-    box-shadow: 0 4px 12px var(--accent-glow);
+    background: var(--accent-hover);
   }
+}
+
+.portal-button-primary:disabled, .neu-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .portal-button-primary:active, .neu-btn-primary:active {
   transform: scale(0.985);
 }
 
-/* Secondary Button */
+/* Secondary: outlined */
 .portal-button-secondary, .neu-btn-secondary, .neu-button {
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -263,22 +266,21 @@
   transform: scale(0.985);
 }
 
-/* Circle Buttons */
+/* Round icon buttons */
 .neu-circle {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-medium);
   border-radius: 50%;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .neu-circle:hover {
-    border-color: var(--border-medium);
-    transform: scale(1.04);
+    border-color: var(--accent-primary);
   }
 }
 
-/* Pill Badges */
+/* Pill badges */
 .neu-pill {
   background: var(--badge-bg);
   border: 1px solid var(--badge-border);
@@ -286,99 +288,42 @@
   border-radius: 9999px;
 }
 
-/* ================= THEME SWITCH TOGGLE (PORTFOLIO_2026 REPLICATION) ================= */
-.theme-toggle-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-@media (min-width: 640px) {
-  .theme-toggle-container {
-    gap: 10px;
-  }
-}
-
-.theme-pill-btn {
-  width: 52px;
-  height: 28px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  border-radius: 30px;
-  position: relative;
-  cursor: pointer;
-  padding: 3px;
-  display: flex;
-  align-items: center;
-  outline: none;
-  flex-shrink: 0;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-
-@media (min-width: 640px) {
-  .theme-pill-btn {
-    width: 58px;
-    height: 30px;
-  }
-}
-
-.theme-pill-btn:hover {
-  border-color: var(--accent-primary);
-}
-
-.pill-slider {
-  width: 20px;
-  height: 20px;
-  background: var(--accent-primary);
-  border-radius: 50%;
-  display: flex;
+/* ================= THEME TOGGLE (icon button) ================= */
+.theme-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  position: absolute;
-  left: 3px;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  color: #ffffff;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
 }
 
 @media (min-width: 640px) {
-  .pill-slider {
-    width: 22px;
-    height: 22px;
-    left: 4px;
+  .theme-icon-btn {
+    width: 40px;
+    height: 40px;
   }
 }
 
-.dark .pill-slider {
-  transform: translateX(24px);
-  background: #38bdf8;
-  color: #07090e;
-}
-
-@media (min-width: 640px) {
-  .dark .pill-slider {
-    transform: translateX(28px);
+@media (hover: hover) and (pointer: fine) {
+  .theme-icon-btn:hover {
+    background: var(--bg-surface);
+    color: var(--accent-primary);
+    border-color: var(--border-medium);
   }
 }
 
-.pill-icon {
-  font-size: 0.68rem;
-  line-height: 1;
-  user-select: none;
-}
-
-@media (min-width: 640px) {
-  .pill-icon {
-    font-size: 0.72rem;
+/* Respect users who prefer reduced motion (also saves battery) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-
-/* Pulse badge dot */
-@keyframes statusPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.9); }
-}
-
-.status-pulse-dot {
-  animation: statusPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

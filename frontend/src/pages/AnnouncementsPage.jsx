@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Megaphone, Search, Pin, Clock, ArrowLeft } from 'lucide-react';
 
 export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
@@ -7,12 +7,15 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
 
   const categories = ['ALL', 'IMPORTANT', 'ACADEMIC', 'HOSTEL', 'EVENTS'];
 
-  const filtered = announcements.filter((item) => {
-    const matchesCat = activeCategory === 'ALL' || item.category === activeCategory;
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesSearch;
-  });
+  const filtered = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return announcements.filter((item) => {
+      const matchesCat = activeCategory === 'ALL' || item.category === activeCategory;
+      const matchesSearch = item.title.toLowerCase().includes(q) ||
+                            item.description.toLowerCase().includes(q);
+      return matchesCat && matchesSearch;
+    });
+  }, [announcements, activeCategory, searchQuery]);
 
   return (
     <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-4 pb-28 sm:py-10 space-y-6 sm:space-y-10 bg-grid-pattern">
@@ -35,7 +38,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
             <Megaphone className="w-3.5 h-3.5" />
             <span>Council Notice Board</span>
           </div>
-          <h1 className="text-xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
+          <h1 className="text-xl sm:text-4xl font-bold text-slate-900 dark:text-white font-sans tracking-tight">
             Announcements
           </h1>
         </div>
@@ -79,7 +82,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
           filtered.map((ann) => (
             <div
               key={ann.id}
-              className={`portal-card p-4 sm:p-7 transition-all ${
+              className={`portal-card cv-auto p-4 sm:p-7 ${
                 ann.pinned ? 'ring-1 ring-sky-500/40' : ''
               }`}
             >
@@ -91,7 +94,7 @@ export default function AnnouncementsPage({ announcements, setCurrentRoute }) {
                       <span>PINNED</span>
                     </span>
                   )}
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider neu-pill">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold  tracking-wide neu-pill">
                     {ann.category}
                   </span>
                 </div>

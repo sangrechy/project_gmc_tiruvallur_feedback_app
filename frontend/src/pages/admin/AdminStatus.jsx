@@ -103,7 +103,7 @@ export default function AdminStatus({ showToast }) {
       
       {/* Title */}
       <div className="text-center pb-4 border-b border-slate-200/60 dark:border-slate-800">
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
           App Status &amp; Subsystem Health
         </h1>
       </div>

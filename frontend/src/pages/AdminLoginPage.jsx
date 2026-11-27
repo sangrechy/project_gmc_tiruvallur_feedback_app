@@ -119,7 +119,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
               <ShieldAlert className="w-3 h-3 text-sky-500" />
               <span>Council Executive Access</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-sans tracking-tight">
               Council Admin Portal
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -161,7 +161,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
           {isFirebaseConfigured && (
             <div className="relative flex py-1 items-center">
               <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-              <span className="flex-shrink mx-3 text-slate-400 text-[11px] font-medium uppercase tracking-wider font-mono">
+              <span className="flex-shrink mx-3 text-slate-400 text-[11px] font-medium  tracking-wide font-mono">
                 or sign in with email
               </span>
               <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
@@ -213,7 +213,7 @@ export default function AdminLoginPage({ onLoginSuccess, setCurrentRoute, showTo
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 portal-button-primary text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95 mt-4 shadow-sm"
+              className="w-full py-3.5 portal-button-primary text-xs font-semibold  tracking-wide flex items-center justify-center space-x-2 transition-all active:scale-95 mt-4 shadow-sm"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>{isLoading ? "Authenticating..." : "Authorize Session"}</span>

@@ -197,7 +197,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
   const isConnected = session.status === 'active';
 
   return (
-    <div className="h-[calc(100dvh-8.25rem)] md:h-[calc(100dvh-5.5rem)] max-h-[760px] max-w-3xl mx-auto px-2.5 sm:px-6 py-2 sm:py-4 flex flex-col">
+    <div className="h-[calc(100dvh-7.75rem)] md:h-[calc(100dvh-5.5rem)] max-h-[760px] max-w-3xl mx-auto px-2.5 sm:px-6 py-2 sm:py-4 flex flex-col">
       {/* Main Full-Viewport Compact Chat Card matching Council Admin UI */}
       <div className="portal-card flex-1 min-h-0 flex flex-col p-3 sm:p-4 overflow-hidden">
         {/* Compact Single-Row Chat Top Bar (Back + Title + Online Status + End Live Session) */}
@@ -263,7 +263,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
         {/* Ultra-Slim Single-Line Session Meta Bar (never wraps vertically on phones) */}
         <div className="flex-shrink-0 mt-2 mb-2 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar whitespace-nowrap text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100/90 dark:bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-200/60 dark:border-slate-800/60">
           <div className="flex items-center space-x-1.5">
-            <span className="font-bold text-sky-600 dark:text-sky-400 select-all">{session.sessionId}</span>
+            <span className="font-code font-medium text-sky-600 dark:text-sky-400 select-all">{session.sessionId}</span>
             {session.createdAt && (
               <>
                 <span className="text-slate-300 dark:text-slate-700">•</span>
@@ -370,7 +370,7 @@ export default function ChatPage({ setCurrentRoute, showToast }) {
 
       {/* Confirmation Modal to End Chat */}
       {showEndModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fadeIn">
           <div className="portal-card max-w-sm w-full p-6 text-center space-y-4">
             <div className="w-12 h-12 neu-card mx-auto flex items-center justify-center text-red-500">
               <LogOut className="w-6 h-6" />

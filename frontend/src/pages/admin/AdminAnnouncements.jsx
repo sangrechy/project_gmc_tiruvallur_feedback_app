@@ -102,7 +102,7 @@ export default function AdminAnnouncements({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-200/60 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
             Announcements
           </h1>
         </div>
@@ -118,7 +118,7 @@ export default function AdminAnnouncements({
 
       {/* Multi-Select Bulk Action Sticky Bar */}
       {selectedIds.length > 0 && (
-        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-lg border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center space-x-3">
             <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs font-mono">
               {selectedIds.length}
@@ -246,8 +246,8 @@ export default function AdminAnnouncements({
 
       {/* Create Announcement Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-          <div className="portal-card max-w-lg w-full max-h-[82dvh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 animate-fadeIn">
+          <div className="portal-card max-w-lg w-full max-h-[82dvh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-lg">
             <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 New Campus Announcement
@@ -358,8 +358,8 @@ export default function AdminAnnouncements({
 
       {/* Delete Confirmation Modal */}
       {confirmDeleteIds && (
-        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full max-h-[85vh] overflow-y-auto shadow-lg animate-scaleUp">
             <div className="flex items-center space-x-3 text-red-500 mb-4">
               <div className="p-3 bg-red-100 dark:bg-red-950/50 rounded-2xl">
                 <Trash2 className="w-6 h-6" />

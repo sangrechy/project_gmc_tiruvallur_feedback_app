@@ -1083,7 +1083,13 @@ export const storageService = {
     if (isFirebaseConfigured && db) {
       try {
         const snap = await getDocs(collection(db, "chats"));
-        const chatPromises = snap.docs.map(async (d) => {
+        // Chats older than 24h are discarded below, so skip their message reads entirely (saves Firestore reads)
+        const recentDocs = snap.docs.filter((d) => {
+          const createdTs = d.data().createdAt;
+          if (!createdTs?.toDate) return true;
+          return (Date.now() - createdTs.toDate().getTime()) / (1000 * 60 * 60) <= 24;
+        });
+        const chatPromises = recentDocs.map(async (d) => {
           const chatData = d.data();
           const messagesSnap = await getDocs(collection(d.ref, "messages"));
           const messages = normalizeCloudChatMessages(messagesSnap.docs);

@@ -124,7 +124,7 @@ export default function AdminPolls({
     <div className="space-y-5 sm:space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
             Poll Management
           </h1>
         </div>
@@ -140,7 +140,7 @@ export default function AdminPolls({
 
       {/* Multi-Select Bulk Action Sticky Bar */}
       {selectedIds.length > 0 && (
-        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
+        <div className="sticky top-[68px] md:top-[124px] z-30 p-3 sm:p-4 rounded-2xl bg-slate-900 text-white dark:bg-slate-800 shadow-lg border border-slate-700 flex flex-wrap items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center space-x-3">
             <span className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xs font-mono">
               {selectedIds.length}
@@ -278,8 +278,8 @@ export default function AdminPolls({
 
       {/* Create Poll Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-          <div className="portal-card max-w-lg w-full max-h-[82dvh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 animate-fadeIn">
+          <div className="portal-card max-w-lg w-full max-h-[82dvh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-lg">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white font-sans">
                 Create Student Poll
@@ -372,7 +372,7 @@ export default function AdminPolls({
                 />
               </div>
 
-              <div className="pt-3.5 pb-3.5 px-4 sm:px-6 mt-4 flex items-center justify-end space-x-2.5 border-t border-slate-100 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm -mx-4 sm:-mx-6 rounded-b-3xl">
+              <div className="pt-3.5 pb-3.5 px-4 sm:px-6 mt-4 flex items-center justify-end space-x-2.5 border-t border-slate-100 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 -mx-4 sm:-mx-6 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
@@ -395,8 +395,8 @@ export default function AdminPolls({
 
       {/* Delete Confirmation Modal */}
       {confirmDeleteIds && (
-        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full max-h-[85vh] overflow-y-auto shadow-lg animate-scaleUp">
             <div className="flex items-center space-x-3 text-red-500 mb-4">
               <div className="p-3 bg-red-100 dark:bg-red-950/50 rounded-2xl">
                 <Trash2 className="w-6 h-6" />

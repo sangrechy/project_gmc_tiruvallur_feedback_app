@@ -63,7 +63,7 @@ export default function AdminDashboard({
     <div className="space-y-6 sm:space-y-8 animate-fadeIn">
       {/* Overview Header */}
       <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800">
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-sans">
           Council Executive Overview
         </h1>
       </div>
@@ -73,10 +73,10 @@ export default function AdminDashboard({
         {/* Box 1: Total Feedback */}
         <div 
           onClick={() => setCurrentSection('feedback')}
-          className="portal-card p-3.5 sm:p-5 text-center cursor-pointer hover:border-sky-500/50 transition-all hover:scale-[1.02] active:scale-95"
+          className="portal-card p-3.5 sm:p-5 text-center cursor-pointer hover:border-sky-500/50 transition-all active:scale-95"
           title="Click to view all feedback"
         >
-          <div className="text-2xl sm:text-4xl font-extrabold text-sky-600 dark:text-sky-400 font-mono">
+          <div className="text-2xl sm:text-4xl font-bold text-sky-600 dark:text-sky-400 font-mono">
             {totalFeedbackCount < 10 ? `0${totalFeedbackCount}` : totalFeedbackCount}
           </div>
           <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5 font-mono">
@@ -87,10 +87,10 @@ export default function AdminDashboard({
         {/* Box 2: Unread */}
         <div 
           onClick={() => setCurrentSection('feedback')}
-          className="portal-card p-3.5 sm:p-5 text-center cursor-pointer hover:border-amber-500/50 transition-all hover:scale-[1.02] active:scale-95"
+          className="portal-card p-3.5 sm:p-5 text-center cursor-pointer hover:border-amber-500/50 transition-all active:scale-95"
           title="Click to review pending feedback"
         >
-          <div className="text-2xl sm:text-4xl font-extrabold text-amber-500 font-mono">
+          <div className="text-2xl sm:text-4xl font-bold text-amber-500 font-mono">
             {unreadFeedbackCount < 10 ? `0${unreadFeedbackCount}` : unreadFeedbackCount}
           </div>
           <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5 font-mono">
@@ -101,10 +101,10 @@ export default function AdminDashboard({
         {/* Box 3: Chats */}
         <div 
           onClick={() => setCurrentSection('chat')}
-          className="portal-card p-3.5 sm:p-5 text-center cursor-pointer hover:border-blue-500/50 transition-all hover:scale-[1.02] active:scale-95"
+          className="portal-card p-3.5 sm:p-5 text-center cursor-pointer hover:border-blue-500/50 transition-all active:scale-95"
           title="Click to open live chats"
         >
-          <div className="text-2xl sm:text-4xl font-extrabold text-blue-500 font-mono">
+          <div className="text-2xl sm:text-4xl font-bold text-blue-500 font-mono">
             {activeChatsCount < 10 ? `0${activeChatsCount}` : activeChatsCount}
           </div>
           <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5 font-mono">
@@ -115,10 +115,10 @@ export default function AdminDashboard({
         {/* Box 4: Polls */}
         <div 
           onClick={() => setCurrentSection('polls')}
-          className="portal-card p-3.5 sm:p-5 text-center cursor-pointer hover:border-purple-500/50 transition-all hover:scale-[1.02] active:scale-95"
+          className="portal-card p-3.5 sm:p-5 text-center cursor-pointer hover:border-purple-500/50 transition-all active:scale-95"
           title="Click to view polls"
         >
-          <div className="text-2xl sm:text-4xl font-extrabold text-purple-500 font-mono">
+          <div className="text-2xl sm:text-4xl font-bold text-purple-500 font-mono">
             {activePollsCount < 10 ? `0${activePollsCount}` : activePollsCount}
           </div>
           <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1.5 font-mono">
@@ -161,7 +161,7 @@ export default function AdminDashboard({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-sans">
             <thead>
-              <tr className="border-b border-slate-200/50 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-mono">
+              <tr className="border-b border-slate-200/50 dark:border-slate-800 text-slate-500 dark:text-slate-400  tracking-wide text-[11px] font-mono">
                 <th className="py-2.5 px-3">Category</th>
                 <th className="py-2.5 px-3">Tracking ID</th>
                 <th className="py-2.5 px-3 hidden sm:table-cell">Submitted</th>
@@ -183,7 +183,7 @@ export default function AdminDashboard({
                       {formatShortDateTime(fb.serverTimestamp || fb.createdAt || fb.timestamp, 'Recently')}
                     </div>
                   </td>
-                  <td className="py-3 px-3 font-mono text-slate-500">{fb.trackingId}</td>
+                  <td className="py-3 px-3 font-code text-[11px] text-slate-500">{fb.trackingId}</td>
                   <td className="py-3 px-3 font-mono text-[11px] text-slate-400 hidden sm:table-cell">
                     {formatShortDateTime(fb.serverTimestamp || fb.createdAt || fb.timestamp, 'Recently')}
                   </td>
@@ -216,7 +216,7 @@ export default function AdminDashboard({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button
             onClick={() => setCurrentSection('announcements')}
-            className="p-4 rounded-2xl neu-button text-sky-600 dark:text-sky-400 text-xs font-semibold transition-all text-center flex flex-col items-center justify-center space-y-2 hover:scale-[1.02]"
+            className="p-4 rounded-2xl neu-button text-sky-600 dark:text-sky-400 text-xs font-semibold transition-all text-center flex flex-col items-center justify-center space-y-2"
           >
             <Megaphone className="w-5 h-5" />
             <span>Post Circular</span>
@@ -224,7 +224,7 @@ export default function AdminDashboard({
 
           <button
             onClick={() => setCurrentSection('polls')}
-            className="p-4 rounded-2xl neu-button text-purple-600 dark:text-purple-400 text-xs font-semibold transition-all text-center flex flex-col items-center justify-center space-y-2 hover:scale-[1.02]"
+            className="p-4 rounded-2xl neu-button text-purple-600 dark:text-purple-400 text-xs font-semibold transition-all text-center flex flex-col items-center justify-center space-y-2"
           >
             <Vote className="w-5 h-5" />
             <span>Launch Poll</span>
@@ -232,7 +232,7 @@ export default function AdminDashboard({
 
           <button
             onClick={() => setCurrentSection('reports')}
-            className="p-4 rounded-2xl neu-button text-amber-600 dark:text-amber-400 text-xs font-semibold transition-all text-center flex flex-col items-center justify-center space-y-2 hover:scale-[1.02]"
+            className="p-4 rounded-2xl neu-button text-amber-600 dark:text-amber-400 text-xs font-semibold transition-all text-center flex flex-col items-center justify-center space-y-2"
           >
             <Sparkles className="w-5 h-5" />
             <span>Export Report</span>
@@ -242,7 +242,7 @@ export default function AdminDashboard({
 
       {/* Feedback View / Triage Modal */}
       {selectedFeedback && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fadeIn">
           <div className="portal-card max-w-lg w-full p-6 sm:p-8 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-3">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-xs">
@@ -250,7 +250,7 @@ export default function AdminDashboard({
                   {selectedFeedback.category}
                 </span>
                 <span className="text-slate-400">•</span>
-                <span className="text-slate-500">{selectedFeedback.trackingId}</span>
+                <span className="font-code text-[11px] text-slate-500">{selectedFeedback.trackingId}</span>
                 <span className="text-slate-400">•</span>
                 <span className="text-[11px] text-slate-400">
                   {formatDateTime(selectedFeedback.serverTimestamp || selectedFeedback.createdAt || selectedFeedback.timestamp, 'Recently')}
@@ -276,7 +276,7 @@ export default function AdminDashboard({
 
             {/* Content text */}
             <div>
-              <div className="text-[11px] font-mono font-bold text-slate-400 uppercase mb-1.5">
+              <div className="text-[11px] font-mono font-bold text-slate-400  mb-1.5">
                 Feedback Description
               </div>
               <div className="p-4 rounded-2xl neu-pressed text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-sans whitespace-pre-line">
@@ -299,7 +299,7 @@ export default function AdminDashboard({
 
             {/* Change Status Action */}
             <div>
-              <div className="text-[11px] font-mono font-bold text-slate-400 uppercase mb-2">
+              <div className="text-[11px] font-mono font-bold text-slate-400  mb-2">
                 Update Status
               </div>
               <div className="flex items-center space-x-2">

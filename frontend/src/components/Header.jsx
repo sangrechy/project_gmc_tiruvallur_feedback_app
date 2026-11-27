@@ -8,7 +8,9 @@ import {
   MessageCircle, 
   Vote, 
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setIsDarkMode, isAdminLoggedIn }) {
@@ -29,32 +31,30 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
   };
 
   return (
-    <header className="sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)] bg-[#f8fafc]/90 dark:bg-[#07090e]/90 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 transition-colors duration-300">
+    <header className="sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)] bg-white/95 dark:bg-[#161a21]/95 border-b border-slate-200/60 dark:border-white/10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20 gap-2">
           
           {/* Institution Brand & Logo (Responsive for small phones) */}
           <div 
             onClick={() => handleNavClick('home')}
-            className="flex items-center space-x-2 sm:space-x-3.5 cursor-pointer group select-none min-w-0"
+            className="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer select-none min-w-0"
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 portal-card flex items-center justify-center font-bold text-sky-600 dark:text-sky-400 flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-              <span className="font-mono text-xs sm:text-sm font-black tracking-tight">GMC</span>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-600 dark:bg-sky-400 text-white dark:text-[#04201d] flex items-center justify-center flex-shrink-0">
+              <span className="text-xs sm:text-sm font-bold tracking-tight">GMC</span>
             </div>
             <div className="min-w-0">
-              <div className="flex items-center space-x-1.5">
-                <span className="font-extrabold text-xs sm:text-base lg:text-lg tracking-tight text-slate-900 dark:text-slate-100 font-sans truncate">
-                  GMC THIRUVALLUR
-                </span>
-              </div>
-              <div className="text-[10px] sm:text-[11px] font-semibold text-sky-600 dark:text-sky-400 tracking-wider uppercase truncate">
+              <span className="block font-bold text-[13px] sm:text-base lg:text-lg tracking-tight leading-tight text-slate-900 dark:text-slate-100 truncate">
+                GMC THIRUVALLUR
+              </span>
+              <span className="block text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">
                 Student Council Portal
-              </div>
+              </span>
             </div>
           </div>
 
           {/* Desktop Center Navigation (hidden on mobile/tablet) */}
-          <nav className="hidden lg:flex items-center space-x-1.5 p-1.5 rounded-2xl bg-slate-200/50 dark:bg-[#141c2e]/80 border border-slate-300/40 dark:border-white/5">
+          <nav className="hidden lg:flex items-center space-x-1.5 p-1.5 rounded-2xl bg-slate-200/50 dark:bg-[#1d222b] border border-slate-300/40 dark:border-white/5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentRoute === item.id;
@@ -75,25 +75,19 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
             })}
           </nav>
 
-          {/* Right Controls: Compact Mobile-Friendly Theme Switch + Council Login */}
-          <div className="flex items-center space-x-1.5 sm:space-x-3 flex-shrink-0">
+          {/* Right Controls: Theme toggle + Council Login */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
             
             {/* THEME TOGGLE */}
-            <div className="theme-toggle-container">
-              <button 
-                id="theme-toggle-btn" 
-                className="theme-pill-btn" 
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                aria-label="Toggle light and dark theme"
-                title={isDarkMode ? "Switch to Light Theme" : "Switch to Dark Theme"}
-              >
-                <span className="pill-slider">
-                  <span className="pill-icon">
-                    {isDarkMode ? '🌙' : '☀️'}
-                  </span>
-                </span>
-              </button>
-            </div>
+            <button 
+              id="theme-toggle-btn" 
+              className="theme-icon-btn" 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              aria-label="Toggle light and dark theme"
+              title={isDarkMode ? "Switch to Light Theme" : "Switch to Dark Theme"}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
 
             {/* Council Admin Access */}
             <button
@@ -105,7 +99,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
                   : 'text-slate-700 dark:text-slate-200 hover:text-sky-500'
               }`}
             >
-              <ShieldAlert className="w-4 h-4 text-sky-500 flex-shrink-0 group-hover:scale-110 transition-transform" />
+              <ShieldAlert className="w-4 h-4 text-sky-500 flex-shrink-0 transition-transform" />
               <span className="hidden md:inline font-mono font-bold tracking-tight">
                 {isAdminLoggedIn ? "Council Dashboard" : "Council Auth"}
               </span>
@@ -126,7 +120,7 @@ export default function Header({ currentRoute, setCurrentRoute, isDarkMode, setI
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden px-4 pt-3 pb-6 space-y-2 border-t border-slate-200/60 dark:border-white/10 bg-[#f8fafc] dark:bg-[#07090e] shadow-xl animate-fadeIn">
+        <div className="lg:hidden px-4 pt-3 pb-6 space-y-2 border-t border-slate-200/60 dark:border-white/10 bg-[#f5f6f8] dark:bg-[#0e1116] shadow-xl animate-fadeIn">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentRoute === item.id;
