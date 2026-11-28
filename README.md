@@ -1,111 +1,91 @@
-# 🏛️ GMC Thiruvallur – Student Council Portal
+# GMC Thiruvallur – Student Council Portal
 
-Official, modern, and serverless **Student Council Portal & Management System** for Government Medical College (GMC) Thiruvallur (~500 medical students).
+A lightweight, serverless **Student Council Feedback & Communication Portal** built for students of Government Medical College (GMC) Thiruvallur.
 
-Engineered to operate strictly within **100% Free-Tier quotas** without requiring a paid Firebase Blaze plan or dedicated VPS.
+> **Note:** This is an independent, student-run council initiative for peer communication and grievance tracking — not an official government or college administration website.
+
+Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflare Workers, and Firebase Spark without requiring a paid VPS or Firebase Blaze plan.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### 1. Student Portal (Zero Login Required)
-- **Home Hub**: Official branding, latest announcements, quick action cards, upcoming events preview, active polls voting widget. Light and Dark theme support.
+### 1. Student Portal (No Login Required)
+- **Home Hub**: Latest council announcements, quick-access navigation, and active student polls with light and dark theme support.
 - **Anonymous Feedback**:
   - Category selector (*Academics, Infrastructure, Hostel & Mess, Transport, Sports, Library, Clinical Postings, Others*).
-  - Detailed feedback textarea.
-  - **Mandatory Privacy Check**: *"My feedback contains names or identifying information"*. Any submission declaring or heuristically detected to contain identifying information (PII) is **strictly excluded from external AI processing** and flagged for council review only.
-  - Generates an anonymous reference tracking ID (e.g., `GMC-FB-9402`).
-- **Temporary Live Chat**:
-  - Ephemeral chat session with a unique session ID (e.g., `GMC-X7K92`).
-  - Real-time two-way dialogue with elected council representatives.
-  - Sessions automatically expire after 24 hours of inactivity according to privacy guidelines.
-  - End Chat action with instant session closure.
-- **Announcements**: Categorized, filterable, pinned/important alerts, posted and expiry dates.
-- **Student Polls**: Interactive multiple-choice democratic voting with live vote percentage visualizer and closed polls archive.
-- **College Events**: Upcoming medical symposiums, clinical workshops, sports meets, cultural fests, venue & date details, and registration links.
+  - **Privacy & PII Safeguard**: Submissions flagged by the student or detected via server/client PII filters (names, phone numbers, emails, roll numbers, room numbers) are **excluded from external AI processing** and restricted to council review.
+  - Generates an anonymous tracking ID (e.g., `GMC-FB-9402`) so students can check status updates and council replies.
+- **Live Chat**:
+  - Ephemeral 1-on-1 chat session with a unique session ID (e.g., `GMC-X7K92`) and council online presence indicator.
+  - Sessions automatically expire after 24 hours, with instant session termination and message purge on close.
+- **Announcements**: Categorized, filterable campus circulars and pinned notices.
+- **Student Polls**: Multiple-choice student ballots with atomic single-vote enforcement, live vote breakdown, and closed polls archive.
 
-### 2. Council Admin Dashboard (Protected Access)
-- **Firebase Authentication** or instant **1-Click Interactive Demo Login** for effortless offline/local review.
-- **Overview Metrics**: Total feedback submissions, unread grievance queue, active live chats, active polls.
-- **Feedback Triage**: Search, filter by category/status (`Received`, `Reviewing`, `Resolved`), inspect PII safety tags, and view AI sentiment summaries.
-- **Live Chat Desk**: Real-time monitor of student sessions with instant web reply interface.
-- **Announcement Management**: Publish, pin, edit, delete, and set notice expiration.
-- **Poll Management**: Create polls with dynamic options (2–6 choices), set deadlines, close/reopen, and review vote distributions.
-- **Event Management**: Create and manage upcoming and past college activities with venue details and registration URLs.
-- **AI Reports Hub**: Sentiment distribution, category breakdown, recurring student concerns, actionable council recommendations, and **CSV / JSON export**.
-- **Admin Management**: Authorized council member list and Telegram Admin Bot command cheatsheet.
+### 2. Council Admin Console (Protected Access)
+- **Authentication**: Protected via Firebase Authentication (Google Sign-In / authorized council accounts) and timing-safe HMAC session tokens issued by the Cloudflare Worker.
+- **Overview Dashboard**: Real-time counts for total feedback, pending reviews, active chat relays, and active polls.
+- **Feedback Review**: Filter by category/status (`Received`, `In Review`, `Resolved`), view PII flags, and post timestamped responses to student tracking IDs.
+- **Student Chats**: Live multi-session chat desk for responding to active student inquiries and closing completed sessions.
+- **Announcement & Poll Management**: Create, pin, close, or batch-delete circulars and student polls.
+- **AI Analytics & Summary**: On-demand executive synthesis powered by Gemini / Groq (with automatic PII redaction, temporal burst/anomaly detection, sentiment & category distributions, and CSV/JSON export).
+- **Admin Management**: Manage authorized council accounts and inspect live backend/service health.
 
-### 3. Telegram Admin Bot Integration (`@GMCThiruvallurCouncilBot`)
-- Council members can manage the portal and respond to students from their phone via Telegram:
-  - `/announce [Category] Title - Description` – Publish campus announcement
-  - `/edit` & `/delete` – Manage notices
-  - `/poll Question | Opt1 | Opt2` – Launch student voting
-  - `/event Title | Date | Venue` – Broadcast college event
-  - `/chat` – List active temporary student live chats
-  - `/reply <sessionId> <message>` – Reply directly to student web chat
-  - `/feedback` – View feedback volume and sentiment metrics
-  - `/issues` – View open high-priority student grievances
-  - `/report` – Trigger instant on-demand AI executive summary
+### 3. Real-Time Alert Integrations
+- **Telegram Alert Bot**: Pushes real-time notifications to the council group when new feedback or live chat messages arrive (`/start`, `/status`, `/help`).
+- **Gmail OAuth Dispatcher**: Optional email alerts for incoming student grievances via the Gmail REST API.
 
 ---
 
-## 🏗️ Architecture & Technology Stack
+## Architecture & Stack
 
-```
-                          STUDENTS (Web Browser)
-                                    │
-                                    ▼
-                      ┌───────────────────────────┐
-                      │    REACT FRONTEND (SPA)   │
-                      │  Vite + Tailwind + Lucide │
-                      │  (Hosted: Cloudflare Pages│
-                      └─────────────┬─────────────┘
-                                    │
-                       ┌────────────┴────────────┐
-                       │                         │
-                       ▼                         ▼
-             ┌───────────────────┐    ┌────────────────────┐
-             │ FIREBASE (Spark)  │    │ CLOUDFLARE WORKER  │
-             │ Firestore DB      │    │ Serverless Backend │
-             │ Firebase Auth     │    │ Webhooks & AI API  │
-             │ Security Rules    │    │ Gmail Alerts       │
-             └───────────────────┘    └──────────┬─────────┘
-                                                 │
-                                     ┌───────────┼───────────┐
-                                     ▼           ▼           ▼
-                                 TELEGRAM      GROQ /      GMAIL
-                                   BOT        GEMINI AI     API
+```text
+                          STUDENTS (Mobile / Web)
+                                     │
+                                     ▼
+                       ┌───────────────────────────┐
+                       │    REACT FRONTEND (SPA)   │
+                       │  Vite + Tailwind + Lucide │
+                       │     Cloudflare Pages      │
+                       └─────────────┬─────────────┘
+                                     │
+                        ┌────────────┴────────────┐
+                        │                         │
+                        ▼                         ▼
+              ┌───────────────────┐    ┌────────────────────┐
+              │ FIREBASE (Spark)  │    │ CLOUDFLARE WORKER  │
+              │ Cloud Firestore   │    │ Auth & Rate Limits │
+              │ Firebase Auth     │    │ PII Filter & AI    │
+              │ Security Rules    │    │ Telegram / Gmail   │
+              └───────────────────┘    └──────────┬─────────┘
+                                                  │
+                                      ┌───────────┼───────────┐
+                                      ▼           ▼           ▼
+                                  TELEGRAM     GEMINI /     GMAIL
+                                   ALERTS      GROQ AI       API
 ```
 
-| Layer | Technology | Quota / Cost |
+| Layer | Technology | Plan / Quota |
 |---|---|---|
 | **Frontend** | React 18 + Vite + Tailwind CSS | Open Source |
-| **Frontend Hosting** | Cloudflare Pages | Free (Unlimited bandwidth) |
-| **Serverless Backend** | Cloudflare Workers | Free (100,000 requests/day) |
+| **Static Hosting** | Cloudflare Pages / Assets | Free Tier |
+| **Serverless API** | Cloudflare Workers | Free Tier (100k req/day) |
 | **Database & Auth** | Firebase Firestore & Auth | Spark Plan (Free) |
-| **AI Inference** | Groq API (`llama-3.3-70b`) / Gemini API | Free Quota |
-| **Chat & Alerts** | Telegram Bot API + Gmail API | Free |
-
-> **Cost Guarantee:** No Firebase Blaze plan is required. All privileged backend tasks run through Cloudflare Workers.
+| **AI Synthesis** | Gemini API / Groq API | Free Quota |
+| **Notifications** | Telegram Bot API + Gmail API | Free |
 
 ---
 
-## 🔒 Decoupled Tokens & Safe Configuration
+## Configuration
 
-All tokens and credentials are decoupled into environment variables.
-**The portal functions immediately in Interactive Local Mode out of the box** even before you enter your keys!
-
-### 1. Frontend Configuration (`frontend/.env`)
+### 1. Frontend (`frontend/.env`)
 Copy `frontend/.env.example` to `frontend/.env`:
 ```bash
 cp frontend/.env.example frontend/.env
 ```
-Key frontend variables:
 ```env
-# Cloudflare Worker Backend URL (Required for server-verified authentication and Telegram relay)
-VITE_API_BASE_URL="https://gmc-thiruvallur-backend.your-subdomain.workers.dev"
+VITE_API_BASE_URL="https://gmc-thiruvallur-backend.<your-subdomain>.workers.dev"
 
-# Firebase Keys (Optional - leave blank if using built-in local store)
 VITE_FIREBASE_API_KEY=""
 VITE_FIREBASE_AUTH_DOMAIN=""
 VITE_FIREBASE_PROJECT_ID=""
@@ -113,99 +93,46 @@ VITE_FIREBASE_STORAGE_BUCKET=""
 VITE_FIREBASE_MESSAGING_SENDER_ID=""
 VITE_FIREBASE_APP_ID=""
 ```
-*(If left blank, the app runs in interactive local review mode with zero crashes!)*
 
-### 2. Cloudflare Worker Configuration (`worker/.dev.vars`)
-Copy `worker/.dev.vars.example` to `worker/.dev.vars`:
+### 2. Cloudflare Worker (`worker/.dev.vars`)
+Copy `worker/.dev.vars.example` to `worker/.dev.vars` for local development:
 ```bash
 cp worker/.dev.vars.example worker/.dev.vars
 ```
-For production deployment, upload secrets securely via Wrangler:
+For production, set secrets via Wrangler:
 ```bash
 npx wrangler secret put COUNCIL_AUTH_TOKEN
+npx wrangler secret put GEMINI_API_KEY
+npx wrangler secret put GROQ_API_KEY
 npx wrangler secret put TELEGRAM_BOT_TOKEN
 npx wrangler secret put TELEGRAM_ADMIN_CHAT_ID
-npx wrangler secret put GROQ_API_KEY
-npx wrangler secret put GEMINI_API_KEY
 ```
 
 ---
 
-## ⚡ 1-Click Deployment to Cloudflare Pages (100% Free)
+## Local Development & Deployment
 
-You can deploy this portal entirely on Cloudflare's generous free tier ($0/month):
-- **Cloudflare Pages**: Unlimited bandwidth, free custom domain with SSL, 500 builds/month.
-- **Cloudflare Workers**: 100,000 requests/day, 10ms CPU time per request.
-
-### Step 1: Deploy Frontend on Cloudflare Pages
-
-1. Push your repository to **GitHub** or **GitLab**.
-2. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) > **Compute (Workers & Pages)** > **Create application** > **Pages** > **Connect to Git**.
-3. Select your repository: `project_gmc_tiruvallur_feedback_app`.
-4. Configure Build Settings:
-   - **Framework preset**: `Vite`
-   - **Build command**: `npm --prefix frontend run build` (or `npm run build`)
-   - **Build output directory**: `frontend/dist`
-   - **Root directory**: `/` (leave empty / root)
-5. Add **Environment Variables** (in Cloudflare Pages dashboard under **Settings > Environment Variables**):
-   - `NODE_VERSION` = `20`
-   - `VITE_API_BASE_URL` = *(Your Cloudflare Worker URL from Step 2)*
-6. Click **Save and Deploy**!
-   Your portal is instantly live at `https://<your-project>.pages.dev` with SPA deep-linking and security headers enabled!
-
-### Step 2: Deploy Backend Serverless Worker (Cloudflare Workers)
-
-1. Open your terminal in the `worker/` directory:
-   ```bash
-   cd worker
-   npx wrangler login
-   npx wrangler deploy
-   ```
-2. Your worker will be live at `https://gmc-thiruvallur-backend.<your-subdomain>.workers.dev`.
-3. Add your secrets:
-   ```bash
-   npx wrangler secret put COUNCIL_AUTH_TOKEN   # Enter your private council master passcode
-   npx wrangler secret put GROQ_API_KEY          # Free from https://console.groq.com
-   npx wrangler secret put GEMINI_API_KEY        # Free from https://aistudio.google.com
-   npx wrangler secret put TELEGRAM_BOT_TOKEN    # Free from @BotFather
-   npx wrangler secret put TELEGRAM_ADMIN_CHAT_ID # Council group chat ID
-   ```
-4. Copy your Worker URL and paste it into Cloudflare Pages `VITE_API_BASE_URL` environment variable.
-
----
-
-## 🚀 Local Development Quick Start
-
-### 1. Run Everything Concurrently
 ```bash
-# Starts both Cloudflare Worker (port 8787) and Vite React Frontend (port 3000)
+# Start Cloudflare Worker + Vite frontend concurrently
 npm run dev
-```
 
-### 2. Run Test Suite
-```bash
-# Runs both Frontend Vitest tests and Serverless Worker Node test runner
+# Run frontend (Vitest) and worker (Node test) suites
 npm test
-```
 
-### 3. Build for Production
-```bash
+# Production frontend build
 npm run build
+
+# Deploy Cloudflare Worker
+npm run worker:deploy
 ```
 
----
-
-## 🛡️ Database Security (`firestore.rules`)
-If using Cloud Firestore, deploy production security rules:
+### Firestore Security Rules
+Deploy [`firestore.rules`](./firestore.rules) using the Firebase CLI:
 ```bash
 firebase deploy --only firestore:rules
 ```
-- **Feedback**: Anonymous write-only; only authenticated council members can read/modify.
-- **Live Chat**: 24-hour expiration check; only active sessions permit message appending.
-- **Announcements, Polls, Events**: Public read; write restricted to authenticated council admins.
 
 ---
 
-## 📄 License
-MIT © GMC Thiruvallur Student Council
-
+## License
+MIT
