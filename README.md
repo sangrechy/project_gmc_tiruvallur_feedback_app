@@ -6,6 +6,26 @@ Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflar
 
 ---
 
+## 📸 Demo
+
+### 🖥️ Desktop View (Light & Dark Theme)
+
+| Light Mode | Dark Mode |
+| :---: | :---: |
+| ![Student Portal Light](./docs/screenshots/home-light.png) | ![Student Portal Dark](./docs/screenshots/home-dark.png) |
+
+### 📱 Mobile-First Experience
+
+| Home Hub | Anonymous Feedback | Ephemeral Live Chat |
+| :---: | :---: | :---: |
+| ![Mobile Home](./docs/screenshots/mobile-home.png) | ![Mobile Feedback](./docs/screenshots/mobile-feedback.png) | ![Mobile Live Chat](./docs/screenshots/mobile-chat.png) |
+
+### 🛡️ Council Executive Console
+
+![Council Admin Console](./docs/screenshots/admin-dashboard.png)
+
+---
+
 ## ✨ Key Features
 
 ### 🎓 1. Student Portal (No Login Required)
