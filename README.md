@@ -10,15 +10,31 @@ Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflar
 
 ### 🖥️ Desktop View (Light & Dark Theme)
 
-| Light Mode | Dark Mode |
-| :---: | :---: |
-| ![Student Portal Light](./docs/screenshots/home-light.png) | ![Student Portal Dark](./docs/screenshots/home-dark.png) |
+<table>
+  <tr>
+    <th width="50%">Light Mode</th>
+    <th width="50%">Dark Mode</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="./docs/screenshots/home-light.png" alt="Student Portal Light" width="420" /></td>
+    <td align="center"><img src="./docs/screenshots/home-dark.png" alt="Student Portal Dark" width="420" /></td>
+  </tr>
+</table>
 
 ### 📱 Mobile-First Experience
 
-| Home Hub | Anonymous Feedback | Ephemeral Live Chat |
-| :---: | :---: | :---: |
-| ![Mobile Home](./docs/screenshots/mobile-home.png) | ![Mobile Feedback](./docs/screenshots/mobile-feedback.png) | ![Mobile Live Chat](./docs/screenshots/mobile-chat.png) |
+<table>
+  <tr>
+    <th width="33%">Home Hub</th>
+    <th width="33%">Anonymous Feedback</th>
+    <th width="33%">Ephemeral Live Chat</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="./docs/screenshots/mobile-home.png" alt="Mobile Home" width="250" /></td>
+    <td align="center"><img src="./docs/screenshots/mobile-feedback.png" alt="Mobile Feedback" width="250" /></td>
+    <td align="center"><img src="./docs/screenshots/mobile-chat.png" alt="Mobile Live Chat" width="250" /></td>
+  </tr>
+</table>
 
 ### 🛡️ Council Executive Console
 
