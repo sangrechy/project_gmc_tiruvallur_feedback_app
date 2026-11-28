@@ -1,4 +1,4 @@
-# GMC Thiruvallur – Student Council Portal
+# 🏛️ GMC Thiruvallur – Student Council Portal
 
 A lightweight, serverless **Student Council Feedback & Communication Portal** built for students of Government Medical College (GMC) Thiruvallur.
 
@@ -6,9 +6,9 @@ Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflar
 
 ---
 
-## Key Features
+## ✨ Key Features
 
-### 1. Student Portal (No Login Required)
+### 🎓 1. Student Portal (No Login Required)
 - **Home Hub**: Latest council announcements, quick-access navigation, and active student polls with light and dark theme support.
 - **Anonymous Feedback**:
   - Category selector (*Academics, Infrastructure, Hostel & Mess, Transport, Sports, Library, Clinical Postings, Others*).
@@ -20,7 +20,7 @@ Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflar
 - **Announcements**: Categorized, filterable campus circulars and pinned notices.
 - **Student Polls**: Multiple-choice student ballots with atomic single-vote enforcement, live vote breakdown, and closed polls archive.
 
-### 2. Council Admin Console (Protected Access)
+### 🛡️ 2. Council Admin Console (Protected Access)
 - **Authentication**: Protected via Firebase Authentication (Google Sign-In / authorized council accounts) and timing-safe HMAC session tokens issued by the Cloudflare Worker.
 - **Overview Dashboard**: Real-time counts for total feedback, pending reviews, active chat relays, and active polls.
 - **Feedback Review**: Filter by category/status (`Received`, `In Review`, `Resolved`), view PII flags, and post timestamped responses to student tracking IDs.
@@ -29,13 +29,13 @@ Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflar
 - **AI Analytics & Summary**: On-demand executive synthesis powered by Gemini / Groq (with automatic PII redaction, temporal burst/anomaly detection, sentiment & category distributions, and CSV/JSON export).
 - **Admin Management**: Manage authorized council accounts and inspect live backend/service health.
 
-### 3. Real-Time Alert Integrations
+### 🔔 3. Real-Time Alert Integrations
 - **Telegram Alert Bot**: Pushes real-time notifications to the council group when new feedback or live chat messages arrive (`/start`, `/status`, `/help`).
 - **Gmail OAuth Dispatcher**: Optional email alerts for incoming student grievances via the Gmail REST API.
 
 ---
 
-## Architecture & Stack
+## 🏗️ Architecture & Stack
 
 ```text
                           STUDENTS (Mobile / Web)
@@ -74,7 +74,7 @@ Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflar
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 ### 1. Frontend (`frontend/.env`)
 Copy `frontend/.env.example` to `frontend/.env`:
@@ -108,7 +108,7 @@ npx wrangler secret put TELEGRAM_ADMIN_CHAT_ID
 
 ---
 
-## Local Development & Deployment
+## 🚀 Local Development & Deployment
 
 ```bash
 # Start Cloudflare Worker + Vite frontend concurrently
@@ -124,7 +124,7 @@ npm run build
 npm run worker:deploy
 ```
 
-### Firestore Security Rules
+### 🔒 Firestore Security Rules
 Deploy [`firestore.rules`](./firestore.rules) using the Firebase CLI:
 ```bash
 firebase deploy --only firestore:rules
@@ -132,5 +132,5 @@ firebase deploy --only firestore:rules
 
 ---
 
-## License
+## 📄 License
 MIT
