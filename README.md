@@ -1,5 +1,9 @@
 # 🏛️ GMC Thiruvallur – Student Council Portal
 
+![Live Deployment](https://github.com/sangrechy/project_gmc_tiruvallur_feedback_app/actions/workflows/live-status.yml/badge.svg)
+![Cloudflare Edge](https://img.shields.io/badge/Cloudflare_Edge-Production-0d9488?logo=cloudflare&logoColor=white)
+![Access](https://img.shields.io/badge/Link-Private_Campus_Distribution-475569)
+
 A lightweight, serverless **Student Council Feedback & Communication Portal** built for students of Government Medical College (GMC) Thiruvallur.
 
 Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflare Workers, and Firebase Spark without requiring a paid VPS or Firebase Blaze plan.

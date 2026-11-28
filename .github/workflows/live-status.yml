@@ -1,0 +1,39 @@
+name: Live Deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    name: Production Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify live Cloudflare Worker health
+        env:
+          LIVE_URL: ${{ secrets.LIVE_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${LIVE_URL:-}" ]; then
+            echo "LIVE_HEALTH_URL secret is not configured."
+            exit 1
+          fi
+          BASE="${LIVE_URL%/}"
+          if ! curl --silent --fail --max-time 15 -o /tmp/health.json "${BASE}/health" >/dev/null 2>&1; then
+            echo "Live deployment health endpoint did not respond with HTTP 200."
+            exit 1
+          fi
+          STATUS="$(jq -r '.status // "unknown"' /tmp/health.json)"
+          ENV_NAME="$(jq -r '.environment // "unknown"' /tmp/health.json)"
+          TS="$(jq -r '.timestamp // "unknown"' /tmp/health.json)"
+          echo "Live Deployment Status: ${STATUS} (${ENV_NAME}) at ${TS}"
+          if [ "${STATUS}" != "healthy" ]; then
+            exit 1
+          fi
