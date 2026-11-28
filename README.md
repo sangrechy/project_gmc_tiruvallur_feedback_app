@@ -2,8 +2,6 @@
 
 A lightweight, serverless **Student Council Feedback & Communication Portal** built for students of Government Medical College (GMC) Thiruvallur.
 
-> **Note:** This is an independent, student-run council initiative for peer communication and grievance tracking — not an official government or college administration website.
-
 Engineered to run within **free-tier quotas** across Cloudflare Pages, Cloudflare Workers, and Firebase Spark without requiring a paid VPS or Firebase Blaze plan.
 
 ---
